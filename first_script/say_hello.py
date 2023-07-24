@@ -4,9 +4,9 @@ def handle_request(request):
     response = 'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n'
     name = request.splitlines()[-1].decode().split('=')[-1]
     if name:
-        response += f'{name} вітаємо на тестовій сторінці Marketplase'
+        response += f'{name} welcome to the test page Marketplase'
     else:
-        response += 'Привіт! Введіть своє ім\'я у параметрах запиту.'
+        response += "Hi, I don't know your name!"
     return response
 
 def main():
