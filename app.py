@@ -25,10 +25,6 @@ class User(db.Model):
    date_registered = db.Column(db.DateTime, default = datetime.utcnow())
    admin = db.Column(db.Boolean)
 
-@app.get('/test')
-def list_programming_languages():
-   return 'hello'
-
 @app.route('/login',methods = ['POST'])
 def post():
     user_data = request.get_json()
@@ -166,7 +162,7 @@ def token_required(f):
 @app.route('/protected', methods=['GET'])
 @token_required 
 def protected():  
-   return "fdf"
+   return "protected zone"
 
 with app.app_context():
     db.create_all()
