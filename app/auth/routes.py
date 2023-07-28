@@ -1,41 +1,30 @@
+from app.auth import bp
+from app import db
 from flask import Flask, jsonify, make_response, request
 from werkzeug.security import generate_password_hash,check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
+from flask_migrate import Migrate
+from app.models.user import User
 import uuid
 import jwt
 from datetime import datetime, timedelta
 import sqlite3
 
-app = Flask(__name__)
+@bp.route('/')
+def index():
+    return 'This is The Main Blueprint'
 
-app.config['SECRET_KEY']='004f2af45d3a4e161a7dd2d17fdae47f'
-app.config['SQLALCHEMY_DATABASE_URI']='sqlite://///home/oranwela/apps/TC-Back-End/marketplace.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-
-db = SQLAlchemy(app)
-
-class User(db.Model):
-   __tablename__ = 'users'
-   id = db.Column(db.Integer, primary_key=True)
-   first_name = db.Column(db.String(50))
-   last_name = db.Column(db.String(50))
-   email = db.Column(db.String(50))
-   password = db.Column(db.String(50))
-   date_registered = db.Column(db.DateTime, default = datetime.utcnow())
-   admin = db.Column(db.Boolean)
-
-@app.route('/login',methods = ['POST'])
+@bp.route('/login',methods = ['POST'])
 def post():
     user_data = request.get_json()
     try:
 
         user = User.query.filter_by(email = user_data['email']).first()
 
-        if user and check_password_hash(user.password,user_data['password'])==True:
+        if user and check_password_hash(user.password,user_data['password']) == True:
             auth_token = encode_token(user.id)
             resp = {
-
                 "status":"succes",
                 "message" :"Successfully logged in",
                 'auth_token':auth_token
@@ -56,11 +45,9 @@ def post():
         }
         return make_response(jsonify(resp)), 404
 
-@app.route('/register', methods=['POST'])
+@bp.route('/register', methods=['POST'])
 def register_user():
     user_data = request.get_json()
-    print(user_data)
-    print('fsd')
     user = User.query.filter_by(email = user_data['email']).first()
     if not user:
         try: 
@@ -91,10 +78,9 @@ def register_user():
 
 def encode_token(user_id):
     payload ={
-        'exp': datetime.utcnow() + timedelta(days=1, seconds=5 ),
+        'exp': datetime.utcnow() + timedelta(days=1),
         'iat' :datetime.utcnow(),
         'sub':user_id
-        
     }
     token = jwt.encode(payload,app.config['SECRET_KEY'],algorithm= 'HS256')
     return token
@@ -159,10 +145,7 @@ def token_required(f):
 
     return decorated
 
-@app.route('/protected', methods=['GET'])
+@bp.route('/protected', methods=['GET'])
 @token_required 
 def protected():  
    return "protected zone"
-
-with app.app_context():
-    db.create_all()
