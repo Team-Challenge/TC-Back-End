@@ -1,4 +1,4 @@
-from app.auth import bp
+from app.auth import api
 from app import db
 from flask import Flask, jsonify, make_response, request
 from werkzeug.security import generate_password_hash,check_password_hash
@@ -10,71 +10,75 @@ import uuid
 import jwt
 from datetime import datetime, timedelta
 import sqlite3
+from flask_restx import Resource, Api, Namespace, fields
 
-@bp.route('/')
-def index():
-    return 'This is The Main Blueprint'
+ns = Namespace("api")
 
-@bp.route('/login',methods = ['POST'])
-def post():
-    user_data = request.get_json()
-    try:
+login_model = ns.model('Auth', {
+    'email': fields.String,
+    'password': fields.String
+})
 
+@ns.route('/auth', endpoint='auth')
+class Auth(Resource):
+
+    def post(self):
+        user_data = request.get_json()
+        print(user_data)
         user = User.query.filter_by(email = user_data['email']).first()
+        if not user:
+            try: 
 
-        if user and check_password_hash(user.password,user_data['password']) == True:
-            auth_token = encode_token(user.id)
-            resp = {
-                "status":"succes",
-                "message" :"Successfully logged in",
-                'auth_token':auth_token
-            }
-            return make_response(jsonify(resp)),200
+                hashed_password = generate_password_hash(user_data['password'])
+                user = User(email =user_data['email'], password =hashed_password)
+                db.session.add(user)
+                db.session.commit()
+                resp = {
+                    "status":"success",
+                    "message":"User successfully registered",
+                }
+                return resp#make_response(jsonify(resp)),201
+
+            except Exception as e:
+                print(e)
+                resp = {
+                    "status" :"Error",
+                    "message" :" Error occured, user registration failed"
+                }
+                return resp#make_response(jsonify(resp)),401
         else:
-            resp ={
-                "status":"Error",
-                "message":"User does not exist"
-            }
-            return make_response(jsonify(resp)), 404
-
-    except Exception as e:
-        print(e)
-        resp = {
-            "Status":"error",
-                "Message":"User login failed"
-        }
-        return make_response(jsonify(resp)), 404
-
-@bp.route('/register', methods=['POST'])
-def register_user():
-    user_data = request.get_json()
-    user = User.query.filter_by(email = user_data['email']).first()
-    if not user:
-        try: 
-
-            hashed_password = generate_password_hash(user_data['password'])
-            user = User(email =user_data['email'], password =hashed_password)
-            db.session.add(user)
-            db.session.commit()
             resp = {
-                "status":"success",
-                "message":"User successfully registered",
+                "status":"error",
+                "message":"User already exists"
             }
-            return make_response(jsonify(resp)),201
+            return resp#make_response(jsonify(resp)),202
+    @api.expect(login_model)
+    def get(self):
+        user_data = request.get_json()
+        try:
+            user = User.query.filter_by(email = user_data['email']).first()
+            if user and check_password_hash(user.password, user_data['password']) == True:
+                auth_token = encode_token(user.id)
+                resp = {
+                    "status":"succes",
+                    "message" :"OK",
+                    'auth_token':auth_token
+                }
+                return make_response(jsonify(resp)), 200
+            else:
+                resp ={
+                    "status":"Error",
+                    "message":"BAD"
+                }
+                return make_response(jsonify(resp)), 404
 
         except Exception as e:
             print(e)
             resp = {
-                "status" :"Error",
-                "message" :" Error occured, user registration failed"
+                "Status":"error",
+                    "Message":"User login failed"
             }
-            return make_response(jsonify(resp)),401
-    else:
-        resp = {
-            "status":"error",
-            "message":"User already exists"
-        }
-        return make_response(jsonify(resp)),202
+            return make_response(jsonify(resp)), 404
 
 def encode_token(user_id):
     payload ={
@@ -145,7 +149,7 @@ def token_required(f):
 
     return decorated
 
-@bp.route('/protected', methods=['GET'])
+'''@api.route('/protected', methods=['GET'])
 @token_required 
 def protected():  
-   return "protected zone"
+   return "protected zone"'''
