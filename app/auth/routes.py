@@ -14,9 +14,19 @@ from flask_restx import Resource, Api, Namespace, fields
 
 ns = Namespace("api")
 
-login_model = ns.model('Auth', {
+login_model = ns.model('Login', {
     'email': fields.String,
     'password': fields.String
+})
+
+newuser_model = ns.model('NewUser', {
+    'full_name': fields.String,
+    'email': fields.String,
+    'password': fields.String
+})
+
+login_response = ns.model('NewUser', {
+    'jwt_token': fields.String
 })
 
 @ns.route('/auth', endpoint='auth')
@@ -52,7 +62,8 @@ class Auth(Resource):
                 "message":"User already exists"
             }
             return resp#make_response(jsonify(resp)),202
-    @api.expect(login_model)
+    
+    @api.response(200, 'Success', login_response)
     def get(self):
         user_data = request.get_json()
         try:
