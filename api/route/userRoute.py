@@ -1,9 +1,7 @@
 from database import db
 from flask import Flask, jsonify, make_response, request, Blueprint, Response, redirect, url_for, abort
-from werkzeug.security import generate_password_hash,check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
-from flask_migrate import Migrate
 from datetime import datetime, timedelta
 from dao.userDao import UserDao
 from model.user import User
