@@ -1,16 +1,14 @@
-from model.user import User
-from dao.basicDao import BasicDao
-from database import db
+from models import User
+#from dao.basicDao import BasicDao
+from database import db_session
 
 class UserDao:
 
     @staticmethod
     def add_user(user: User) -> bool:
-        db.session.add(user)
-        return BasicDao.safe_commit()
+        db_session.add(user)
+        return db_session.commit()
     
     @staticmethod
     def get_user_by_email(email: str) -> User:
-        return User.query \
-            .filter_by(email = email) \
-            .first()
+        return db_session.query(User).filter_by(email=email).first()

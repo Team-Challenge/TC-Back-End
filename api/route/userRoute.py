@@ -1,10 +1,9 @@
-from database import db
+
 from flask import Flask, jsonify, make_response, request, Blueprint, Response, redirect, url_for, abort
-from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from datetime import datetime, timedelta
 from dao.userDao import UserDao
-from model.user import User
+from models import User
 from flaskBcrypt import flask_bcrypt
 
 user_route = Blueprint("user_route", __name__, url_prefix="/users")

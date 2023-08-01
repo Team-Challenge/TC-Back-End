@@ -1,7 +1,7 @@
 from flask import current_app
 from sqlalchemy.exc import SQLAlchemyError
 
-from database import db
+'''from database import db
 
 class BasicDao:
     @staticmethod
@@ -16,4 +16,4 @@ class BasicDao:
             db.session.rollback()
             current_app.logger.error("SQL Commit Failed!  Rolling back...")
             current_app.logger.error(error.args)
-            return False
+            return False'''
