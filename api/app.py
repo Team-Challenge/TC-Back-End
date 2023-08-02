@@ -1,14 +1,13 @@
-from flask import Flask
+from flask import Flask, current_app
 from config import Config
 from route.userRoute import user_route
 from route.authRoute import auth_route
 from route.testRoute import test_route
-#from database import db
-from flaskBcrypt import flask_bcrypt
-
+from flasgger import Swagger
 
 def create_app(config_class = Config) -> Flask:
     app = Flask(__name__)
+    swagger = Swagger(app)
 
     app.config['JWT_SECRET_KEY'] = 'super-secret'
 
@@ -21,7 +20,5 @@ def create_app(config_class = Config) -> Flask:
     app.config['SECRET_KEY'] = 'fds'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/oranwela/apps/TC-Back-End/api/app.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    flask_bcrypt.init_app(app)
 
     return app

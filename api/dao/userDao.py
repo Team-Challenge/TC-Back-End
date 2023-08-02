@@ -1,5 +1,5 @@
-from api.models import User
-from api.database import db_session
+from models import User
+from database import db_session
 
 class UserDao:
 

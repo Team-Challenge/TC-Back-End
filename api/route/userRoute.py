@@ -1,73 +1,64 @@
 
-from flask import Flask, jsonify, make_response, request, Blueprint, Response, redirect, url_for, abort
+from flask import Flask, jsonify, make_response, request, Blueprint, Response, redirect, url_for, abort, current_app
 from functools import wraps
 from datetime import datetime, timedelta
 from dao.userDao import UserDao
 from models import User
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
+from flask_expects_json import expects_json
+from flasgger import Swagger
 
 user_route = Blueprint("user_route", __name__, url_prefix="/users")
 
-@user_route.route("", methods=["GET", "POST"])
-#@auth_required(enabled_methods=[GET])
-def users_redirect() -> Response:
+signup_schema = {
+  "type": "object",
+  "properties": {
+    "full_name": { "type": "string" },
+    "email": { "type": "string", "pattern": "[^@]+@[^@]+\.[^@]" },
+    "password": {"type": "string"}
+  },
+  "required": ["full_name", "email", "password"]
+}
 
-    if request.method == "GET":
-        return redirect(url_for("user_route.users"), code=302)
-
-    if request.method == "POST":
-        return redirect(url_for("user_route.users"), code=307)
-
-    return abort(404)
-
-
-@user_route.route("/", methods=["GET", "POST"])
-#@auth_required(enabled_methods=[GET])
-#@swag_from("swagger/userRoute/usersGet.yml", methods=["GET"])
-#@swag_from("swagger/userRoute/usersPost.yml", methods=["POST"])
-def users() -> Response:
-
-    if request.method == "GET":
-        return user_get()
-
-    if request.method == "POST":
-        return user_post()
-
-    return abort(404)
-
-
+@user_route.route("/", methods=["POST"])
+@expects_json(signup_schema)
 def user_post() -> Response:
-    user_data: dict = request.get_json(silent=True)
-    user_to_add = User(user_data)
+    """Example endpoint returning a list of colors by palette
+    This is using docstrings for specifications.
+    ---
+    parameters:
+      - name: palette
+        in: path
+        type: string
+        enum: ['all', 'rgb', 'cmyk']
+        required: true
+        default: all
+    definitions:
+      Palette:
+        type: object
+        properties:
+          palette_name:
+            type: array
+            items:
+              $ref: '#/definitions/Color'
+      Color:
+        type: string
+    responses:
+      200:
+        description: A list of colors (may be filtered by palette)
+        schema:
+          $ref: '#/definitions/Palette'
+        examples:
+          rgb: ['red', 'green', 'blue']
+    """
 
-    password = user_to_add.password
-    hashed_password = generate_password_hash(password)
-    user_to_add.password = hashed_password
-
+    user_to_add = User(request.get_json(silent=True))
     UserDao.add_user(user_to_add)
+
     added_user = UserDao.get_user_by_email(user_to_add.email)
-    print(added_user.full_name)
-    if added_user is None:
-        response = jsonify(
-            {
-                    "self": "/v2/users",
-                    "added": False,
-                    "user": None,
-                    "error": "An unexpected error occurred creating the user.",
-                    }
-            )
-        response.status_code = 500
-        return response
-    
-    response = jsonify(
-            {
-                "self": "/v2/users",
-                "added": True
-            }
-        )
-    response.status_code = 201
-    return response
+
+    return "fsfsd"
 
 
 def user_get() -> Response:
