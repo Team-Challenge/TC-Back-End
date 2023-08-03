@@ -2,3 +2,6 @@ venv
 __pycache__
 marketplace.db
 app.db
+.vscode
+market.db
+.env

@@ -10,7 +10,7 @@ from alembic import context
 config = context.config
 
 section = config.config_ini_section
-config.set_main_option('sqlalchemy.url', 'sqlite:////home/oranwela/apps/TC-Back-End/api/app.db')
+config.set_main_option('sqlalchemy.url', 'sqlite:////home/kyrylo/TC-Back-End/market.db')
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
