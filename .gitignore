@@ -5,3 +5,4 @@ app.db
 .vscode
 market.db
 .env
+.pytest_cache
