@@ -1,4 +1,4 @@
-from flask import jsonify, request, Blueprint, Response, make_response
+from flask import jsonify, request, Blueprint, Response, make_response, current_app
 from datetime import datetime, timedelta
 from models import User, Security, SignupUserSchema, UserSchema, SigninUserSchema
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -35,7 +35,8 @@ def signin() -> Response:
         user_data["password"],
     ):
         token = jwt.encode(
-            {"id": user.id, "exp": datetime.utcnow() + timedelta(minutes=30)}, "secret"
+            {"id": user.id, "exp": datetime.utcnow() + timedelta(minutes=30)},
+            current_app.config["JWT_SECRET_KEY"],
         )
         return make_response(jsonify({"token": token}), 200)
     else:
