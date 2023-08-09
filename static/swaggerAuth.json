@@ -1,23 +1,17 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Authentication API",
-    "description": "API for user authentication",
+    "title": "User Authentication API",
+    "description": "API for user registration, sign in, and email verification.",
     "version": "1.0.0"
   },
   "basePath": "/",
-  "schemes": [
-    "http",
-    "https"
-  ],
+  "schemes": ["http", "https"],
   "paths": {
     "/accounts/signup": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["Authentication"],
         "summary": "Register a new user",
-        "operationId": "signup",
         "parameters": [
           {
             "name": "body",
@@ -30,18 +24,18 @@
         ],
         "responses": {
           "200": {
-            "description": "User registered successfully"
+            "description": "User registered successfully",
+            "schema": {
+              "$ref": "#/definitions/SignupResponse"
+            }
           }
         }
       }
     },
     "/accounts/signin": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["Authentication"],
         "summary": "Sign in with user credentials",
-        "operationId": "signin",
         "parameters": [
           {
             "name": "body",
@@ -55,24 +49,37 @@
         "responses": {
           "200": {
             "description": "User signed in successfully",
-            "headers": {
-              "token": {
-                "type": "string",
-                "description": "Access token"
-              }
-            },
             "schema": {
-              "type": "object",
-              "properties": {
-                "token": {
-                  "type": "string",
-                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZXhwIjoxNjMxNDE3NDk0fQ.1234567890abcdef"
-                }
-              }
+              "$ref": "#/definitions/SigninResponse"
             }
           },
           "404": {
             "description": "User not found or incorrect password"
+          }
+        }
+      }
+    },
+    "/accounts/verify/{token}": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Verify user's email address",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email verified successfully",
+            "schema": {
+              "$ref": "#/definitions/VerifyEmailResponse"
+            }
+          },
+          "404": {
+            "description": "Invalid verification token"
           }
         }
       }
@@ -93,6 +100,17 @@
         }
       }
     },
+    "SignupResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/User"
+        },
+        "verification_link": {
+          "type": "string"
+        }
+      }
+    },
     "SigninUser": {
       "type": "object",
       "properties": {
@@ -100,6 +118,36 @@
           "type": "string"
         },
         "password": {
+          "type": "string"
+        }
+      }
+    },
+    "SigninResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "is_verified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "VerifyEmailResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
           "type": "string"
         }
       }

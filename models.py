@@ -14,6 +14,7 @@ class User(db.Model):
     full_name = db.Column(db.String(50))
     email = db.Column(db.String(50))
     joined_at = db.Column(db.DateTime, default=datetime.utcnow())
+    is_verified = db.Column(db.Boolean, default=False)
 
 
 class Security(db.Model):
