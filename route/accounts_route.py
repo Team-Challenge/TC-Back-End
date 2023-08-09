@@ -1,8 +1,8 @@
-from flask import jsonify, request, Blueprint, Response, make_response, current_app
 from datetime import datetime, timedelta
-from models import User, Security, SignupUserSchema, UserSchema, SigninUserSchema
 from werkzeug.security import check_password_hash, generate_password_hash
 import jwt
+from flask import jsonify, request, Blueprint, Response, make_response, current_app
+from models import User, Security, SignupUserSchema, UserSchema, SigninUserSchema
 from app import db
 
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
@@ -38,5 +38,4 @@ def signin() -> Response:
             current_app.config["JWT_SECRET_KEY"],
         )
         return make_response(jsonify({"token": token}), 200)
-    else:
-        return make_response("", 404)
+    return make_response("", 404)
