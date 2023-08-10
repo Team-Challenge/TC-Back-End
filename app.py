@@ -19,7 +19,7 @@ def create_app(config_class=Config) -> Flask:
     migrate.init_app(app, db)
     ma.init_app(app)
 
-    from route.accountsRoute import accounts_route
+    from route.accounts_route import accounts_route
     from route.testRoute import test_route
 
     app.register_blueprint(accounts_route)
