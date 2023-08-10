@@ -38,7 +38,6 @@ def signup() -> Response:
 
     return make_response(jsonify(response_data), 200)
 
-
 @accounts_route.route("/signin", methods=["POST"])
 def signin() -> Response:
     user_data = SigninUserSchema().load(request.get_json(silent=True))
