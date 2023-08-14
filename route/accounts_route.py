@@ -55,7 +55,7 @@ def signin() -> Response:
     response = {"token": token}
     return make_response(response, 200)
 
-
+#
 @accounts_route.route('/verify/<token>', methods=['GET'])
 def verify_email(token):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
