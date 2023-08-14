@@ -20,8 +20,8 @@ def create_app(config_class=Config) -> Flask:
     migrate.init_app(app, db)
     ma.init_app(app)
 
-    from route.accounts_route import accounts_route
-    from route.testRoute import test_route
+    from routes.accounts_route import accounts_route
+    from routes.testRoute import test_route
 
     SWAGGER_URL = "/swagger"
     API_URL = "/static/swaggerAuth.json"

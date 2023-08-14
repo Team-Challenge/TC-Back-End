@@ -1,8 +1,60 @@
-venv
-__pycache__
-marketplace.db
-app.db
-.vscode
-market.db
+# Logs
+logs
+*.log*
+
+#IDE metadata
+**.idea/**
+.idea
+.idea/
+.vscode/
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# dotenv
 .env
-.pytest_cache
+
+# virtualenv
+.venv
+venv/
+ENV/
+
+# mypy & tests
+.mypy_cache/
+.pytest_cache/
+
+# Artifacts
+media/
+.DS_Store
+
+# Application
+*.db
