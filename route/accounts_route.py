@@ -30,7 +30,7 @@ def signup() -> Response:
 
     verification_link = url_for('accounts_route.verify_email', token=verification_token, _external=True)
     user_schema = UserSchema(exclude=["id"])
-    # Повернути відповідь з посиланням верифікації
+    
     response_data = {
         "user": user_schema.dump(user_to_add),
         "verification_link": verification_link
