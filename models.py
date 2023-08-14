@@ -1,6 +1,6 @@
 from datetime import datetime
 from app import db, ma
-from marshmallow import fields, Schema
+from marshmallow import fields, Schema, validate
 
 
 class User(db.Model):
@@ -14,7 +14,7 @@ class User(db.Model):
     full_name = db.Column(db.String(50))
     email = db.Column(db.String(50))
     joined_at = db.Column(db.DateTime, default=datetime.utcnow())
-    is_verified = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=False)
 
 
 class Security(db.Model):
@@ -36,8 +36,8 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
 
 class SignupUserSchema(Schema):
     email = fields.Email()
-    full_name = fields.Str()
-    password = fields.Str()
+    full_name = fields.Str(validate=validate.Length(min=2, max=50))
+    password = fields.Str(validate=validate.Length(min=8))
 
 
 class SigninUserSchema(Schema):
