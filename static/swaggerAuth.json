@@ -1,0 +1,156 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "User Authentication API",
+    "description": "API for user registration, sign in, and email verification.",
+    "version": "1.0.0"
+  },
+  "basePath": "/",
+  "schemes": ["http", "https"],
+  "paths": {
+    "/accounts/signup": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a new user",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SignupUser"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User registered successfully",
+            "schema": {
+              "$ref": "#/definitions/SignupResponse"
+            }
+          }
+        }
+      }
+    },
+    "/accounts/signin": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Sign in with user credentials",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SigninUser"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User signed in successfully",
+            "schema": {
+              "$ref": "#/definitions/SigninResponse"
+            }
+          },
+          "404": {
+            "description": "User not found or incorrect password"
+          }
+        }
+      }
+    },
+    "/accounts/verify/{token}": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Verify user's email address",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email verified successfully",
+            "schema": {
+              "$ref": "#/definitions/VerifyEmailResponse"
+            }
+          },
+          "404": {
+            "description": "Invalid verification token"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "SignupUser": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "SignupResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/User"
+        },
+        "verification_link": {
+          "type": "string"
+        }
+      }
+    },
+    "SigninUser": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "SigninResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "is_verified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "VerifyEmailResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
