@@ -1,5 +1,6 @@
 
 from flask import Flask
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
@@ -15,9 +16,8 @@ def create_app(config_class=Config) -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
-    
-    with app.app_context() as c:
-        db.create_all()
+    CORS(app, origins=["http://localhost", "http://127.0.0.1", "http://0.0.0.0",
+                       "https://*ondigitalocean.app", "http://*ondigitalocean.app"])
 
     from routes.accounts_route import accounts_route
     from routes.testRoute import test_route
