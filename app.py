@@ -6,10 +6,6 @@ from flask_marshmallow import Marshmallow
 from flask_swagger_ui import get_swaggerui_blueprint
 from config import Config
 
-db = SQLAlchemy()
-migrate = Migrate()
-ma = Marshmallow()
-
 
 def create_app(config_class=Config) -> Flask:
     app = Flask(__name__)
@@ -19,6 +15,9 @@ def create_app(config_class=Config) -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
+    
+    with app.app_context() as c:
+        db.create_all()
 
     from routes.accounts_route import accounts_route
     from routes.testRoute import test_route
@@ -34,3 +33,9 @@ def create_app(config_class=Config) -> Flask:
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
     return app
+
+
+db = SQLAlchemy()
+migrate = Migrate()
+ma = Marshmallow()
+app = create_app()
