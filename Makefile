@@ -1,7 +1,7 @@
 include .env
 
 install:
-	python3 -m venv $VENV; cd && . ${VENV}/bin/activate && pip install -r requirements.txt
+	. ${VENV}/bin/activate && pip install -r requirements.txt
 
 run:
 	${PYTHON} run.py
