@@ -4,7 +4,9 @@ from models.users import User, Security, SignupUserSchema, UserSchema, SigninUse
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 import jwt
+from routes.error_handlers import *
 from app import db
+
 
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 
@@ -41,13 +43,14 @@ def signup() -> Response:
 @accounts_route.route("/signin", methods=["POST"])
 def signin() -> Response:
     user_data = SigninUserSchema().load(request.get_json(silent=True))
+
     user = User.query.filter_by(email=user_data["email"]).first()
 
     if user is None or not check_password_hash(
         Security.query.filter_by(user_id=user.id).first().password_hash,
         user_data["password"],
     ):
-        abort(401, "Invalid email or password")
+        raise APIAuthError()
     token = jwt.encode(
             {"id": user.id, "exp": datetime.utcnow() + timedelta(minutes=30)},
             current_app.config["JWT_SECRET_KEY"],
