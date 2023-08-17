@@ -58,31 +58,6 @@
           }
         }
       }
-    },
-    "/accounts/verify/{token}": {
-      "get": {
-        "tags": ["Authentication"],
-        "summary": "Verify user's email address",
-        "parameters": [
-          {
-            "name": "token",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Email verified successfully",
-            "schema": {
-              "$ref": "#/definitions/VerifyEmailResponse"
-            }
-          },
-          "404": {
-            "description": "Invalid verification token"
-          }
-        }
-      }
     }
   },
   "definitions": {
@@ -143,14 +118,7 @@
           "type": "boolean"
         }
       }
-    },
-    "VerifyEmailResponse": {
-      "type": "object",
-      "properties": {
-        "message": {
-          "type": "string"
-        }
-      }
     }
   }
 }
+
