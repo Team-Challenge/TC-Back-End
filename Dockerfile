@@ -4,10 +4,15 @@ WORKDIR /app
 
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
+
 COPY . .
 
-RUN python config/create_db.py
+RUN mv .env_example .env
+RUN echo "SQLALCHEMY_DATABASE_URI=/app/data/app.db" >> .env
+
+RUN python data/create_db.py
 RUN flask db upgrade
+RUN python data/create_fixtures.py
 
 EXPOSE 8080
 
