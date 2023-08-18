@@ -71,3 +71,18 @@ def verify_email(token):
         return make_response(jsonify({"message": "OK"}), 200)
     except Exception as e:
         abort(404, "Invalid verification token")
+
+
+@accounts_route.route("/check_jwt_token", methods=["GET"])
+def check_jwt_token() -> Response:
+    token = request.headers.get("Authorization")
+
+    if token is None:
+        raise APIAuthError()
+
+    try:
+        jwt.decode(token, current_app.config["JWT_SECRET_KEY"])
+    except Exception as e:
+        raise APIAuthError()
+
+    return make_response(jsonify({"message": "OK"}), 200)

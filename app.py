@@ -22,7 +22,7 @@ def create_app(config_class=Config) -> Flask:
 
     from routes.accounts_route import accounts_route
     from routes.error_handlers import error_handlers
-    from routes.testRoute import test_route
+    from routes.test_route import test_route
 
     SWAGGER_URL = "/swagger"
     API_URL = "/static/swaggerAuth.json"
