@@ -4,11 +4,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
 from flask_swagger_ui import get_swaggerui_blueprint
+from flask_jwt_extended import JWTManager
 from config import Config
 
 db = SQLAlchemy()
 migrate = Migrate()
 ma = Marshmallow()
+jwt = JWTManager()
 
 
 def create_app(config_class=Config) -> Flask:
@@ -19,10 +21,12 @@ def create_app(config_class=Config) -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
+    jwt.init_app(app)
 
     from routes.accounts_route import accounts_route
     from routes.error_handlers import error_handlers
     from routes.test_route import test_route
+    from routes.users import users_route
 
     SWAGGER_URL = "/swagger"
     API_URL = "/static/swaggerAuth.json"
@@ -34,6 +38,7 @@ def create_app(config_class=Config) -> Flask:
     app.register_blueprint(test_route)
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
     app.register_blueprint(error_handlers)
+    app.register_blueprint(users_route)
 
 
     return app

@@ -6,6 +6,14 @@ from itsdangerous import URLSafeTimedSerializer
 import jwt
 from routes.error_handlers import *
 from app import db
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt_identity,
+    get_jwt,
+    jwt_required,
+    set_access_cookies
+)
 
 
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
@@ -51,14 +59,13 @@ def signin() -> Response:
         user_data["password"],
     ):
         raise APIAuthError()
-    token = jwt.encode(
-            {"id": user.id, "exp": datetime.utcnow() + timedelta(minutes=30)},
-            current_app.config["JWT_SECRET_KEY"],
-        )
-    response = {"token": token}
+
+    access_token = create_access_token(identity=user.id, fresh=True)
+    refresh_token = create_refresh_token(user.id)
+    response = {"access_token": access_token, "refresh_token": refresh_token}
+
     return make_response(response, 200)
 
-#
 @accounts_route.route('/verify/<token>', methods=['GET'])
 def verify_email(token):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
@@ -86,3 +93,15 @@ def check_jwt_token() -> Response:
         raise APIAuthError()
 
     return make_response(jsonify({"message": "OK"}), 200)
+
+
+@accounts_route.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def post():
+    user = get_jwt_identity()
+    token = create_access_token(identity=user, fresh=False)
+    # Make it clear that when to add the refresh token to the blocklist will depend on the app design
+    # jti = get_jwt()["jti"]
+    # BLOCKLIST.add(jti)
+    response = jsonify({"access_token": token})
+    return make_response(response, 200)
