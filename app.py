@@ -1,5 +1,6 @@
 
 from flask import Flask
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
@@ -7,10 +8,12 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from flask_jwt_extended import JWTManager
 from config import Config
 
+
 db = SQLAlchemy()
 migrate = Migrate()
 ma = Marshmallow()
 jwt = JWTManager()
+
 
 
 def create_app(config_class=Config) -> Flask:
@@ -21,7 +24,12 @@ def create_app(config_class=Config) -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
+
     jwt.init_app(app)
+
+    CORS(app, origins=["http://localhost", "http://127.0.0.1", "http://0.0.0.0",
+                       "https://*ondigitalocean.app", "http://*ondigitalocean.app"])
+
 
     from routes.accounts_route import accounts_route
     from routes.error_handlers import error_handlers
@@ -42,3 +50,9 @@ def create_app(config_class=Config) -> Flask:
 
 
     return app
+
+
+db = SQLAlchemy()
+migrate = Migrate()
+ma = Marshmallow()
+app = create_app()
