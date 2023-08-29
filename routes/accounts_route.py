@@ -4,7 +4,17 @@ from models.users import User, Security, SignupUserSchema, UserSchema, SigninUse
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 import jwt
+from routes.error_handlers import *
 from app import db
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt_identity,
+    get_jwt,
+    jwt_required,
+    set_access_cookies
+)
+
 
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 
@@ -41,21 +51,21 @@ def signup() -> Response:
 @accounts_route.route("/signin", methods=["POST"])
 def signin() -> Response:
     user_data = SigninUserSchema().load(request.get_json(silent=True))
+
     user = User.query.filter_by(email=user_data["email"]).first()
 
     if user is None or not check_password_hash(
         Security.query.filter_by(user_id=user.id).first().password_hash,
         user_data["password"],
     ):
-        abort(401, "Invalid email or password")
-    token = jwt.encode(
-            {"id": user.id, "exp": datetime.utcnow() + timedelta(minutes=30)},
-            current_app.config["JWT_SECRET_KEY"],
-        )
-    response = {"token": token}
+        raise APIAuthError()
+
+    access_token = create_access_token(identity=user.id, fresh=True)
+    refresh_token = create_refresh_token(user.id)
+    response = {"access_token": access_token, "refresh_token": refresh_token}
+
     return make_response(response, 200)
 
-#
 @accounts_route.route('/verify/<token>', methods=['GET'])
 def verify_email(token):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
@@ -68,3 +78,30 @@ def verify_email(token):
         return make_response(jsonify({"message": "OK"}), 200)
     except Exception as e:
         abort(404, "Invalid verification token")
+
+
+@accounts_route.route("/check_jwt_token", methods=["GET"])
+def check_jwt_token() -> Response:
+    token = request.headers.get("Authorization")
+
+    if token is None:
+        raise APIAuthError()
+
+    try:
+        jwt.decode(token, current_app.config["JWT_SECRET_KEY"])
+    except Exception as e:
+        raise APIAuthError()
+
+    return make_response(jsonify({"message": "OK"}), 200)
+
+
+@accounts_route.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def post():
+    user = get_jwt_identity()
+    token = create_access_token(identity=user, fresh=False)
+    # Make it clear that when to add the refresh token to the blocklist will depend on the app design
+    # jti = get_jwt()["jti"]
+    # BLOCKLIST.add(jti)
+    response = jsonify({"access_token": token})
+    return make_response(response, 200)
