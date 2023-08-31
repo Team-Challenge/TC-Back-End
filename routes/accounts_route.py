@@ -4,8 +4,9 @@ from models.users import User, Security, SignupUserSchema, UserSchema, SigninUse
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 import jwt
+import redis
 from routes.error_handlers import *
-from app import db
+from app import db, jwt
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -15,9 +16,19 @@ from flask_jwt_extended import (
     set_access_cookies
 )
 
+ACCESS_EXPIRES = timedelta(hours=1)
 
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 
+jwt_redis_blocklist = redis.StrictRedis(
+    host="localhost", port=6379, db=0, decode_responses=True
+)
+
+@jwt.token_in_blocklist_loader
+def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
+    jti = jwt_payload["jti"]
+    token_in_redis = jwt_redis_blocklist.get(jti)
+    return token_in_redis is not None
 
 @accounts_route.route("/signup", methods=["POST"])
 def signup() -> Response:
@@ -79,29 +90,21 @@ def verify_email(token):
     except Exception as e:
         abort(404, "Invalid verification token")
 
-
-@accounts_route.route("/check_jwt_token", methods=["GET"])
-def check_jwt_token() -> Response:
-    token = request.headers.get("Authorization")
-
-    if token is None:
-        raise APIAuthError()
-
-    try:
-        jwt.decode(token, current_app.config["JWT_SECRET_KEY"])
-    except Exception as e:
-        raise APIAuthError()
-
-    return make_response(jsonify({"message": "OK"}), 200)
-
-
 @accounts_route.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
-def post():
+def refresh():
     user = get_jwt_identity()
     token = create_access_token(identity=user, fresh=False)
-    # Make it clear that when to add the refresh token to the blocklist will depend on the app design
-    # jti = get_jwt()["jti"]
-    # BLOCKLIST.add(jti)
+    jti = get_jwt()["jti"]
+    jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
     response = jsonify({"access_token": token})
     return make_response(response, 200)
+
+@accounts_route.route("/logout", methods=["DELETE"])
+@jwt_required(verify_type=False)
+def logout():
+    token = get_jwt()
+    jti = token["jti"]
+    ttype = token["type"]
+    jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
+    return jsonify(msg=f"{ttype.capitalize()} token successfully revoked")

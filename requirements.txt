@@ -40,3 +40,4 @@ tomli==2.0.1
 typing_extensions==4.7.1
 Werkzeug==2.3.3
 Flask-JWT-Extended==4.5.2
+redis==5.0.0
