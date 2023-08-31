@@ -152,6 +152,11 @@
       "delete": {
         "summary": "User Logout",
         "tags": ["Accounts"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Token successfully revoked",
