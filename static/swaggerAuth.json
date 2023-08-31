@@ -1,124 +1,228 @@
 {
-  "swagger": "2.0",
+  "openapi": "3.0.0",
   "info": {
-    "title": "User Authentication API",
+    "title": "Auth API Documentation",
     "description": "API for user registration, sign in, and email verification.",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
-  "basePath": "/",
   "schemes": ["http", "https"],
   "paths": {
     "/accounts/signup": {
       "post": {
-        "tags": ["Authentication"],
-        "summary": "Register a new user",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/SignupUser"
+        "summary": "User Registration",
+        "tags": ["Accounts"],
+        "requestBody": {
+          "description": "User registration data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignupUserSchema"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
-            "description": "User registered successfully",
-            "schema": {
-              "$ref": "#/definitions/SignupResponse"
+            "description": "Successful registration",
+            "content": {
+              "application/json": {
+                "example": {
+                  "user": {
+                    "id": 1,
+                    "email": "user@example.com",
+                    "full_name": "John Doe"
+                  }
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
           }
         }
       }
     },
     "/accounts/signin": {
       "post": {
-        "tags": ["Authentication"],
-        "summary": "Sign in with user credentials",
+        "summary": "User Sign-In",
+        "tags": ["Accounts"],
+        "requestBody": {
+          "description": "User sign-in data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SigninUserSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful sign-in",
+            "content": {
+              "application/json": {
+                "example": {
+                  "access_token": "your_access_token",
+                  "refresh_token": "your_refresh_token"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/accounts/verify/{token}": {
+      "get": {
+        "summary": "Verify Email",
+        "tags": ["Accounts"],
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
+            "name": "token",
+            "in": "path",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/SigninUser"
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "User signed in successfully",
-            "schema": {
-              "$ref": "#/definitions/SigninResponse"
+            "description": "Email verified",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "OK"
+                }
+              }
             }
           },
           "404": {
-            "description": "User not found or incorrect password"
+            "description": "Invalid verification token"
+          }
+        }
+      }
+    },
+    "/accounts/check_jwt_token": {
+      "get": {
+        "summary": "Check JWT Token",
+        "tags": ["Accounts"],
+        "responses": {
+          "200": {
+            "description": "Token is valid",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "OK"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/accounts/refresh": {
+      "post": {
+        "summary": "Refresh Access Token",
+        "tags": ["Accounts"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "New access token generated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "access_token": "new_access_token"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/accounts/logout": {
+      "delete": {
+        "summary": "User Logout",
+        "tags": ["Accounts"],
+        "responses": {
+          "200": {
+            "description": "Token successfully revoked",
+            "content": {
+              "application/json": {
+                "example": {
+                  "msg": "Access token successfully revoked"
+                }
+              }
+            }
           }
         }
       }
     }
   },
-  "definitions": {
-    "SignupUser": {
-      "type": "object",
-      "properties": {
-        "email": {
-          "type": "string"
-        },
-        "full_name": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
+  "components": {
+    "schemas": {
+      "SignupUserSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "full_name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "SigninUserSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "full_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "joined_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "is_active": {
+            "type": "boolean"
+          }
         }
       }
     },
-    "SignupResponse": {
-      "type": "object",
-      "properties": {
-        "user": {
-          "$ref": "#/definitions/User"
-        },
-        "verification_link": {
-          "type": "string"
-        }
-      }
-    },
-    "SigninUser": {
-      "type": "object",
-      "properties": {
-        "email": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        }
-      }
-    },
-    "SigninResponse": {
-      "type": "object",
-      "properties": {
-        "token": {
-          "type": "string"
-        }
-      }
-    },
-    "User": {
-      "type": "object",
-      "properties": {
-        "email": {
-          "type": "string"
-        },
-        "full_name": {
-          "type": "string"
-        },
-        "is_verified": {
-          "type": "boolean"
-        }
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "Bearer token"
       }
     }
   }
 }
-
