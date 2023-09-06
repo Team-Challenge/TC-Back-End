@@ -13,3 +13,8 @@ clean:
 upgrade-migrations:
 	. ${VENV}/bin/activate && flask db upgrade
 
+up:
+	docker-compose up -d backend
+
+down:
+	docker-compose down --remove-orphans
