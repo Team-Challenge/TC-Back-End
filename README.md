@@ -17,7 +17,7 @@
 > set values in `.env`
 
 ## Create local database:
-> `touch /data/app.db`
+> `python ./data/create_db.py`
 
 ## Upgrade DB:
 > `flask db upgrade`
