@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 from config import Config
 
 
@@ -13,6 +14,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 ma = Marshmallow()
 jwt = JWTManager()
+cors = CORS()
 
 
 
@@ -24,6 +26,7 @@ def create_app(config_class=Config) -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
+    cors.init_app(app)
 
     jwt.init_app(app)
 
