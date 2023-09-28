@@ -32,6 +32,12 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
 
 @accounts_route.route("/signup", methods=["POST"])
 def signup() -> Response:
+    
+    request_data = request.get_json(silent=True)
+
+    if not request_data or "email" not in request_data or "full_name" not in request_data or "password" not in request_data:
+        abort(400, "Incomplete data. Please provide email, full_name, and password.")
+
     try:
         user_data = SignupUserSchema().load(request.get_json(silent=True))
     except Exception as e:
@@ -54,13 +60,20 @@ def signup() -> Response:
 
     verification_link = url_for('accounts_route.verify_email', token=verification_token, _external=True)
     user_schema = UserSchema(exclude=["id", "joined_at", "is_active"])
-    print(verification_link)
-    response = {"user": user_schema.dump(user_to_add)}
+    # print(verification_link)
+    response = {"user": user_schema.dump(user_to_add), "link": verification_token}
 
     return make_response(jsonify(response), 200)
 
 @accounts_route.route("/signin", methods=["POST"])
 def signin() -> Response:
+
+    request_data = request.get_json(silent=True)
+
+    if not request_data or "email" not in request_data or "password" not in request_data:
+        abort(400, "Incomplete data. Please provide email, full_name, and password.")
+
+
     user_data = SigninUserSchema().load(request.get_json(silent=True))
 
     user = User.query.filter_by(email=user_data["email"]).first()
