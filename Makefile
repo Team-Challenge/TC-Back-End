@@ -22,6 +22,8 @@ recreate-db-local:
 	echo "DB has been recreated. Migrations & Fixtures have been applied!"
 
 ## Docker commmands
+build-up:
+	docker-compose up --build -d backend
 up:
 	docker-compose up -d backend
 
