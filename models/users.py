@@ -33,6 +33,10 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = User
 
+class UserInfoSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = User
+        exclude = ('id', 'joined_at', 'is_active')
 
 class SignupUserSchema(Schema):
     email = fields.Email(validate=lambda x: email_is_unique(x))

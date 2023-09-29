@@ -1,6 +1,6 @@
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import datetime, timedelta
-from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema
+from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserInfoSchema
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 import jwt
@@ -24,11 +24,11 @@ jwt_redis_blocklist = redis.StrictRedis(
     host="localhost", port=6379, db=0, decode_responses=True
 )
 
-@jwt.token_in_blocklist_loader
+'''@jwt.token_in_blocklist_loader
 def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
     jti = jwt_payload["jti"]
     token_in_redis = jwt_redis_blocklist.get(jti)
-    return token_in_redis is not None
+    return token_in_redis is not None'''
 
 @accounts_route.route("/signup", methods=["POST"])
 def signup() -> Response:
@@ -121,3 +121,10 @@ def logout():
     ttype = token["type"]
     jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
     return jsonify(msg=f"{ttype.capitalize()} token successfully revoked")
+
+
+@accounts_route.route("/info", methods=["GET"])
+@jwt_required()
+def user_info():
+    user = User.query.filter_by(id=get_jwt_identity()).first()
+    return UserInfoSchema().dump(user)
