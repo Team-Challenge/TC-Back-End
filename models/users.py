@@ -15,6 +15,7 @@ class User(db.Model):
     email = db.Column(db.String(50))
     joined_at = db.Column(db.DateTime, default=datetime.utcnow())
     is_active = db.Column(db.Boolean, default=False)
+    phone_number = db.Column(db.String(15), default=None)
 
 
 class Security(db.Model):
@@ -30,6 +31,7 @@ class Security(db.Model):
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
     email = fields.Email()
+    phone_number = fields.Str()
     class Meta:
         model = User
 
