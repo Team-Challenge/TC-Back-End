@@ -63,10 +63,18 @@ class TestAccountsRoutes(unittest.TestCase):
         self.assertIn("access_token", response_data)
         self.assertIn("refresh_token", response_data)
 
-        #logout
+        #update user full name and phone number
         access_token = response.get_json().get('access_token')
         headers = {'Authorization': f'Bearer {access_token}'}
 
+        valid_update_user_data = {
+            "full_name": "Test Update",
+            "phone_number": "+380972323233"
+        }
+        response = self.test_client.post('/accounts/update_user', data=json.dumps(valid_update_user_data), content_type='application/json', headers=headers)
+        self.assertEqual(response.status_code, 200)
+
+        #logout
         response = self.test_client.delete('/accounts/logout', headers=headers)
 
         

@@ -31,7 +31,6 @@ class Security(db.Model):
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
     email = fields.Email()
-    phone_number = fields.Str()
     class Meta:
         model = User
 
@@ -45,3 +44,7 @@ class SignupUserSchema(Schema):
 class SigninUserSchema(Schema):
     email = fields.Email()
     password = fields.Str()
+
+class UserUpdateSchema(Schema):
+    full_name = fields.Str(validate=validate.Length(min=2, max=50))
+    phone_number = fields.Str()
