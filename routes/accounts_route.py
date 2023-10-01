@@ -1,9 +1,11 @@
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import datetime, timedelta
-from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserInfoSchema
+from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserInfoSchema, UserPicture
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 import jwt
+import os
+import uuid
 import redis
 from routes.error_handlers import *
 from app import db, jwt
@@ -17,6 +19,8 @@ from flask_jwt_extended import (
 )
 
 ACCESS_EXPIRES = timedelta(hours=1)
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+UPLOADED_PHOTOS = "/home/kyrylo/TC-Back-End/static"
 
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 
@@ -29,6 +33,12 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
     jti = jwt_payload["jti"]
     token_in_redis = jwt_redis_blocklist.get(jti)
     return token_in_redis is not None'''
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @accounts_route.route("/signup", methods=["POST"])
 def signup() -> Response:
@@ -45,8 +55,12 @@ def signup() -> Response:
 
     user_to_add = User(user_data["email"], user_data["full_name"])
     security_to_add = Security(generate_password_hash(user_data["password"]))
+    user_picture = UserPicture(get_jwt_identity(), '')
 
     db.session.add(user_to_add)
+    db.session.flush()
+
+    db.session.add(user_picture)
     db.session.flush()
 
     security_to_add.user_id = user_to_add.id
@@ -60,7 +74,7 @@ def signup() -> Response:
 
     verification_link = url_for('accounts_route.verify_email', token=verification_token, _external=True)
     user_schema = UserSchema(exclude=["id", "joined_at", "is_active"])
-    # print(verification_link)
+
     response = {"user": user_schema.dump(user_to_add), "link": verification_token}
 
     return make_response(jsonify(response), 200)
@@ -128,3 +142,28 @@ def logout():
 def user_info():
     user = User.query.filter_by(id=get_jwt_identity()).first()
     return UserInfoSchema().dump(user)
+
+@accounts_route.route('/avatar', methods=['POST', 'GET', 'DELETE'])
+@jwt_required()
+def upload_file():
+    if request.method == 'POST':
+        file = request.files['image']
+        extension = file.filename.split('.')[1]
+        file_name = uuid.uuid4().hex
+        user_picture = UserPicture.query.filter_by(user_id=get_jwt_identity()).first()
+        user_picture.image_id = file_name + '.' + extension
+        file.save(os.path.join(UPLOADED_PHOTOS, file_name + '.' + extension))
+
+        db.session.commit()
+
+        return {"status":"ok"}
+
+    if request.method == 'GET':
+        return UserPicture.query.filter_by(user_id=get_jwt_identity()).first().image_id
+    
+    if request.method == 'DELETE':
+        user_picture = UserPicture.query.filter_by(user_id=get_jwt_identity()).first()
+        os.remove(os.path.join(UPLOADED_PHOTOS, user_picture.image_id))
+        user_picture.image_id = ''
+        db.session.commit()
+        return {"status":"ok"}
