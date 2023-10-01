@@ -15,17 +15,7 @@ class User(db.Model):
     email = db.Column(db.String(50))
     joined_at = db.Column(db.DateTime, default=datetime.utcnow())
     is_active = db.Column(db.Boolean, default=False)
-
-
-class UserPicture(db.Model):
-    __tablename__ = "user_picture"
-
-    def __init__(self, user_id, image_id):
-        self.user_id = user_id
-        self.image_id = image_id
-
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
-    image_id = db.Column(db.String(64))
+    profile_picture = db.Column(db.String(64))
 
 class Security(db.Model):
     __tablename__ = "security"

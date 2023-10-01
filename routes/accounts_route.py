@@ -1,6 +1,6 @@
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import datetime, timedelta
-from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserInfoSchema, UserPicture
+from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserInfoSchema
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 import jwt
@@ -55,12 +55,8 @@ def signup() -> Response:
 
     user_to_add = User(user_data["email"], user_data["full_name"])
     security_to_add = Security(generate_password_hash(user_data["password"]))
-    user_picture = UserPicture(get_jwt_identity(), '')
 
     db.session.add(user_to_add)
-    db.session.flush()
-
-    db.session.add(user_picture)
     db.session.flush()
 
     security_to_add.user_id = user_to_add.id
@@ -136,34 +132,33 @@ def logout():
     jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
     return jsonify(msg=f"{ttype.capitalize()} token successfully revoked")
 
-
 @accounts_route.route("/info", methods=["GET"])
 @jwt_required()
 def user_info():
     user = User.query.filter_by(id=get_jwt_identity()).first()
     return UserInfoSchema().dump(user)
 
-@accounts_route.route('/avatar', methods=['POST', 'GET', 'DELETE'])
+@accounts_route.route('/profile-photo', methods=['POST', 'DELETE'])
 @jwt_required()
-def upload_file():
+def profile_photo():
     if request.method == 'POST':
         file = request.files['image']
         extension = file.filename.split('.')[1]
         file_name = uuid.uuid4().hex
-        user_picture = UserPicture.query.filter_by(user_id=get_jwt_identity()).first()
-        user_picture.image_id = file_name + '.' + extension
+        user = User.query.filter_by(id=get_jwt_identity()).first()
+        user.profile_picture = file_name + '.' + extension
+
         file.save(os.path.join(UPLOADED_PHOTOS, file_name + '.' + extension))
 
         db.session.commit()
 
-        return {"status":"ok"}
-
-    if request.method == 'GET':
-        return UserPicture.query.filter_by(user_id=get_jwt_identity()).first().image_id
+        return make_response(UserInfoSchema().dump(user), 200)
     
     if request.method == 'DELETE':
-        user_picture = UserPicture.query.filter_by(user_id=get_jwt_identity()).first()
-        os.remove(os.path.join(UPLOADED_PHOTOS, user_picture.image_id))
-        user_picture.image_id = ''
+        user = User.query.filter_by(id=get_jwt_identity()).first()
+        file = os.path.join(UPLOADED_PHOTOS, user.profile_picture)
+        if os.path.isfile(file):
+            os.remove(file)
+        user.profile_picture = ''
         db.session.commit()
-        return {"status":"ok"}
+        return make_response('OK', 200)
