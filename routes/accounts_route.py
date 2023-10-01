@@ -1,6 +1,7 @@
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
+
 from datetime import datetime, timedelta
-from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserInfoSchema
+from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserInfoSchema, PasswordChangeSchema
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 import jwt
@@ -128,3 +129,36 @@ def logout():
 def user_info():
     user = User.query.filter_by(id=get_jwt_identity()).first()
     return UserInfoSchema().dump(user)
+
+
+@accounts_route.route('/change_password', methods=['PUT'])
+@jwt_required()
+def change_password():
+    data = request.get_json()
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+
+    current_user_id = get_jwt_identity()
+
+    user = User.query.filter_by(id=current_user_id).first()
+    security = Security.query.filter_by(user_id=current_user_id).first()
+
+    if user and security:
+        schema = PasswordChangeSchema()
+
+        
+        errors = schema.validate(data)
+        if errors:
+            return jsonify({'error': errors}), 400
+
+        
+        if check_password_hash(security.password_hash, current_password):
+            
+            hashed_password = generate_password_hash(new_password)
+            security.password_hash = hashed_password
+            db.session.commit()
+            return jsonify({'message': 'Password updated successfully'}), 200
+        else:
+            return jsonify({'error': 'Current password is incorrect'}), 400
+    else:
+        return jsonify({'error': 'User not found'}), 404

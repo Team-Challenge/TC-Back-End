@@ -52,3 +52,8 @@ class SigninUserSchema(Schema):
 def email_is_unique(email):
     if User.query.filter_by(email=email).first():
         raise ValidationError('User with such email already exist')
+
+
+class PasswordChangeSchema(Schema):
+    current_password = fields.Str()
+    new_password = fields.Str(validate=validate.Length(min=8))
