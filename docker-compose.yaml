@@ -11,6 +11,7 @@ services:
       - '8080:8080'
     volumes:
       - ./data:/app/data
+      - ./static/media:/app/static/media
     restart: on-failure
     # network_mode: host
     # command: gunicorn -c config/gunicorn.py app:app
