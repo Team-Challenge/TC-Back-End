@@ -15,6 +15,7 @@ class User(db.Model):
     email = db.Column(db.String(50))
     joined_at = db.Column(db.DateTime, default=datetime.utcnow())
     is_active = db.Column(db.Boolean, default=False)
+    phone_number = db.Column(db.String(15), default=None)
 
 
 class Security(db.Model):
@@ -48,6 +49,9 @@ class SigninUserSchema(Schema):
     email = fields.Email()
     password = fields.Str()
 
+class UserUpdateSchema(Schema):
+    full_name = fields.Str(validate=validate.Length(min=2, max=50))
+    phone_number = fields.Str()
 
 def email_is_unique(email):
     if User.query.filter_by(email=email).first():
