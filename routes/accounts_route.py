@@ -8,6 +8,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
 import jwt
+import os
+import uuid
 import phonenumbers
 import redis
 from routes.error_handlers import *
@@ -22,6 +24,8 @@ from flask_jwt_extended import (
 )
 
 ACCESS_EXPIRES = timedelta(hours=1)
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+UPLOADED_PHOTOS = "/home/kyrylo/TC-Back-End/static"
 
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 
@@ -34,6 +38,12 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
     jti = jwt_payload["jti"]
     token_in_redis = jwt_redis_blocklist.get(jti)
     return token_in_redis is not None'''
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @accounts_route.route("/signup", methods=["POST"])
 def signup() -> Response:
@@ -65,7 +75,7 @@ def signup() -> Response:
 
     verification_link = url_for('accounts_route.verify_email', token=verification_token, _external=True)
     user_schema = UserSchema(exclude=["id", "joined_at", "is_active"])
-    # print(verification_link)
+
     response = {"user": user_schema.dump(user_to_add), "link": verification_token}
 
     return make_response(jsonify(response), 200)
@@ -127,7 +137,6 @@ def logout():
     jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
     return jsonify(msg=f"{ttype.capitalize()} token successfully revoked")
 
-
 @accounts_route.route('/update_user', methods=['POST'])
 @jwt_required()
 def update_user():
@@ -166,6 +175,30 @@ def user_info():
     user = User.query.filter_by(id=get_jwt_identity()).first()
     return UserInfoSchema().dump(user)
 
+@accounts_route.route('/profile-photo', methods=['POST', 'DELETE'])
+@jwt_required()
+def profile_photo():
+    if request.method == 'POST':
+        file = request.files['image']
+        extension = file.filename.split('.')[1]
+        file_name = uuid.uuid4().hex
+        user = User.query.filter_by(id=get_jwt_identity()).first()
+        user.profile_picture = file_name + '.' + extension
+
+        file.save(os.path.join(UPLOADED_PHOTOS, file_name + '.' + extension))
+
+        db.session.commit()
+
+        return make_response(UserInfoSchema().dump(user), 200)
+    
+    if request.method == 'DELETE':
+        user = User.query.filter_by(id=get_jwt_identity()).first()
+        file = os.path.join(UPLOADED_PHOTOS, user.profile_picture)
+        if os.path.isfile(file):
+            os.remove(file)
+        user.profile_picture = ''
+        db.session.commit()
+        return make_response('OK', 200)
 
 @accounts_route.route('/change_password', methods=['PUT'])
 @jwt_required()

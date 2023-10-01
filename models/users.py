@@ -15,6 +15,7 @@ class User(db.Model):
     email = db.Column(db.String(50))
     joined_at = db.Column(db.DateTime, default=datetime.utcnow())
     is_active = db.Column(db.Boolean, default=False)
+    profile_picture = db.Column(db.String(64))
     phone_number = db.Column(db.String(15), default=None)
 
 
