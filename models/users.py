@@ -71,6 +71,14 @@ class Order(db.Model):
     delivery_address = db.Column(db.String(128))
 
 
+class OrderProducts(db.Model):
+    __tablename__ = "order_products"
+
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'))
+    products_id = db.Column(db.Integer, db.ForeignKey('products.id'))
+    amount = db.Column(db.Integer)
+
 class Security(db.Model):
     __tablename__ = "security"
 
