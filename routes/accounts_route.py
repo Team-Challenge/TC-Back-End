@@ -1,12 +1,16 @@
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 
 from datetime import datetime, timedelta
+from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserUpdateSchema
+from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserInfoSchema
 from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserInfoSchema, PasswordChangeSchema
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
+from marshmallow import ValidationError
 import jwt
 import os
 import uuid
+import phonenumbers
 import redis
 from routes.error_handlers import *
 from app import db, jwt
@@ -82,7 +86,7 @@ def signin() -> Response:
     request_data = request.get_json(silent=True)
 
     if not request_data or "email" not in request_data or "password" not in request_data:
-        abort(400, "Incomplete data. Please provide email, full_name, and password.")
+        abort(400, "Incomplete data. Please provide email and password.")
 
 
     user_data = SigninUserSchema().load(request.get_json(silent=True))
@@ -132,6 +136,38 @@ def logout():
     ttype = token["type"]
     jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
     return jsonify(msg=f"{ttype.capitalize()} token successfully revoked")
+
+@accounts_route.route('/update_user', methods=['POST'])
+@jwt_required()
+def update_user():
+    request_data = request.get_json(silent=True)
+
+    if not request_data or "full_name" not in request_data or "phone_number" not in request_data:
+        return jsonify({'error': 'Incomplete data. Please provide full_name, and phone_number.'}), 400
+
+    try:
+        user_data = UserUpdateSchema().load(request_data)
+    except ValidationError as e:
+        return jsonify({"error": str(e)}), 400
+
+    current_user_id = get_jwt_identity()
+    phone_number = user_data['phone_number']
+
+    try:
+        parsed_number = phonenumbers.parse(phone_number, None)
+        is_valid = phonenumbers.is_valid_number(parsed_number)
+    except phonenumbers.NumberParseException:
+        return jsonify({'error': 'Invalid phone number'}), 400
+
+    user = User.query.filter_by(id=current_user_id).first()
+
+    if user:
+        user.full_name = user_data['full_name']
+        user.phone_number = phone_number
+        db.session.commit()
+        return jsonify({'message': 'User information updated successfully'}), 200
+    else:
+        return jsonify({'error': 'User not found'}), 404
 
 @accounts_route.route("/info", methods=["GET"])
 @jwt_required()
