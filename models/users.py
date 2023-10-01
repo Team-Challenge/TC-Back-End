@@ -17,6 +17,60 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=False)
     profile_picture = db.Column(db.String(64))
 
+
+class Shop(db.Model):
+    __tablename__ = "shops"
+
+    def __init__(self, owner_id, name):
+        self.owner_id = owner_id
+        self.name = name
+
+    id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.String(50), db.ForeignKey("users.id"))
+    name = db.Column(db.String(50))
+
+class ProductCategory(db.Model):
+    __tablename__ = "product_categories"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(36))
+    description = db.Column(db.String(512))
+
+class Product(db.Model):
+    __tablename__ = "products"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(36))
+    description = db.Column(db.String(512))
+    seller_id = db.Column(db.Integer, db.ForeignKey('shops.id'))
+    category_id = db.Column(db.Integer, db.ForeignKey('product_categories.id'))
+    price = db.Column(db.Integer)
+    is_avaliable = db.Column(db.Boolean)
+
+class ProductPhoto(db.Model):
+    __tablename__ = "products_photos"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
+    picture_id = db.Column(db.String(64))
+
+class OrderStatus(db.Model):
+    __tablename__ = "order_statuses"
+    id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.String(24))
+
+class Order(db.Model):
+    __tablename__ = "orders"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(50), db.ForeignKey("users.id"))
+    date = db.Column(db.DateTime)
+    status_id = db.Column(db.String, db.ForeignKey('order_statuses.id'))
+    total_price = db.Column(db.Integer)
+    comment = db.Column(db.String(512))
+    delivery_address = db.Column(db.String(128))
+
+
 class Security(db.Model):
     __tablename__ = "security"
 
