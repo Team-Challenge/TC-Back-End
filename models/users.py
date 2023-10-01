@@ -1,6 +1,6 @@
 from datetime import datetime
 from app import db, ma
-from marshmallow import fields, Schema, validate
+from marshmallow import fields, Schema, validate, ValidationError
 
 
 class User(db.Model):
@@ -34,9 +34,13 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = User
 
+class UserInfoSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = User
+        exclude = ('id', 'joined_at', 'is_active')
 
 class SignupUserSchema(Schema):
-    email = fields.Email()
+    email = fields.Email(validate=lambda x: email_is_unique(x))
     full_name = fields.Str(validate=validate.Length(min=2, max=50))
     password = fields.Str(validate=validate.Length(min=8))
 
@@ -48,3 +52,7 @@ class SigninUserSchema(Schema):
 class UserUpdateSchema(Schema):
     full_name = fields.Str(validate=validate.Length(min=2, max=50))
     phone_number = fields.Str()
+
+def email_is_unique(email):
+    if User.query.filter_by(email=email).first():
+        raise ValidationError('User with such email already exist')
