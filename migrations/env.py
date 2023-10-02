@@ -2,9 +2,8 @@ import logging
 from logging.config import fileConfig
 
 from flask import current_app
-from alembic import context
 
-from config import Config
+from alembic import context
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -37,7 +36,7 @@ def get_engine_url():
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-config.set_main_option('sqlalchemy.url', Config.SQLALCHEMY_DATABASE_URI)
+config.set_main_option('sqlalchemy.url', get_engine_url())
 target_db = current_app.extensions['migrate'].db
 
 # other values from the config, defined by the needs of env.py,
