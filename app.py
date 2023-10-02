@@ -27,11 +27,6 @@ def create_app(config_class=Config) -> Flask:
 
     jwt.init_app(app)
 
-    CORS(app, origins=["http://localhost", "http://127.0.0.1", "http://0.0.0.0",
-                       "https://*ondigitalocean.app", "http://*ondigitalocean.app"], 
-                       supports_credentials=True)
-
-
     from routes.accounts_route import accounts_route
     from routes.error_handlers import error_handlers
     from routes.test_route import test_route
