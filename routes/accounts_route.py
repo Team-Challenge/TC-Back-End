@@ -7,6 +7,7 @@ from models.users import User, Security, SignupUserSchema, UserSchema, SigninUse
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
+from flask_cors import CORS
 import jwt
 import os
 import uuid
@@ -33,6 +34,10 @@ jwt_redis_blocklist = redis.StrictRedis(
     host="localhost", port=6379, db=0, decode_responses=True
 )
 
+
+CORS(accounts_route, origins=["http://localhost", "http://127.0.0.1", "http://0.0.0.0",
+                       "https://*ondigitalocean.app", "http://*ondigitalocean.app"], 
+                       supports_credentials=True)
 '''@jwt.token_in_blocklist_loader
 def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
     jti = jwt_payload["jti"]
