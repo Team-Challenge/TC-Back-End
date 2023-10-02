@@ -63,16 +63,31 @@ class TestAccountsRoutes(unittest.TestCase):
         self.assertIn("access_token", response_data)
         self.assertIn("refresh_token", response_data)
 
-        #update user full name and phone number
+        #update phone number
         access_token = response.get_json().get('access_token')
         headers = {'Authorization': f'Bearer {access_token}'}
 
-        valid_update_user_data = {
-            "full_name": "Test Update",
+        valid_update_user_phone = {
             "phone_number": "+380972323233"
         }
-        response = self.test_client.post('/accounts/update_user', data=json.dumps(valid_update_user_data), content_type='application/json', headers=headers)
+        response = self.test_client.post('/accounts/change_phone_number', data=json.dumps(valid_update_user_phone), content_type='application/json', headers=headers)
         self.assertEqual(response.status_code, 200)
+
+        #update user full name
+        valid_update_user_full_name = {
+            "full_name": "TOP Test"
+        }
+        response = self.test_client.post('/accounts/change_full_name', data=json.dumps(valid_update_user_full_name), content_type='application/json', headers=headers)
+        self.assertEqual(response.status_code, 200)
+
+        #change password
+        valid_change_password_data = {
+            "current_password": "password123",
+            "new_password": "123456789"
+        }
+        response = self.test_client.post('/accounts/change_password', data=json.dumps(valid_change_password_data), content_type='application/json', headers=headers)
+        self.assertEqual(response.status_code, 200)
+
 
         #logout
         response = self.test_client.delete('/accounts/logout', headers=headers)

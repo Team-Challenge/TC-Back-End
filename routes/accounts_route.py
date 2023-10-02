@@ -1,9 +1,7 @@
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 
 from datetime import datetime, timedelta
-from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserUpdateSchema
-from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserInfoSchema
-from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserInfoSchema, PasswordChangeSchema
+from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema, UserInfoSchema, PasswordChangeSchema, FullNameChangeSchema, PhoneChangeSchema
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
@@ -140,21 +138,22 @@ def logout():
     jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
     return jsonify(msg=f"{ttype.capitalize()} token successfully revoked")
 
-@accounts_route.route('/update_user', methods=['POST'])
+
+@accounts_route.route('/change_phone_number', methods=['POST'])
 @jwt_required()
-def update_user():
+def change_phone_number():
     request_data = request.get_json(silent=True)
 
-    if not request_data or "full_name" not in request_data or "phone_number" not in request_data:
-        return jsonify({'error': 'Incomplete data. Please provide full_name, and phone_number.'}), 400
+    if not request_data or 'phone_number' not in request_data:
+        return jsonify({'error': 'Incomplete data. Please provide phone_number.'}), 400
 
     try:
-        user_data = UserUpdateSchema().load(request_data)
+        phone_data = PhoneChangeSchema().load(request_data)
     except ValidationError as e:
         return jsonify({"error": str(e)}), 400
 
     current_user_id = get_jwt_identity()
-    phone_number = user_data['phone_number']
+    phone_number = phone_data['phone_number']
 
     try:
         parsed_number = phonenumbers.parse(phone_number, None)
@@ -165,12 +164,38 @@ def update_user():
     user = User.query.filter_by(id=current_user_id).first()
 
     if user:
-        user.full_name = user_data['full_name']
         user.phone_number = phone_number
         db.session.commit()
-        return jsonify({'message': 'User information updated successfully'}), 200
+        return jsonify({'message': 'Phone number updated successfully'}), 200
     else:
         return jsonify({'error': 'User not found'}), 404
+
+
+@accounts_route.route('/change_full_name', methods=['POST'])
+@jwt_required()
+def change_full_name():
+    request_data = request.get_json(silent=True)
+
+    if not request_data or "full_name" not in request_data:
+        return jsonify({'error': 'Incomplete data. Please provide full_name.'}), 400
+
+    try:
+        user_data = FullNameChangeSchema().load(request_data)
+    except ValidationError as e:
+        return jsonify({"error": str(e)}), 400
+
+    current_user_id = get_jwt_identity()
+    full_name = user_data['full_name']
+
+    user = User.query.filter_by(id=current_user_id).first()
+
+    if user:
+        user.full_name = full_name
+        db.session.commit()
+        return jsonify({'message': 'Full name updated successfully'}), 200
+    else:
+        return jsonify({'error': 'User not found'}), 404
+
 
 @accounts_route.route("/info", methods=["GET"])
 @jwt_required()
@@ -203,7 +228,7 @@ def profile_photo():
         db.session.commit()
         return make_response('OK', 200)
 
-@accounts_route.route('/change_password', methods=['PUT'])
+@accounts_route.route('/change_password', methods=['POST'])
 @jwt_required()
 def change_password():
     data = request.get_json()

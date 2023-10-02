@@ -3,9 +3,14 @@
   "info": {
     "title": "Auth API Documentation",
     "description": "API for user registration, sign in, email verification, and user information update.",
-    "version": "1.0.2"
+    "version": "1.0.3"
   },
-  "schemes": ["http", "https"],
+  "servers": [
+    {
+      "url": "http://127.0.0.1:5000",
+      "description": "Development server"
+    }
+  ],
   "paths": {
     "/accounts/signup": {
       "post": {
@@ -171,9 +176,9 @@
         }
       }
     },
-    "/accounts/update_user": {
+    "/accounts/change_phone_number": {
       "post": {
-        "summary": "Update User Information",
+        "summary": "Change Phone Number",
         "tags": ["Accounts"],
         "security": [
           {
@@ -181,23 +186,23 @@
           }
         ],
         "requestBody": {
-          "description": "User update data",
+          "description": "Phone number change data",
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserUpdateSchema"
+                "$ref": "#/components/schemas/PhoneChangeSchema"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "User information updated successfully",
+            "description": "Phone number updated successfully",
             "content": {
               "application/json": {
                 "example": {
-                  "message": "User information updated successfully"
+                  "message": "Phone number updated successfully"
                 }
               }
             }
@@ -210,8 +215,178 @@
           }
         }
       }
+    },
+    "/accounts/change_full_name": {
+      "post": {
+        "summary": "Change Full Name",
+        "tags": ["Accounts"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Full name change data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FullNameChangeSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Full name updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Full name updated successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
+        }
+      }
+    },
+    "/accounts/profile_photo": {
+      "post": {
+        "summary": "Upload Profile Photo",
+        "tags": ["Accounts"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Profile photo upload data",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfilePhotoUploadSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile photo uploaded successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Profile photo uploaded successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Profile Photo",
+        "tags": ["Accounts"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile photo deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Profile photo deleted successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/accounts/change_password": {
+      "post": {
+        "summary": "Change Password",
+        "tags": ["Accounts"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Password change data",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChangeSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Password changed successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
+        }
+      }
+    },
+    "/accounts/info": {
+      "get": {
+        "summary": "Get User Information",
+        "tags": ["Accounts"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User information retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfoResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
     }
-  },
+  },       
   "components": {
     "schemas": {
       "SignupUserSchema": {
@@ -246,19 +421,48 @@
         },
         "required": ["email", "password"]
       },
-      "UserUpdateSchema": {
+      "PhoneChangeSchema": {
+        "type": "object",
+        "properties": {
+          "phone_number": {
+            "type": "string"
+          }
+        },
+        "required": ["phone_number"]
+      },
+      "FullNameChangeSchema": {
         "type": "object",
         "properties": {
           "full_name": {
             "type": "string",
             "minLength": 2,
             "maxLength": 50
-          },
-          "phone_number": {
-            "type": "string"
           }
         },
-        "required": ["full_name", "phone_number"]
+        "required": ["full_name"]
+      },
+      "ProfilePhotoUploadSchema": {
+        "type": "object",
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": ["image"]
+      },
+      "PasswordChangeSchema": {
+        "type": "object",
+        "properties": {
+          "current_password": {
+            "type": "string"
+          },
+          "new_password": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": ["current_password", "new_password"]
       },
       "User": {
         "type": "object",
@@ -282,6 +486,31 @@
           },
           "phone_number": {
             "type": "string"
+          },
+          "profile_photo": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to the user's profile photo"
+          }
+        }
+      },
+      "UserInfoResponse": {
+        "type": "object",
+        "properties": {
+          "phone_number": {
+            "type": "string"
+          },
+          "full_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "profile_photo": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to the user's profile photo"
           }
         }
       }
@@ -296,4 +525,3 @@
     }
   }
 }
-

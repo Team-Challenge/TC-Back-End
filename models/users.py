@@ -112,14 +112,15 @@ class SigninUserSchema(Schema):
     email = fields.Email()
     password = fields.Str()
 
-class UserUpdateSchema(Schema):
+class PhoneChangeSchema(Schema):
+    phone_number = fields.Str(validate=validate.Length(min=3))
+
+class FullNameChangeSchema(Schema):
     full_name = fields.Str(validate=validate.Length(min=2, max=50))
-    phone_number = fields.Str()
 
 def email_is_unique(email):
     if User.query.filter_by(email=email).first():
         raise ValidationError('User with such email already exist')
-
 
 class PasswordChangeSchema(Schema):
     current_password = fields.Str()
