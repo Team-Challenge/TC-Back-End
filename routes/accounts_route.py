@@ -28,9 +28,9 @@ UPLOADED_PHOTOS = "/home/kyrylo/TC-Back-End/static"
 
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 
-jwt_redis_blocklist = redis.StrictRedis(
+'''jwt_redis_blocklist = redis.StrictRedis(
     host="localhost", port=6379, db=0, decode_responses=True
-)
+)'''
 
 
 CORS(accounts_route, supports_credentials=True)
@@ -125,7 +125,7 @@ def refresh():
     user = get_jwt_identity()
     token = create_access_token(identity=user, fresh=False)
     jti = get_jwt()["jti"]
-    jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
+    #jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
     response = jsonify({"access_token": token})
     return make_response(response, 200)
 
@@ -135,7 +135,7 @@ def logout():
     token = get_jwt()
     jti = token["jti"]
     ttype = token["type"]
-    jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
+    #jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
     return jsonify(msg=f"{ttype.capitalize()} token successfully revoked")
 
 
