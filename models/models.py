@@ -72,7 +72,7 @@ class Order(db.Model):
 
 
 class OrderStatus(db.Model):
-    __tablename__ = "order_statuses"
+    __tablename__ = "order_status"
     id = mapped_column(Integer, primary_key=True)
     status = mapped_column(String(24))
 
@@ -99,12 +99,13 @@ class ProductOrder(db.Model):
 
     order_id = mapped_column(ForeignKey('orders.id'), primary_key=True)
     product_id = mapped_column(ForeignKey('products.id'), primary_key=True)
+    unit_price = mapped_column(Integer)
     amount = mapped_column(Integer)
     product: Mapped["Product"] = relationship()
 
 
 class ProductCategory(db.Model):
-    __tablename__ = "product_categories"
+    __tablename__ = "product_category"
 
     id = mapped_column(Integer, primary_key=True)
     name = mapped_column(String)

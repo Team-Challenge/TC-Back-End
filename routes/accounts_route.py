@@ -13,7 +13,8 @@ import uuid
 import phonenumbers
 import redis
 from routes.error_handlers import *
-from app import db, jwt
+from app import db, jwt, jwt_redis_blocklist
+from config import Config
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -24,15 +25,9 @@ from flask_jwt_extended import (
 )
 
 ACCESS_EXPIRES = timedelta(hours=1)
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-UPLOADED_PHOTOS = "/home/kyrylo/TC-Back-End/static"
+UPLOADED_PHOTOS = Config.UPLOADED_PHOTOS
 
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
-
-jwt_redis_blocklist = redis.StrictRedis(
-    host="localhost", port=6379, db=0, decode_responses=True
-)
-
 
 CORS(accounts_route, supports_credentials=True)
 '''@jwt.token_in_blocklist_loader
@@ -40,12 +35,6 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
     jti = jwt_payload["jti"]
     token_in_redis = jwt_redis_blocklist.get(jti)
     return token_in_redis is not None'''
-
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 @accounts_route.route("/signup", methods=["POST"])
 def signup() -> Response:
@@ -139,7 +128,6 @@ def logout():
     jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
     return jsonify(msg=f"{ttype.capitalize()} token successfully revoked")
 
-
 @accounts_route.route('/change_phone_number', methods=['POST'])
 @jwt_required()
 def change_phone_number():
@@ -171,7 +159,6 @@ def change_phone_number():
     else:
         return jsonify({'error': 'User not found'}), 404
 
-
 @accounts_route.route('/change_full_name', methods=['POST'])
 @jwt_required()
 def change_full_name():
@@ -196,7 +183,6 @@ def change_full_name():
         return jsonify({'message': 'Full name updated successfully'}), 200
     else:
         return jsonify({'error': 'User not found'}), 404
-
 
 @accounts_route.route("/info", methods=["GET"])
 @jwt_required()
@@ -260,8 +246,3 @@ def change_password():
             return jsonify({'error': 'Current password is incorrect'}), 400
     else:
         return jsonify({'error': 'User not found'}), 404
-
-
-@accounts_route.route('/check', methods=['GET'])
-def check():
-    return make_response('OK', 200)
