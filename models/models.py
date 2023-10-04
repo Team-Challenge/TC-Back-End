@@ -28,6 +28,17 @@ class User(db.Model):
     phone_number = mapped_column(String, default=None)
 
 
+class Security(db.Model):
+    __tablename__ = "security"
+
+    def __init__(self, password):
+        self.password_hash = password
+
+    user_id = mapped_column(Integer, ForeignKey(
+        "users.id"), primary_key=True)
+    password_hash = mapped_column(String(64))
+
+
 class Product(db.Model):
     __tablename__ = "products"
 
@@ -90,17 +101,6 @@ class ProductOrder(db.Model):
     product_id = mapped_column(ForeignKey('products.id'), primary_key=True)
     amount = mapped_column(Integer)
     product: Mapped["Product"] = relationship()
-
-
-class Security(db.Model):
-    __tablename__ = "security"
-
-    def __init__(self, password):
-        self.password_hash = password
-
-    user_id = mapped_column(Integer, ForeignKey(
-        "users.id"), primary_key=True)
-    password_hash = mapped_column(String(64))
 
 
 class ProductCategory(db.Model):
