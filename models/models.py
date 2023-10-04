@@ -49,7 +49,7 @@ class Product(db.Model):
     name = mapped_column(String(36))
     description = mapped_column(String(512))
     seller_id = mapped_column(Integer, ForeignKey('shops.id'))
-    category_id = mapped_column(Integer, ForeignKey('product_categories.id'))
+    category_id = mapped_column(Integer, ForeignKey('product_category.id'))
     price = mapped_column(Integer)
     is_avaliable = mapped_column(Boolean)
 
@@ -64,7 +64,7 @@ class Order(db.Model):
     id = mapped_column(Integer, primary_key=True)
     user_id = mapped_column(String, ForeignKey("users.id"))
     date = mapped_column(DateTime)
-    status_id = mapped_column(String, ForeignKey('order_statuses.id'))
+    status_id = mapped_column(String, ForeignKey('order_status.id'))
     comment = mapped_column(String)
     delivery_address = mapped_column(String)
 
