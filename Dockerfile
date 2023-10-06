@@ -9,6 +9,7 @@ COPY . .
 
 RUN mv .env_example .env
 RUN echo "SQLALCHEMY_DATABASE_URI=/app/data/app.db" >> /app/.env
+RUN echo "UPLOADED_PHOTOS=/app/static/media" >> /app/.env
 
 RUN python data/create_db.py
 RUN flask db upgrade
