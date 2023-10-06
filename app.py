@@ -7,13 +7,16 @@ from flask_marshmallow import Marshmallow
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_jwt_extended import JWTManager
 from config import Config
+import redis
 
 
 db = SQLAlchemy()
 migrate = Migrate()
 ma = Marshmallow()
 jwt = JWTManager()
-
+jwt_redis_blocklist = redis.StrictRedis(
+    host="redis", port=6379, db=0, decode_responses=True
+    )
 
 
 def create_app(config_class=Config) -> Flask:
@@ -28,6 +31,7 @@ def create_app(config_class=Config) -> Flask:
     jwt.init_app(app)
 
     from routes.accounts_route import accounts_route
+    from routes.orders_route import orders_route
     from routes.error_handlers import error_handlers
     from routes.test_route import test_route
     from routes.users import users_route
@@ -39,6 +43,7 @@ def create_app(config_class=Config) -> Flask:
     )
 
     app.register_blueprint(accounts_route)
+    app.register_blueprint(orders_route)
     app.register_blueprint(test_route)
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
     app.register_blueprint(error_handlers)

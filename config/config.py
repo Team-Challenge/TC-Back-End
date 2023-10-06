@@ -10,6 +10,7 @@ class Config:
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.environ.get("SQLALCHEMY_DATABASE_URI")}'
     SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get('SQLALCHEMY_TRACK_MODIFICATIONS') == "True"
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+    UPLOADED_PHOTOS = os.environ.get('UPLOADED_PHOTOS')
 
 
 class TestConfig:

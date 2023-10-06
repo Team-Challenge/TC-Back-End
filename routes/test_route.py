@@ -1,5 +1,5 @@
 from flask import Blueprint, Response
-from models.users import UserSchema
+from models.models import *
 from utils.auth import token_required
 from routes.accounts_route import accounts_route
 

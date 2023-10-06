@@ -1,6 +1,6 @@
 import unittest
 from app import create_app, db
-from models.users import *
+from models.models import *
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import json

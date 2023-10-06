@@ -1,6 +1,7 @@
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import datetime, timedelta
-from models.users import User, Security, SignupUserSchema, UserSchema, SigninUserSchema
+from models.models import User, Security
+from models.schemas import *
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 import jwt
