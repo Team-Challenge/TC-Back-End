@@ -110,13 +110,13 @@ def verify_email(token):
     except Exception as e:
         abort(404, "Invalid verification token")
 
-@accounts_route.route("/refresh", methods=["POST"])
+@accounts_route.route("/refresh", methods=["GET"])
 @jwt_required(refresh=True)
 def refresh():
     user = get_jwt_identity()
     token = create_access_token(identity=user, fresh=False)
     jti = get_jwt()["jti"]
-    jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
+    #jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
     response = jsonify({"access_token": token})
     return make_response(response, 200)
 
@@ -126,7 +126,7 @@ def logout():
     token = get_jwt()
     jti = token["jti"]
     ttype = token["type"]
-    jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
+    #jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
     return jsonify(msg=f"{ttype.capitalize()} token successfully revoked")
 
 @accounts_route.route('/change_phone_number', methods=['POST'])
