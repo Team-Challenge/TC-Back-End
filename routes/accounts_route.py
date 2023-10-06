@@ -13,7 +13,7 @@ import uuid
 import phonenumbers
 import redis
 from routes.error_handlers import *
-from app import db, jwt, jwt_redis_blocklist
+from app import db, jwt, cache
 from config import Config
 from flask_jwt_extended import (
     create_access_token,
@@ -34,7 +34,7 @@ CORS(accounts_route, supports_credentials=True)
 @jwt.token_in_blocklist_loader
 def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
     jti = jwt_payload["jti"]
-    token_in_redis = jwt_redis_blocklist.get(jti)
+    token_in_redis = cache.get(jti)
     return token_in_redis is not None
 
 @accounts_route.route("/signup", methods=["POST"])
@@ -116,7 +116,7 @@ def refresh():
     user = get_jwt_identity()
     token = create_access_token(identity=user, fresh=False)
     jti = get_jwt()["jti"]
-    #jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
+    cache.set(jti, "1", timeout=86400)
     response = jsonify({"access_token": token})
     return make_response(response, 200)
 
@@ -126,7 +126,7 @@ def logout():
     token = get_jwt()
     jti = token["jti"]
     ttype = token["type"]
-    #jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
+    cache.set(jti, "1", timeout=86400)
     return jsonify(msg=f"{ttype.capitalize()} token successfully revoked")
 
 @accounts_route.route('/change_phone_number', methods=['POST'])

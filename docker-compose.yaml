@@ -13,16 +13,5 @@ services:
       - ./data:/app/data
       - ./static/media:/app/static/media
     restart: on-failure
-    depends_on:
-      - redis
     # network_mode: host
     # command: gunicorn -c config/gunicorn.py app:app
-  redis:
-    image: redis:latest
-    restart: always
-    ports:
-      - '6379:6379'
-    volumes: 
-      - ./data/redis:/app/data
-    expose:
-      - "6379"

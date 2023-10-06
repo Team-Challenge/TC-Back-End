@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_jwt_extended import JWTManager
+from flask_caching import Cache
 from config import Config
 import redis
 
@@ -14,9 +15,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 ma = Marshmallow()
 jwt = JWTManager()
-jwt_redis_blocklist = redis.StrictRedis(
-    host="redis", port=6379, db=0, decode_responses=True
-    )
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 
 
 def create_app(config_class=Config) -> Flask:
@@ -27,6 +26,7 @@ def create_app(config_class=Config) -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
+    cache.init_app(app)
 
     jwt.init_app(app)
 
