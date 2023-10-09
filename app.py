@@ -33,7 +33,6 @@ def create_app(config_class=Config) -> Flask:
     from routes.accounts_route import accounts_route
     from routes.orders_route import orders_route
     from routes.error_handlers import error_handlers
-    from routes.test_route import test_route
     from routes.users import users_route
 
     SWAGGER_URL = "/swagger"
@@ -44,7 +43,6 @@ def create_app(config_class=Config) -> Flask:
 
     app.register_blueprint(accounts_route)
     app.register_blueprint(orders_route)
-    app.register_blueprint(test_route)
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
     app.register_blueprint(error_handlers)
     app.register_blueprint(users_route)

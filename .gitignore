@@ -60,3 +60,4 @@ media/
 *.db
 
 static/
+htmlcov/
