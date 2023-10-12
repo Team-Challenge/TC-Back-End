@@ -10,8 +10,8 @@ from flask_cors import CORS
 import jwt
 import os
 import uuid
-import phonenumbers
 import redis
+import re
 from routes.error_handlers import *
 from app import db, jwt, cache
 from config import Config
@@ -137,20 +137,13 @@ def change_phone_number():
     if not request_data or 'phone_number' not in request_data:
         return jsonify({'error': 'Incomplete data. Please provide phone_number.'}), 400
 
-    try:
-        phone_data = PhoneChangeSchema().load(request_data)
-    except ValidationError as e:
-        return jsonify({"error": str(e)}), 400
+    phone_number = request_data['phone_number']
+
+    
+    if not re.match(r'^\+380\d{9}$', phone_number):
+        return jsonify({'error': 'Invalid phone number format. Must start with +380 and have 9 digits.'}), 400
 
     current_user_id = get_jwt_identity()
-    phone_number = phone_data['phone_number']
-
-    try:
-        parsed_number = phonenumbers.parse(phone_number, None)
-        is_valid = phonenumbers.is_valid_number(parsed_number)
-    except phonenumbers.NumberParseException:
-        return jsonify({'error': 'Invalid phone number'}), 400
-
     user = User.query.filter_by(id=current_user_id).first()
 
     if user:

@@ -5,12 +5,6 @@
     "description": "API for user registration, sign in, email verification, and user information update.",
     "version": "1.0.3"
   },
-  "servers": [
-    {
-      "url": "http://127.0.0.1:5000",
-      "description": "Development server"
-    }
-  ],
   "paths": {
     "/accounts/signup": {
       "post": {
@@ -256,7 +250,7 @@
         }
       }
     },
-    "/accounts/profile_photo": {
+    "/accounts/profile-sphoto": {
       "post": {
         "summary": "Upload Profile Photo",
         "tags": ["Accounts"],

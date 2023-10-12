@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import json
 from config.config import TestConfig
+from flask_jwt_extended import create_access_token
 
 
 class TestAccountsRoutes(unittest.TestCase):
@@ -88,6 +89,22 @@ class TestAccountsRoutes(unittest.TestCase):
         response = self.test_client.post('/accounts/change_password', data=json.dumps(valid_change_password_data), content_type='application/json', headers=headers)
         self.assertEqual(response.status_code, 200)
 
+        #upload user photo
+        with open('tests/test_images/alf.jpg', 'rb') as image_file:
+            response = self.test_client.post('/accounts/profile-photo', data={'image': image_file}, headers=headers)
+        self.assertEqual(response.status_code, 200)
+
+
+        #delete user photo
+        response = self.test_client.delete('/accounts/profile-photo', headers=headers)
+        self.assertEqual(response.status_code, 200)
+
+        #user info
+        response = self.test_client.get('/accounts/info', headers=headers)
+        data = json.loads(response.data)
+        self.assertTrue('email' in data)
+        self.assertEqual(data['email'], "test@example.com")
+
 
         #logout
         response = self.test_client.delete('/accounts/logout', headers=headers)
@@ -95,6 +112,10 @@ class TestAccountsRoutes(unittest.TestCase):
         
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json().get('msg'), 'Access token successfully revoked')
+
+        #user info after logout
+        response = self.test_client.get('/accounts/info', headers=headers)
+        self.assertEqual(response.status_code, 401)
 
 
     def test_invalid_email_signup(self):
