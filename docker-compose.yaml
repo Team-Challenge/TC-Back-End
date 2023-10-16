@@ -5,6 +5,8 @@ services:
     build:
       context: .
     container_name: tc-backend
+    environment:
+      - UPLOADED_PHOTOS=/app/static/media
     # env_file:
     #   - .env
     ports: 
