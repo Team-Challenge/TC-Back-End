@@ -15,7 +15,7 @@ upgrade-migrations:
 	. ${VENV}/bin/activate && flask db upgrade
 
 recreate-db-local:
-	rm data/app.db && \
+	rm -f data/app.db && \
 	${PYTHON} ./data/create_db.py && \
 	make upgrade-migrations && \
 	${PYTHON} ./data/create_fixtures.py && \
@@ -31,7 +31,7 @@ down:
 	docker-compose down --remove-orphans
 
 recreate-db-docker:
-	docker exec tc-backend bash -c "rm data/app.db" && \
+	docker exec tc-backend bash -c "rm -f data/app.db" && \
 	docker exec tc-backend bash -c "python ./data/create_db.py" && \
 	docker exec tc-backend bash -c "flask db upgrade" && \
 	docker exec tc-backend bash -c "python ./data/create_fixtures.py" && \

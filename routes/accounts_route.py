@@ -25,7 +25,8 @@ from flask_jwt_extended import (
 )
 
 ACCESS_EXPIRES = timedelta(hours=1)
-UPLOADED_PHOTOS = Config.UPLOADED_PHOTOS
+PROFILE_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'profile')
+PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
 
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 
@@ -194,7 +195,7 @@ def profile_photo():
         user = User.query.filter_by(id=get_jwt_identity()).first()
         user.profile_picture = file_name + '.' + extension
 
-        file.save(os.path.join(UPLOADED_PHOTOS, file_name + '.' + extension))
+        file.save(os.path.join(PROFILE_PHOTOS_PATH, file_name + '.' + extension))
 
         db.session.commit()
 
@@ -202,7 +203,7 @@ def profile_photo():
     
     if request.method == 'DELETE':
         user = User.query.filter_by(id=get_jwt_identity()).first()
-        file = os.path.join(UPLOADED_PHOTOS, user.profile_picture)
+        file = os.path.join(PROFILE_PHOTOS_PATH, user.profile_picture)
         if os.path.isfile(file):
             os.remove(file)
         user.profile_picture = ''
