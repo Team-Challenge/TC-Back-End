@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  backend: 
+    build:
+      context: .
+      dockerfile: ./Dockerfile-deploy
+    env_file:
+      - .env
+    container_name: tc-backend
+    ports: 
+      - '8080:8080'
+    volumes:
+      - ./data:/app/data
+      - ./static/media:/app/static/media
+    restart: on-failure
+    # network_mode: host
+    # command: gunicorn -c config/gunicorn.py app:app

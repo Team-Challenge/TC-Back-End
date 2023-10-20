@@ -1,5 +1,6 @@
 import json
 import sys
+import logging
 
 from werkzeug.security import generate_password_hash
 
@@ -10,6 +11,7 @@ from models.models import User, Security, Product, Order, ProductOrder
 
 
 def create_fixtures():
+
     with open("data/users_fixture.json") as f:
         users = json.loads(f.read())
         with app.app_context():
@@ -23,6 +25,7 @@ def create_fixtures():
                 security_record.user_id = user_record.id
                 db.session.add(security_record)
                 db.session.commit()
+    logging.info("Users fixtures have been created.")
 
     with open("data/products_fixtures.json") as f:
         products = json.loads(f.read())
@@ -31,6 +34,7 @@ def create_fixtures():
                 product_record = Product(product["name"])
                 db.session.add(product_record)
                 db.session.commit()
+    logging.info("Products fixtures have been created.")
 
     with app.app_context():
         user_record = Order(1)
@@ -50,6 +54,7 @@ def create_fixtures():
         db.session.add(order_record_5)
 
         db.session.commit()
+    logging.info("Orders fixtures have been created.")
 
 
 if __name__ == "__main__":
