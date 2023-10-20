@@ -22,17 +22,23 @@ recreate-db-local:
 	echo "DB has been recreated. Migrations & Fixtures have been applied!"
 
 ## Docker commmands
-build-up:
-	docker-compose up --build -d backend
 up:
-	docker-compose up -d backend
+	docker-compose up -d
+
+build-up:
+	docker-compose up -d --build 
+
+deploy-up:
+	docker-compose -f docker-compose-deploy.yaml up -d
+
+deploy-build-up:
+	docker-compose -f docker-compose-deploy.yaml up -d --build
 
 down:
 	docker-compose down --remove-orphans
 
 recreate-db-docker:
-	docker exec tc-backend bash -c "rm -f data/app.db" && \
 	docker exec tc-backend bash -c "python ./data/create_db.py" && \
 	docker exec tc-backend bash -c "flask db upgrade" && \
 	docker exec tc-backend bash -c "python ./data/create_fixtures.py" && \
-	echo "DB has been recreated. Migrations & Fixtures have been applied!"
+	echo "DB has been recreated!"
