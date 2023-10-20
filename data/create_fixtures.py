@@ -23,7 +23,7 @@ def create_fixtures():
                 security_record.user_id = user_record.id
                 db.session.add(security_record)
                 db.session.commit()
-    
+
     with open("data/products_fixtures.json") as f:
         products = json.loads(f.read())
         with app.app_context():

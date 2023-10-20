@@ -1,5 +1,5 @@
 from datetime import datetime
-from app import db, ma
+from app import db
 from marshmallow import fields, Schema, validate, ValidationError
 from datetime import datetime
 from sqlalchemy.orm import mapped_column
@@ -10,6 +10,7 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship
 from sqlalchemy import Integer, String, DateTime, Boolean
+from typing import List
 
 
 class User(db.Model):
@@ -68,7 +69,7 @@ class Order(db.Model):
     comment = mapped_column(String)
     delivery_address = mapped_column(String)
 
-    products: Mapped[list["ProductOrder"]] = relationship()
+    products: Mapped[List["ProductOrder"]] = relationship()
 
 
 class OrderStatus(db.Model):
@@ -87,7 +88,7 @@ class Shop(db.Model):
     id = mapped_column(Integer, primary_key=True)
     owner_id = mapped_column(String, ForeignKey("users.id"))
     name = mapped_column(String)
-    
+
 
 class ProductOrder(db.Model):
     __tablename__ = "product_order"
