@@ -1,3 +1,4 @@
+import datetime
 import os
 from dotenv import load_dotenv
 
@@ -14,7 +15,7 @@ class Config:
         'SQLALCHEMY_TRACK_MODIFICATIONS') == "True"
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
     MEDIA_PATH = os.path.join(basedir, 'static', 'media')
-
+    JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(seconds=int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES')))
 
 class TestConfig:
     TESTING = True
