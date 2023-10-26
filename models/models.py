@@ -11,6 +11,7 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship
 from sqlalchemy import Integer, String, DateTime, Boolean
 from typing import List
+import re
 
 
 class User(db.Model):
@@ -124,3 +125,8 @@ class ProductPhoto(db.Model):
 def email_is_unique(email):
     if User.query.filter_by(email=email).first():
         raise ValidationError('User with such email already exist')
+
+def full_name_validation(full_name):
+    if not re.match("^[a-zA-Zа-яА-ЯґҐєЄіІїЇ\s]+$",full_name):
+        raise ValidationError('Invalid characters in the field full_name')
+
