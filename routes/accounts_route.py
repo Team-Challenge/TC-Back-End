@@ -1,7 +1,7 @@
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 
 from datetime import datetime, timedelta
-from models.models import User, Security
+from models.models import User, Security, full_name_validation
 from models.schemas import *
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
@@ -48,6 +48,7 @@ def signup() -> Response:
 
     try:
         user_data = SignupUserSchema().load(request.get_json(silent=True))
+        full_name_validation(user_data["full_name"])
     except Exception as e:
         abort(400, str(e))
 
@@ -164,6 +165,7 @@ def change_full_name():
 
     try:
         user_data = FullNameChangeSchema().load(request_data)
+        full_name_validation(request_data["full_name"])
     except ValidationError as e:
         return jsonify({"error": str(e)}), 400
 
@@ -185,7 +187,7 @@ def user_info():
     user = User.query.filter_by(id=get_jwt_identity()).first()
     return UserInfoSchema().dump(user)
 
-@accounts_route.route('/profile-photo', methods=['POST', 'DELETE'])
+@accounts_route.route('/profile_photo', methods=['POST', 'DELETE'])
 @jwt_required()
 def profile_photo():
     if request.method == 'POST':

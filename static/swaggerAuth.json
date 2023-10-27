@@ -250,7 +250,7 @@
         }
       }
     },
-    "/accounts/profile-photo": {
+    "/accounts/profile_photo": {
       "post": {
         "summary": "Upload Profile Photo",
         "tags": ["Accounts"],
