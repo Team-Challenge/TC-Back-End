@@ -13,4 +13,4 @@ RUN python data/create_fixtures.py
 
 EXPOSE 8080
 
-CMD [ "gunicorn", "-c" , "config/gunicorn.py", "app:app"]
+CMD [ "flask", "run" , "--host", "0.0.0.0", "--port", "8080"]
