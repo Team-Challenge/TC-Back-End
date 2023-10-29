@@ -2,26 +2,26 @@
   {
     "email": "test1@mail.com",
     "full_name": "Test User1",
-    "password" : "testpwd1"
+    "password": "Testpwd1"
   },
   {
     "email": "test2@mail.com",
     "full_name": "Test User2",
-    "password" : "testpwd2"
+    "password": "Testpwd2"
   },
   {
     "email": "test3@mail.com",
     "full_name": "Test User3",
-    "password" : "testpwd3"
+    "password": "Testpwd3"
   },
   {
     "email": "test4@mail.com",
     "full_name": "Test User4",
-    "password" : "testpwd4"
+    "password": "Testpwd4"
   },
   {
     "email": "test5@mail.com",
     "full_name": "Test User5",
-    "password" : "testpwd5"
+    "password": "Testpwd5"
   }
 ]

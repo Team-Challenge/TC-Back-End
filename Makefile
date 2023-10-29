@@ -23,10 +23,10 @@ recreate-db-local:
 
 ## Docker commmands
 up:
-	docker-compose up -d
+	docker-compose up
 
 build-up:
-	docker-compose up -d --build 
+	docker-compose up --build 
 
 deploy-up:
 	docker-compose -f docker-compose-deploy.yaml up -d
