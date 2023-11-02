@@ -27,7 +27,7 @@ class SigninUserSchema(Schema):
 class SignupUserSchema(Schema):
     email = fields.Email(validate=lambda x: email_is_unique(x))
     full_name = fields.Str(validate=validate.Length(min=2, max=50))
-    password = fields.Str(validate=validate.Length(min=8))
+    password = fields.Str(validate=validate.Regexp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'))
 
 
 class UserInfoSchema(ma.SQLAlchemyAutoSchema):
@@ -46,7 +46,7 @@ class FullNameChangeSchema(Schema):
 
 class PasswordChangeSchema(Schema):
     current_password = fields.Str()
-    new_password = fields.Str(validate=validate.Length(min=8))
+    new_password = fields.Str(validate=validate.Regexp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'))
 
 
 class ProductSchema(ma.SQLAlchemyAutoSchema):
