@@ -112,7 +112,7 @@ def verify_email(token):
     except Exception as e:
         abort(404, "Invalid verification token")
 
-@accounts_route.route("/refresh", methods=["GET"])
+@accounts_route.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
 def refresh():
     user = get_jwt_identity()
