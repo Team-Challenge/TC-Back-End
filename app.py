@@ -8,7 +8,6 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from flask_jwt_extended import JWTManager
 from flask_caching import Cache
 from config import Config
-import redis
 
 
 db = SQLAlchemy()
