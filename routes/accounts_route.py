@@ -10,7 +10,6 @@ from flask_cors import CORS
 import jwt
 import os
 import uuid
-import redis
 import re
 from routes.error_handlers import *
 from app import db, jwt, cache
