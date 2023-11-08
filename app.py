@@ -8,6 +8,8 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from flask_jwt_extended import JWTManager
 from flask_caching import Cache
 from config import Config
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from prometheus_client import make_wsgi_app
 import redis
 
 
@@ -20,6 +22,10 @@ cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 
 def create_app(config_class=Config) -> Flask:
     app = Flask(__name__)
+
+    app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
+        '/metrics': make_wsgi_app()
+        })
 
     app.config.from_object(config_class)
 

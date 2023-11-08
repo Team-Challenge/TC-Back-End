@@ -15,6 +15,7 @@ import re
 from routes.error_handlers import *
 from app import db, jwt, cache
 from config import Config
+from prometheus_client import Gauge
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -23,6 +24,9 @@ from flask_jwt_extended import (
     jwt_required,
     set_access_cookies
 )
+
+
+g = Gauge('my_inprogress_requests', 'Description of gauge')
 
 ACCESS_EXPIRES = timedelta(hours=1)
 PROFILE_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'profile')
