@@ -1,6 +1,9 @@
 
+import threading
+import time
+import psutil
+
 from flask import Flask
-from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
@@ -10,6 +13,8 @@ from flask_caching import Cache
 from config import Config
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
+from prometheus_client import Gauge
+from prometheus_client import CollectorRegistry
 
 
 db = SQLAlchemy()
@@ -18,12 +23,33 @@ ma = Marshmallow()
 jwt = JWTManager()
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 
+def gather_data(registry):
+
+    ram_metric = Gauge("memory_usage_percent", "Memory usage in percent.",
+                       registry=registry)
+    cpu_metric = Gauge("cpu_usage_percent", "CPU usage percent.",
+                       registry=registry)
+
+    while True:
+        time.sleep(1)
+
+        ram = psutil.virtual_memory()
+        cpu = psutil.cpu_percent(interval=1)
+
+        ram_metric.set(ram.percent)
+        cpu_metric.set(cpu)
+
 
 def create_app(config_class=Config) -> Flask:
     app = Flask(__name__)
 
+    registry = CollectorRegistry()
+
+    thread = threading.Thread(target=gather_data, args=(registry, ))
+    thread.start()
+
     app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
-        '/metrics': make_wsgi_app()
+        '/health': make_wsgi_app(registry=registry)
         })
 
     app.config.from_object(config_class)
@@ -54,9 +80,3 @@ def create_app(config_class=Config) -> Flask:
 
 
     return app
-
-
-db = SQLAlchemy()
-migrate = Migrate()
-ma = Marshmallow()
-app = create_app()
