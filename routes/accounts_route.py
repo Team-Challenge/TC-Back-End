@@ -1,31 +1,27 @@
-from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 
-from datetime import datetime, timedelta
+import os
+import uuid
+import re
+
+from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
+from datetime import timedelta
 from models.models import User, Security, full_name_validation
-from models.schemas import *
+from models.schemas import UserSchema, SigninUserSchema, SignupUserSchema, FullNameChangeSchema, UserInfoSchema, PasswordChangeSchema
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
 from flask_cors import CORS
-import jwt
-import os
-import uuid
-import re
-from routes.error_handlers import *
-from app import db, jwt, cache
+from routes.error_handlers import APIAuthError
+from dependencies import db, jwt, cache
 from config import Config
-from prometheus_client import Gauge
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
     get_jwt_identity,
     get_jwt,
-    jwt_required,
-    set_access_cookies
+    jwt_required
 )
 
-
-g = Gauge('my_inprogress_requests', 'Description of gauge')
 
 ACCESS_EXPIRES = timedelta(hours=1)
 PROFILE_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'profile')
@@ -155,8 +151,7 @@ def change_phone_number():
         user.phone_number = phone_number
         db.session.commit()
         return jsonify({'message': 'Phone number updated successfully'}), 200
-    else:
-        return jsonify({'error': 'User not found'}), 404
+    return jsonify({'error': 'User not found'}), 404
 
 @accounts_route.route('/change_full_name', methods=['POST'])
 @jwt_required()
@@ -181,8 +176,8 @@ def change_full_name():
         user.full_name = full_name
         db.session.commit()
         return jsonify({'message': 'Full name updated successfully'}), 200
-    else:
-        return jsonify({'error': 'User not found'}), 404
+    
+    return jsonify({'error': 'User not found'}), 404
 
 @accounts_route.route("/info", methods=["GET"])
 @jwt_required()
@@ -213,6 +208,7 @@ def profile_photo():
             os.remove(file)
         user.profile_picture = ''
         db.session.commit()
+        
         return make_response('OK', 200)
 
 @accounts_route.route('/change_password', methods=['POST'])
@@ -242,7 +238,6 @@ def change_password():
             security.password_hash = hashed_password
             db.session.commit()
             return jsonify({'message': 'Password updated successfully'}), 200
-        else:
-            return jsonify({'error': 'Current password is incorrect'}), 400
+        return jsonify({'error': 'Current password is incorrect'}), 400
     else:
         return jsonify({'error': 'User not found'}), 404

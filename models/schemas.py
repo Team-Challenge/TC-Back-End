@@ -1,15 +1,6 @@
-from datetime import datetime
-from app import db, ma
-from marshmallow import fields, Schema, validate, ValidationError
-from datetime import datetime
-from sqlalchemy.orm import mapped_column
-from sqlalchemy import ForeignKey
-from sqlalchemy import Integer
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import relationship
-from sqlalchemy import Integer, String, DateTime, Boolean
+
+from dependencies import ma
+from marshmallow import fields, Schema, validate
 from models.models import User, Order, Product, ProductOrder, email_is_unique
 
 
