@@ -3,3 +3,4 @@ repos:
     rev: 1.10.0
     hooks:
     -   id: prospector
+        args: ['--profile=config/prospector.yaml']

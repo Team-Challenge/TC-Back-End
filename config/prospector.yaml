@@ -3,3 +3,6 @@ doc-warnings: false
 test-warnings: false
 autodetect: true
 member-warnings: false
+pylint:
+  disable:
+    - import-error
