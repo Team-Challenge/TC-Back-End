@@ -32,7 +32,7 @@ accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 CORS(accounts_route, supports_credentials=True)
 
 @jwt.token_in_blocklist_loader
-def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
+def check_if_token_is_revoked(jwt_payload):
     jti = jwt_payload["jti"]
     token_in_redis = cache.get(jti)
     return token_in_redis is not None
@@ -69,7 +69,7 @@ def signup() -> Response:
     verification_link = url_for('accounts_route.verify_email', token=verification_token, _external=True)
     user_schema = UserSchema(exclude=["id", "joined_at", "is_active"])
 
-    response = {"user": user_schema.dump(user_to_add), "link": verification_token}
+    response = {"user": user_schema.dump(user_to_add), "link": verification_link}
 
     return make_response(jsonify(response), 200)
 
@@ -194,21 +194,17 @@ def profile_photo():
         file_name = uuid.uuid4().hex
         user = User.query.filter_by(id=get_jwt_identity()).first()
         user.profile_picture = file_name + '.' + extension
-
         file.save(os.path.join(PROFILE_PHOTOS_PATH, file_name + '.' + extension))
-
         db.session.commit()
-
         return make_response(UserInfoSchema().dump(user), 200)
     
-    if request.method == 'DELETE':
+    elif request.method == 'DELETE':
         user = User.query.filter_by(id=get_jwt_identity()).first()
         file = os.path.join(PROFILE_PHOTOS_PATH, user.profile_picture)
         if os.path.isfile(file):
             os.remove(file)
         user.profile_picture = ''
         db.session.commit()
-        
         return make_response('OK', 200)
 
 @accounts_route.route('/change_password', methods=['POST'])
