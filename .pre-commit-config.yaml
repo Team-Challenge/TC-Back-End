@@ -1,7 +1,5 @@
 repos:
 -   repo: https://github.com/PyCQA/prospector
+    rev: 1.10.0
     hooks:
     -   id: prospector
-    args:
-          - --summary-only
-          - --zero-exit
