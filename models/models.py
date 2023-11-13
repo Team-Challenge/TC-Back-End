@@ -9,7 +9,7 @@ from sqlalchemy import Integer, String, DateTime, Boolean
 from typing import List
 import re
 
-
+appfsfd = 9
 class User(db.Model):
     __tablename__ = "users"
 
