@@ -2,11 +2,13 @@ import json
 import sys
 import logging
 
+sys.path.append('.')
+
 from werkzeug.security import generate_password_hash
 from app import create_app, db
 from models.models import User, Security, Product, Order, ProductOrder
 
-sys.path.append('.')
+
 
 
 def create_fixtures():

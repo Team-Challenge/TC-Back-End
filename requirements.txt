@@ -47,3 +47,5 @@ tomli==2.0.1
 typing_extensions==4.8.0
 Werkzeug==2.3.3
 prospector==1.10.3
+psutil==5.9.6
+prometheus-client==0.18.0
