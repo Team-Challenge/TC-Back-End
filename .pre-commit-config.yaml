@@ -1,4 +1,4 @@
 repos:
--   repo: https://github.com/landscapeio/prospector
+-   repo: https://github.com/PyCQA/prospector
     hooks:
     -   id: prospector
