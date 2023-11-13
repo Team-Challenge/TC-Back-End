@@ -1,6 +1,4 @@
 
-import threading
-import time
 import psutil
 
 from flask import Flask

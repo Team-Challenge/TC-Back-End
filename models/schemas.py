@@ -16,7 +16,7 @@ class SigninUserSchema(Schema):
     
 
 class SignupUserSchema(Schema):
-    email = fields.Email(validate=lambda x: email_is_unique(x))
+    email = fields.Email(validate=email_is_unique)
     full_name = fields.Str(validate=validate.Length(min=2, max=50))
     password = fields.Str(validate=validate.Regexp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'))
 
