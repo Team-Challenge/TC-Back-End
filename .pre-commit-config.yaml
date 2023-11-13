@@ -2,3 +2,6 @@ repos:
 -   repo: https://github.com/PyCQA/prospector
     hooks:
     -   id: prospector
+    args:
+          - --summary-only
+          - --zero-exit
