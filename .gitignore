@@ -51,6 +51,7 @@ ENV/
 # mypy & tests
 .mypy_cache/
 .pytest_cache/
+.coverage
 
 # Artifacts
 media/
