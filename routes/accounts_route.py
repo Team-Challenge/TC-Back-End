@@ -1,4 +1,3 @@
-
 import os
 import uuid
 import re
@@ -108,7 +107,7 @@ def verify_email(token):
         user.is_active = True
         db.session.commit()
         return make_response(jsonify({"message": "OK"}), 200)
-    except Exception as e:
+    except Exception:
         abort(404, "Invalid verification token")
 
 @accounts_route.route("/refresh", methods=["GET"])
@@ -197,8 +196,8 @@ def profile_photo():
         file.save(os.path.join(PROFILE_PHOTOS_PATH, file_name + '.' + extension))
         db.session.commit()
         return make_response(UserInfoSchema().dump(user), 200)
-    
-    elif request.method == 'DELETE':
+
+    if request.method == 'DELETE':
         user = User.query.filter_by(id=get_jwt_identity()).first()
         file = os.path.join(PROFILE_PHOTOS_PATH, user.profile_picture)
         if os.path.isfile(file):
@@ -207,27 +206,25 @@ def profile_photo():
         db.session.commit()
         return make_response('OK', 200)
 
+    return make_response('Method Not Allowed', 405)
+
 @accounts_route.route('/change_password', methods=['POST'])
 @jwt_required()
 def change_password():
+    current_user_id = get_jwt_identity()
+    
     data = request.get_json()
     current_password = data.get('current_password')
     new_password = data.get('new_password')
-
-    current_user_id = get_jwt_identity()
-
     user = User.query.filter_by(id=current_user_id).first()
     security = Security.query.filter_by(user_id=current_user_id).first()
 
     if user and security:
         schema = PasswordChangeSchema()
-
-        
         errors = schema.validate(data)
         if errors:
             return jsonify({'error': errors}), 400
 
-        
         if check_password_hash(security.password_hash, current_password):
             
             hashed_password = generate_password_hash(new_password)
@@ -235,5 +232,5 @@ def change_password():
             db.session.commit()
             return jsonify({'message': 'Password updated successfully'}), 200
         return jsonify({'error': 'Current password is incorrect'}), 400
-    else:
-        return jsonify({'error': 'User not found'}), 404
+
+    return jsonify({'error': 'User not found'}), 404

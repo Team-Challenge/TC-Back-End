@@ -21,6 +21,9 @@ recreate-db-local:
 	${PYTHON} ./data/create_fixtures.py && \
 	echo "DB has been recreated. Migrations & Fixtures have been applied!"
 
+prospector:
+	prospector --profile=config/prospector.yaml
+
 ## Docker commmands
 up:
 	docker-compose up

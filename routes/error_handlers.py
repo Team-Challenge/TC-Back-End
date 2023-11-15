@@ -1,4 +1,3 @@
-
 from flask import jsonify, Blueprint
 from marshmallow import ValidationError
 
@@ -18,7 +17,8 @@ def handle_exception(err):
     response = {"error": err.description, "message": ""}
     return jsonify(response), err.code
 
+
 @error_handlers.app_errorhandler(ValidationError)
-def handle_exceptiosn(err):
+def handle_exceptiosn(err):  # pylint: disable=unused-argument
     response = {"error": "Invalid input"}
     return jsonify(response), 400
