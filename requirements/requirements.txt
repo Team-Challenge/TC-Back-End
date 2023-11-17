@@ -1,0 +1,8 @@
+-r requirements_base.txt
+
+pytest==7.4.0
+factory-boy==3.3.0
+Faker==19.6.2
+prospector==1.10.3
+coverage==7.3.2
+pre-commit==3.5.0

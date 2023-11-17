@@ -9,7 +9,7 @@
 > `source .venv/bin/activate`
 
 ## Install dependencies:
-> `pip install -r requirements.txt`
+> `pip install -r requirements/requirements.txt`
 
 ## Create `.env`:
 > copy `.env_example` as `.env`

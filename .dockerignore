@@ -2,9 +2,9 @@
 .idea/
 .vscode/
 .git
+.github
 .cache
 .venv
-.venv/*
-.venv/
 .pytest_cache
 .mypy_cache
+__pycache__

@@ -1,3 +1,4 @@
+alembic==1.11.1
 Flask==2.3.2
 psutil==5.9.6
 flask-swagger-ui==4.11.1
@@ -8,7 +9,15 @@ Flask-Migrate==4.0.4
 flask-marshmallow==0.15.0
 Flask-JWT-Extended==4.5.2
 Flask-Caching==2.0.2
+Flask-Bcrypt==1.0.1
 marshmallow-sqlalchemy==0.29.0
+marshmallow==3.20.1
 Flask-Cors==4.0.0
-
-prospector==1.10.3
+gunicorn==21.2.0
+itsdangerous==2.1.2
+SQLAlchemy==2.0.21
+typing_extensions==4.8.0
+PyJWT==2.8.0
+PyYAML==6.0.1
+python-dateutil==2.8.2
+python-dotenv==1.0.0
