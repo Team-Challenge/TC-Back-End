@@ -20,7 +20,7 @@ jobs:
           port: 22
           script: |
             cd /home/teamchallenge/backend
-            make down
+            make deploy-down
             git pull origin development
             git status
-            docker-compose -f docker-compose-deploy.yaml up -d --build
+            docker-compose -f docker/docker-compose-deploy.yaml up -d --build

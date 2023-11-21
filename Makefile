@@ -2,7 +2,7 @@ include .env
 
 ## Local installation commands
 install:
-	. ${VENV}/bin/activate && pip install -r requirements.txt
+	. ${VENV}/bin/activate && pip install -r requirements/requirements.txt
 
 run:
 	${PYTHON} run.py
@@ -21,21 +21,28 @@ recreate-db-local:
 	${PYTHON} ./data/create_fixtures.py && \
 	echo "DB has been recreated. Migrations & Fixtures have been applied!"
 
+prospector:
+	prospector --profile=config/prospector.yaml
+
 ## Docker commmands
 up:
-	docker-compose up
+	docker-compose -f docker/docker-compose.yaml up
 
 build-up:
-	docker-compose up --build 
-
-deploy-up:
-	docker-compose -f docker-compose-deploy.yaml up -d
-
-deploy-build-up:
-	docker-compose -f docker-compose-deploy.yaml up -d --build
+	docker-compose -f docker/docker-compose.yaml up --build 
 
 down:
-	docker-compose down --remove-orphans
+	docker-compose -f docker/docker-compose.yaml down --remove-orphans
+
+## Docker commans on deployment server
+deploy-up:
+	docker-compose -f docker/docker-compose-deploy.yaml up -d
+
+deploy-build-up:
+	docker-compose -f docker/docker-compose-deploy.yaml up -d --build
+
+deploy-down:
+	docker-compose -f docker/docker-compose-deploy.yaml down --remove-orphans
 
 recreate-db-docker:
 	docker exec tc-backend bash -c "python ./data/create_db.py" && \

@@ -1,15 +1,6 @@
-from datetime import datetime
-from app import db, ma
-from marshmallow import fields, Schema, validate, ValidationError
-from datetime import datetime
-from sqlalchemy.orm import mapped_column
-from sqlalchemy import ForeignKey
-from sqlalchemy import Integer
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import relationship
-from sqlalchemy import Integer, String, DateTime, Boolean
+from marshmallow import fields, Schema, validate
+
+from dependencies import ma
 from models.models import User, Order, Product, ProductOrder, email_is_unique
 
 
@@ -25,9 +16,9 @@ class SigninUserSchema(Schema):
     
 
 class SignupUserSchema(Schema):
-    email = fields.Email(validate=lambda x: email_is_unique(x))
+    email = fields.Email(validate=email_is_unique)
     full_name = fields.Str(validate=validate.Length(min=2, max=50))
-    password = fields.Str(validate=validate.Regexp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'))
+    password = fields.Str(validate=validate.Regexp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'))  # noqa: W605
 
 
 class UserInfoSchema(ma.SQLAlchemyAutoSchema):
@@ -46,7 +37,7 @@ class FullNameChangeSchema(Schema):
 
 class PasswordChangeSchema(Schema):
     current_password = fields.Str()
-    new_password = fields.Str(validate=validate.Regexp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'))
+    new_password = fields.Str(validate=validate.Regexp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'))    # noqa: W605
 
 
 class ProductSchema(ma.SQLAlchemyAutoSchema):

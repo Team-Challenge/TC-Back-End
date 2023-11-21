@@ -1,13 +1,16 @@
+# pylint: skip-file
+
 import json
 import sys
 import logging
 
-from werkzeug.security import generate_password_hash
-
 sys.path.append('.')
 
+from werkzeug.security import generate_password_hash
 from app import create_app, db
 from models.models import User, Security, Product, Order, ProductOrder
+
+
 
 
 def create_fixtures():

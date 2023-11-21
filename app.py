@@ -1,24 +1,33 @@
 
+import psutil
+
 from flask import Flask
-from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_marshmallow import Marshmallow
 from flask_swagger_ui import get_swaggerui_blueprint
-from flask_jwt_extended import JWTManager
-from flask_caching import Cache
 from config import Config
-
-
-db = SQLAlchemy()
-migrate = Migrate()
-ma = Marshmallow()
-jwt = JWTManager()
-cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from prometheus_client import make_wsgi_app
+from prometheus_client import Gauge
+from routes.accounts_route import accounts_route
+from routes.orders_route import orders_route
+from routes.error_handlers import error_handlers
+from routes.users import users_route
+from dependencies import db, migrate, ma, jwt, cache, registry
 
 
 def create_app(config_class=Config) -> Flask:
     app = Flask(__name__)
+
+    ram_metric = Gauge("memory_usage_percent", "Memory usage in percent.",
+                       registry=registry)
+    cpu_metric = Gauge("cpu_usage_percent", "CPU usage percent.",
+                       registry=registry)
+
+    ram_metric.set_function(lambda: psutil.virtual_memory().percent)
+    cpu_metric.set_function(lambda: psutil.cpu_percent(interval=1))
+
+    app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
+        '/healthcheck': make_wsgi_app(registry=registry)
+        })
 
     app.config.from_object(config_class)
 
@@ -26,13 +35,7 @@ def create_app(config_class=Config) -> Flask:
     migrate.init_app(app, db)
     ma.init_app(app)
     cache.init_app(app)
-
     jwt.init_app(app)
-
-    from routes.accounts_route import accounts_route
-    from routes.orders_route import orders_route
-    from routes.error_handlers import error_handlers
-    from routes.users import users_route
 
     SWAGGER_URL = "/swagger"
     API_URL = "/static/swaggerAuth.json"
@@ -46,11 +49,4 @@ def create_app(config_class=Config) -> Flask:
     app.register_blueprint(error_handlers)
     app.register_blueprint(users_route)
 
-
     return app
-
-
-db = SQLAlchemy()
-migrate = Migrate()
-ma = Marshmallow()
-app = create_app()

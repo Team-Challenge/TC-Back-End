@@ -1,27 +1,26 @@
-from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
+import os
+import uuid
+import re
 
-from datetime import datetime, timedelta
+from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
+from datetime import timedelta
 from models.models import User, Security, full_name_validation
-from models.schemas import *
+from models.schemas import UserSchema, SigninUserSchema, SignupUserSchema, FullNameChangeSchema, UserInfoSchema, PasswordChangeSchema
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
 from flask_cors import CORS
-import jwt
-import os
-import uuid
-import re
-from routes.error_handlers import *
-from app import db, jwt, cache
+from routes.error_handlers import APIAuthError
+from dependencies import db, jwt, cache
 from config import Config
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
     get_jwt_identity,
     get_jwt,
-    jwt_required,
-    set_access_cookies
+    jwt_required
 )
+
 
 ACCESS_EXPIRES = timedelta(hours=1)
 PROFILE_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'profile')
@@ -32,7 +31,7 @@ accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 CORS(accounts_route, supports_credentials=True)
 
 @jwt.token_in_blocklist_loader
-def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
+def check_if_token_is_revoked(jwt_header, jwt_payload: dict):  # pylint: disable=unused-argument
     jti = jwt_payload["jti"]
     token_in_redis = cache.get(jti)
     return token_in_redis is not None
@@ -69,7 +68,7 @@ def signup() -> Response:
     verification_link = url_for('accounts_route.verify_email', token=verification_token, _external=True)
     user_schema = UserSchema(exclude=["id", "joined_at", "is_active"])
 
-    response = {"user": user_schema.dump(user_to_add), "link": verification_token}
+    response = {"user": user_schema.dump(user_to_add), "link": verification_link}
 
     return make_response(jsonify(response), 200)
 
@@ -108,7 +107,7 @@ def verify_email(token):
         user.is_active = True
         db.session.commit()
         return make_response(jsonify({"message": "OK"}), 200)
-    except Exception as e:
+    except Exception:
         abort(404, "Invalid verification token")
 
 @accounts_route.route("/refresh", methods=["GET"])
@@ -151,8 +150,7 @@ def change_phone_number():
         user.phone_number = phone_number
         db.session.commit()
         return jsonify({'message': 'Phone number updated successfully'}), 200
-    else:
-        return jsonify({'error': 'User not found'}), 404
+    return jsonify({'error': 'User not found'}), 404
 
 @accounts_route.route('/change_full_name', methods=['POST'])
 @jwt_required()
@@ -177,8 +175,8 @@ def change_full_name():
         user.full_name = full_name
         db.session.commit()
         return jsonify({'message': 'Full name updated successfully'}), 200
-    else:
-        return jsonify({'error': 'User not found'}), 404
+    
+    return jsonify({'error': 'User not found'}), 404
 
 @accounts_route.route("/info", methods=["GET"])
 @jwt_required()
@@ -195,13 +193,10 @@ def profile_photo():
         file_name = uuid.uuid4().hex
         user = User.query.filter_by(id=get_jwt_identity()).first()
         user.profile_picture = file_name + '.' + extension
-
         file.save(os.path.join(PROFILE_PHOTOS_PATH, file_name + '.' + extension))
-
         db.session.commit()
-
         return make_response(UserInfoSchema().dump(user), 200)
-    
+
     if request.method == 'DELETE':
         user = User.query.filter_by(id=get_jwt_identity()).first()
         file = os.path.join(PROFILE_PHOTOS_PATH, user.profile_picture)
@@ -211,34 +206,31 @@ def profile_photo():
         db.session.commit()
         return make_response('OK', 200)
 
+    return make_response('Method Not Allowed', 405)
+
 @accounts_route.route('/change_password', methods=['POST'])
 @jwt_required()
 def change_password():
+    current_user_id = get_jwt_identity()
+    
     data = request.get_json()
     current_password = data.get('current_password')
     new_password = data.get('new_password')
-
-    current_user_id = get_jwt_identity()
-
     user = User.query.filter_by(id=current_user_id).first()
     security = Security.query.filter_by(user_id=current_user_id).first()
 
     if user and security:
         schema = PasswordChangeSchema()
-
-        
         errors = schema.validate(data)
         if errors:
             return jsonify({'error': errors}), 400
 
-        
         if check_password_hash(security.password_hash, current_password):
             
             hashed_password = generate_password_hash(new_password)
             security.password_hash = hashed_password
             db.session.commit()
             return jsonify({'message': 'Password updated successfully'}), 200
-        else:
-            return jsonify({'error': 'Current password is incorrect'}), 400
-    else:
-        return jsonify({'error': 'User not found'}), 404
+        return jsonify({'error': 'Current password is incorrect'}), 400
+
+    return jsonify({'error': 'User not found'}), 404

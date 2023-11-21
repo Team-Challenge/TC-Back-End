@@ -1,17 +1,15 @@
+
+import re
+
 from datetime import datetime
-from app import db
-from marshmallow import fields, Schema, validate, ValidationError
-from datetime import datetime
-from sqlalchemy.orm import mapped_column
+from dependencies import db
+from marshmallow import ValidationError
 from sqlalchemy import ForeignKey
-from sqlalchemy import Integer
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship
 from sqlalchemy import Integer, String, DateTime, Boolean
 from typing import List
-import re
 
 
 class User(db.Model):
@@ -127,6 +125,5 @@ def email_is_unique(email):
         raise ValidationError('User with such email already exist')
 
 def full_name_validation(full_name):
-    if not re.match("^[a-zA-Zа-яА-ЯґҐєЄіІїЇ\s]+$",full_name):
+    if not re.match(r"^[a-zA-Zа-яА-ЯґҐєЄіІїЇ\s]+$",full_name):
         raise ValidationError('Invalid characters in the field full_name')
-

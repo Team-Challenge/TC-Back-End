@@ -1,20 +1,7 @@
-from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
-from datetime import datetime, timedelta
-from models.models import User, Security
-from models.schemas import *
-from werkzeug.security import check_password_hash, generate_password_hash
-from itsdangerous import URLSafeTimedSerializer
-import jwt
-from routes.error_handlers import *
-from app import db
-from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
-    get_jwt_identity,
-    get_jwt,
-    jwt_required,
-    set_access_cookies
-)
+
+from flask import jsonify, Blueprint, Response, make_response
+from models.models import User
+from models.schemas import UserSchema
 
 
 users_route = Blueprint("users", __name__, url_prefix="/users")

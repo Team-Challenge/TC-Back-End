@@ -1,0 +1,13 @@
+repos:
+  - repo: https://github.com/PyCQA/prospector
+    rev: 1.10.0
+    hooks:
+      - id: prospector
+        additional_dependencies:
+          - '.[with_mypy,with_bandit]'
+        args:
+          - '--profile=config/prospector.yaml'
+          - --with-tool=mypy
+          - --with-tool=bandit
+          - --summary-only
+          - --zero-exit
