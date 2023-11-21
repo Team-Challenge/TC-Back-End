@@ -31,7 +31,7 @@ accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 CORS(accounts_route, supports_credentials=True)
 
 @jwt.token_in_blocklist_loader
-def check_if_token_is_revoked(jwt_payload):
+def check_if_token_is_revoked(jwt_header, jwt_payload: dict):  # pylint: disable=unused-argument
     jti = jwt_payload["jti"]
     token_in_redis = cache.get(jti)
     return token_in_redis is not None
