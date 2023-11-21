@@ -11,4 +11,4 @@ RUN flask db upgrade
 
 EXPOSE 8080
 
-CMD [ "gunicorn", "-c" , "config/gunicorn.py", "app:app"]
+CMD [ "gunicorn", "-c" , "config/gunicorn.py", "run:app"]
