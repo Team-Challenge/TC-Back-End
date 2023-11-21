@@ -23,8 +23,4 @@ jobs:
             make deploy-down
             git pull origin development
             git status
-<<<<<<< Updated upstream
-            docker-compose -f docker/docker-compose-deploy.yaml up -d --build
-=======
             make deploy-build-up
->>>>>>> Stashed changes
