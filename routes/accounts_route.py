@@ -110,14 +110,15 @@ def verify_email(token):
     except Exception:
         abort(404, "Invalid verification token")
 
-@accounts_route.route("/refresh", methods=["GET"])
+@accounts_route.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
 def refresh():
     user = get_jwt_identity()
+    new_refresh_token = create_refresh_token(identity=user)
     token = create_access_token(identity=user, fresh=False)
     jti = get_jwt()["jti"]
     cache.set(jti, "1", timeout=86400)
-    response = jsonify({"access_token": token})
+    response = jsonify({"access_token": token}, {"refresh_token": new_refresh_token})
     return make_response(response, 200)
 
 @accounts_route.route("/logout", methods=["DELETE"])
