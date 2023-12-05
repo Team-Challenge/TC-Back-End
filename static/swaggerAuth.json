@@ -315,6 +315,28 @@
         }
       }
     },
+    "/shops/shop_photo": {
+      "post": {
+        "summary": "Upload Shop Photo",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Profile photo upload data",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopPhotoUploadSchema"
+              }
+            }
+          }
+        }
+      }
+    },
     "/accounts/change_password": {
       "post": {
         "summary": "Change Password",
@@ -437,6 +459,26 @@
         "required": ["full_name"]
       },
       "ProfilePhotoUploadSchema": {
+        "type": "object",
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": ["image"]
+      },
+      "ShopPhotoUploadSchema": {
+        "type": "object",
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": ["image"]
+      },
+      "ShopBannerUploadSchema": {
         "type": "object",
         "properties": {
           "image": {
