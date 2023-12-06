@@ -1,7 +1,7 @@
 from marshmallow import fields, Schema, validate
 
 from dependencies import ma
-from models.models import User, Order, Product, ProductOrder, email_is_unique, Shop, Link
+from models.models import User, Order, Product, ProductOrder, email_is_unique, Shop
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
@@ -67,20 +67,13 @@ class ShopSchema(ma.SQLAlchemyAutoSchema):
         model = Shop
         include_relationships = True
         load_instance = True
-        exclude = ("owner_id", )
-
-class LinkSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Link
-        include_relationships = True
-        load_instance = True
 
 class ShopInfoPhotoShema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Shop
-        exclude = ("id", "owner_id", "name", "description", "banner_shop", "phone_number")
+        exclude = ("id", "owner_id", "name", "description", "banner_shop", "phone_number", "link")
 
 class ShopInfoBannerShema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Shop
-        exclude = ("id", "owner_id", "name", "description", "photo_shop", "phone_number")
+        exclude = ("id", "owner_id", "name", "description", "photo_shop", "phone_number", "link")

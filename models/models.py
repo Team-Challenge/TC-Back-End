@@ -81,7 +81,7 @@ class OrderStatus(db.Model):
 class Shop(db.Model):
     __tablename__ = "shops"
 
-    def __init__(self, name=None, description=None, photo_shop=None, banner_shop=None, phone_number=None, owner_id=None):
+    def __init__(self, name=None, description=None, photo_shop=None, banner_shop=None, phone_number=None, owner_id=None, link=None):
         
         self.owner_id = owner_id
         self.name = name
@@ -89,6 +89,7 @@ class Shop(db.Model):
         self.photo_shop = photo_shop
         self.banner_shop = banner_shop
         self.phone_number = phone_number
+        self.link = link
 
     id = mapped_column(Integer, primary_key=True)
     owner_id = mapped_column(Integer, ForeignKey("users.id"))
@@ -97,25 +98,9 @@ class Shop(db.Model):
     photo_shop = mapped_column(String, default=None )
     banner_shop = mapped_column(String, default=None)
     phone_number = mapped_column(String, default=None)
-
+    link = mapped_column(String, default=None)
 
     owner: Mapped["User"] = relationship("User", back_populates="shops")
-    links: Mapped["Link"] = relationship("Link", back_populates="shop")
-
-class Link(db.Model):
-    __tablename__ = "links"
-
-    def __init__(self, shop_id, title, link):
-        self.shop_id = shop_id
-        self.title = title
-        self.link = link
-        
-    id = mapped_column(Integer, primary_key=True)
-    title = mapped_column(String, nullable=False)
-    link = mapped_column(String, nullable=False)
-    shop_id = mapped_column(Integer, ForeignKey("shops.id"))
-
-    shop: Mapped["Shop"] = relationship("Shop", back_populates="links")
 
 
 class ProductOrder(db.Model):

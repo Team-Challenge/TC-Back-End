@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Auth API Documentation",
-    "description": "API for user registration, sign in, email verification, and user information update.",
+    "description": "API for marketplase.",
     "version": "1.0.3"
   },
   "paths": {
@@ -378,6 +378,30 @@
             }
           }
         }
+      },
+      "delete": {
+        "summary": "Delete Shop Photo",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop photo deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Shop photo deleted successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Shop photo not found"
+          }
+        }
       }
     },
     "/shops/shop_banner": {
@@ -398,6 +422,30 @@
                 "$ref": "#/components/schemas/ShopBannerUploadSchema"
               }
             }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Banner Shop",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Banner shop deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Banner shop deleted successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Banner not found"
           }
         }
       }
@@ -467,8 +515,34 @@
           }
         }
       }
+    },
+    "/shops/shop_info": {
+      "get": {
+        "summary": "Get Shop Information",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopInfo"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
     }
-  },       
+  },      
   "components": {
     "schemas": {
       "SignupUserSchema": {
@@ -503,6 +577,9 @@
             "maxLength": 500
           },
           "phone_number": {
+            "type": "string"
+          },
+          "link": {
             "type": "string"
           }
         },
@@ -611,6 +688,39 @@
             "type": "string",
             "format": "uri",
             "description": "URL to the user's profile photo"
+          }
+        }
+      },
+      "ShopInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "owner_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "shop_photo": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to the shop"
+          },
+          "banner_photo": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to the shop"
+          },
+          "phone_number": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
           }
         }
       },

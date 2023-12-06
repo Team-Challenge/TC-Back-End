@@ -2,8 +2,8 @@ import os
 import uuid
 
 from flask import jsonify, request, Blueprint, make_response
-from models.models import Shop, Link, User
-from models.schemas import ShopSchema, LinkSchema, ShopInfoPhotoShema, ShopInfoBannerShema
+from models.models import Shop, User
+from models.schemas import ShopSchema, ShopInfoPhotoShema, ShopInfoBannerShema
 from dependencies import db
 from config import Config
 from marshmallow.exceptions import ValidationError
@@ -21,6 +21,9 @@ CORS(shops_route, supports_credentials=True)
 
 SHOPS_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'shops')
 SHOPS_BANNER_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'banner_shops')
+
+os.makedirs(SHOPS_PHOTOS_PATH, exist_ok=True)
+os.makedirs(SHOPS_BANNER_PHOTOS_PATH, exist_ok=True)
 
 @shops_route.route("/shop", methods=["POST"])
 @jwt_required()
@@ -49,6 +52,9 @@ def create_shop():
 
         if "phone_number" in request_data:
             existing_shop.phone_number = request_data["phone_number"]
+        
+        if "link" in request_data:
+            existing_shop.link = request_data["link"]
 
         db.session.commit()
         return jsonify({'message': 'Shop details updated successfully'}), 200
@@ -60,7 +66,8 @@ def create_shop():
         new_shop = Shop(owner_id=user.id,
                         name=request_data["name"],
                         description=request_data.get("description", None),
-                        phone_number=request_data.get("phone_number", None))
+                        phone_number=request_data.get("phone_number", None),
+                        link=request_data.get("link", None))
 
         db.session.add(new_shop)
         db.session.commit()
@@ -80,6 +87,12 @@ def shop_photo():
             file = request.files['image']
             extension = file.filename.split('.')[1]
             file_name = uuid.uuid4().hex
+
+            if shop.photo_shop:
+                old_file_path = os.path.join(SHOPS_PHOTOS_PATH, shop.photo_shop)
+                if os.path.isfile(old_file_path):
+                    os.remove(old_file_path)
+
             shop.photo_shop = file_name + '.' + extension
             file.save(os.path.join(SHOPS_PHOTOS_PATH, file_name + '.' + extension))
             db.session.commit()
@@ -89,7 +102,7 @@ def shop_photo():
             file = os.path.join(SHOPS_PHOTOS_PATH, shop.photo_shop)
             if os.path.isfile(file):
                 os.remove(file)
-            shop.photo_shop = ''
+            shop.photo_shop = None
             db.session.commit()
             return make_response('OK', 200)
 
@@ -109,6 +122,12 @@ def shop_banner():
             file = request.files['image']
             extension = file.filename.split('.')[1]
             file_name = uuid.uuid4().hex
+
+            if shop.banner_shop:
+                old_file_path = os.path.join(SHOPS_BANNER_PHOTOS_PATH, shop.banner_shop)
+                if os.path.isfile(old_file_path):
+                    os.remove(old_file_path)
+
             shop.banner_shop = file_name + '.' + extension
             file.save(os.path.join(SHOPS_BANNER_PHOTOS_PATH, file_name + '.' + extension))
             db.session.commit()
@@ -118,9 +137,24 @@ def shop_banner():
             file = os.path.join(SHOPS_BANNER_PHOTOS_PATH, shop.banner_shop)
             if os.path.isfile(file):
                 os.remove(file)
-            shop.banner = ''
+            shop.banner_shop = None
             db.session.commit()
             return make_response('OK', 200)
 
         return make_response('Method Not Allowed', 405)
     return make_response('There is no store by user')
+
+
+@shops_route.route('/shop_info', methods=['GET'])
+@jwt_required()
+def get_shop_info():
+    current_user_id = get_jwt_identity()
+    user = User.query.filter_by(id=current_user_id).first()
+    shop = Shop.query.filter_by(owner_id=user.id).first()
+
+    if shop:
+        shop_schema = ShopSchema()
+        shop_info = shop_schema.dump(shop)
+        return jsonify(shop_info), 200
+
+    return make_response('There is no store by user', 404)
