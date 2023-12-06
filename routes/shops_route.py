@@ -1,8 +1,9 @@
 import os
+import uuid
 
 from flask import jsonify, request, Blueprint, make_response
 from models.models import Shop, Link, User
-from models.schemas import ShopSchema, LinkSchema
+from models.schemas import ShopSchema, LinkSchema, ShopInfoPhotoShema, ShopInfoBannerShema
 from dependencies import db
 from config import Config
 from marshmallow.exceptions import ValidationError
@@ -54,7 +55,7 @@ def create_shop():
         
     else:
         if not request_data or "name" not in request_data or len(request_data["name"]) == 0:
-            return jsonify({'error': 'Incomplete or empty name. Provide name for the shop.'}), 400
+            return jsonify({'error': 'Incomplete or empty name. Provide name for the shop.'}), 401
     
         new_shop = Shop(owner_id=user.id,
                         name=request_data["name"],
@@ -76,13 +77,13 @@ def shop_photo():
 
     if shop:
         if request.method == 'POST':
-            file = request.files['shop_image']
+            file = request.files['image']
             extension = file.filename.split('.')[1]
             file_name = uuid.uuid4().hex
             shop.photo_shop = file_name + '.' + extension
             file.save(os.path.join(SHOPS_PHOTOS_PATH, file_name + '.' + extension))
             db.session.commit()
-            return make_response(ShopInfoSchema().dump(shop), 200)
+            return make_response(ShopInfoPhotoShema().dump(shop), 200)
 
         if request.method == 'DELETE':
             file = os.path.join(SHOPS_PHOTOS_PATH, shop.photo_shop)
@@ -105,16 +106,16 @@ def shop_banner():
 
     if shop:
         if request.method == 'POST':
-            file = request.files['shop_banner']
+            file = request.files['image']
             extension = file.filename.split('.')[1]
             file_name = uuid.uuid4().hex
-            shop.banner = file_name + '.' + extension
+            shop.banner_shop = file_name + '.' + extension
             file.save(os.path.join(SHOPS_BANNER_PHOTOS_PATH, file_name + '.' + extension))
             db.session.commit()
-            return make_response(ShopInfoSchema().dump(shop), 200)
+            return make_response(ShopInfoBannerShema().dump(shop), 200)
 
         if request.method == 'DELETE':
-            file = os.path.join(SHOPS_BANNER_PHOTOS_PATH, shop.banner)
+            file = os.path.join(SHOPS_BANNER_PHOTOS_PATH, shop.banner_shop)
             if os.path.isfile(file):
                 os.remove(file)
             shop.banner = ''

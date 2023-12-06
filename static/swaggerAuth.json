@@ -251,6 +251,49 @@
         }
       }
     },
+    "/shops/shop": {
+      "post": {
+        "summary": "Create shop or update shop info",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Create shop or update shop info",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUpdateShopSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shop created/updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Shop created/updated successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "401": {
+            "description": "Incomplete or empty name. Provide name for the shop."
+          }
+        }
+      }
+    },
     "/accounts/profile_photo": {
       "post": {
         "summary": "Upload Profile Photo",
@@ -325,12 +368,34 @@
           }
         ],
         "requestBody": {
-          "description": "Profile photo upload data",
+          "description": "photo shop upload data",
           "required": true,
           "content": {
             "multipart/form-data": {
               "schema": {
                 "$ref": "#/components/schemas/ShopPhotoUploadSchema"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shops/shop_banner": {
+      "post": {
+        "summary": "Upload Shop Banner",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Banner shop upload data",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopBannerUploadSchema"
               }
             }
           }
@@ -424,6 +489,24 @@
           }
         },
         "required": ["email", "full_name", "password"]
+      },
+      "CreateUpdateShopSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "phone_number": {
+            "type": "string"
+          }
+        },
+        "required": ["owner_id", "name", "description", "phone_number"]
       },
       "SigninUserSchema": {
         "type": "object",
