@@ -1,5 +1,6 @@
-
+import os
 import re
+import uuid
 
 from datetime import datetime
 from dependencies import db
@@ -8,9 +9,16 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
+from config import Config
 from sqlalchemy import Integer, String, DateTime, Boolean,UniqueConstraint
 from typing import List
 
+
+SHOPS_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'shops')
+SHOPS_BANNER_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'banner_shops')
+
+os.makedirs(SHOPS_PHOTOS_PATH, exist_ok=True)
+os.makedirs(SHOPS_BANNER_PHOTOS_PATH, exist_ok=True)
 
 class User(db.Model):
     __tablename__ = "users"
@@ -102,6 +110,71 @@ class Shop(db.Model):
 
     owner: Mapped["User"] = relationship("User", back_populates="shops")
 
+    @classmethod
+    def get_shop_by_owner_id(cls, owner_id):
+        return cls.query.filter_by(owner_id=owner_id).first()
+
+    @classmethod
+    def create_shop(cls, owner_id, name, description, phone_number, link):
+        new_shop = cls(owner_id=owner_id, name=name, description=description,
+                       phone_number=phone_number, link=link)
+        db.session.add(new_shop)
+        db.session.commit()
+        return new_shop
+
+    def update_shop_details(self, name=None, description=None, phone_number=None, link=None):
+        if name:
+            self.name = name
+        if description:
+            self.description = description
+        if phone_number:
+            self.phone_number = phone_number
+        if link:
+            self.link = link
+        db.session.commit()
+    
+    def add_photo(self, photo):
+        file_extension = photo.filename.split('.')[-1]
+        file_name = uuid.uuid4().hex
+        file_path = os.path.join(SHOPS_PHOTOS_PATH, f"{file_name}.{file_extension}")
+
+        if self.photo_shop:
+            old_file_path = os.path.join(SHOPS_PHOTOS_PATH, self.photo_shop)
+            if os.path.isfile(old_file_path):
+                os.remove(old_file_path)
+
+        self.photo_shop = f"{file_name}.{file_extension}"
+        photo.save(file_path)
+        db.session.commit()
+
+    def add_banner(self, banner):
+        file_extension = banner.filename.split('.')[-1]
+        file_name = uuid.uuid4().hex
+        file_path = os.path.join(SHOPS_BANNER_PHOTOS_PATH, f"{file_name}.{file_extension}")
+
+        if self.banner_shop:
+            old_file_path = os.path.join(SHOPS_BANNER_PHOTOS_PATH, self.banner_shop)
+            if os.path.isfile(old_file_path):
+                os.remove(old_file_path)
+
+        self.banner_shop = f"{file_name}.{file_extension}"
+        banner.save(file_path)
+        db.session.commit()
+
+    def remove_photo(self):
+        file_path = os.path.join(SHOPS_PHOTOS_PATH, self.photo_shop)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        self.photo_shop = None
+        db.session.commit()
+
+    def remove_banner(self):
+        file_path = os.path.join(SHOPS_BANNER_PHOTOS_PATH, self.banner_shop)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        self.banner_shop = None
+        db.session.commit()
+
 
 class ProductOrder(db.Model):
     __tablename__ = "product_order"
@@ -136,7 +209,7 @@ class ProductPhoto(db.Model):
 
 def email_is_unique(email):
     if User.query.filter_by(email=email).first():
-        raise ValidationError('User with such email already exist')
+        raise ValidationError('User with such email already exist') 
 
 def full_name_validation(full_name):
     if not re.match(r"^[a-zA-Zа-яА-ЯґҐєЄіІїЇ\s]+$",full_name):

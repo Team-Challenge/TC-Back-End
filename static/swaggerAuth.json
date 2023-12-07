@@ -38,6 +38,9 @@
           },
           "400": {
             "description": "Bad Request"
+          },
+          "401": {
+            "description": "User with such email already exists"
           }
         }
       }
@@ -368,7 +371,7 @@
           }
         ],
         "requestBody": {
-          "description": "photo shop upload data",
+          "description": "Shop photo upload",
           "required": true,
           "content": {
             "multipart/form-data": {
@@ -377,10 +380,28 @@
               }
             }
           }
+        },
+        "responses": {
+          "200": {
+            "description": "Shop photo uploaded successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Shop photo uploaded successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Shop not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
         }
       },
       "delete": {
-        "summary": "Delete Shop Photo",
+        "summary": "Delete shop Photo",
         "tags": ["Shop"],
         "security": [
           {
@@ -399,7 +420,7 @@
             }
           },
           "404": {
-            "description": "Shop photo not found"
+            "description": "Shop not found"
           }
         }
       }
@@ -414,7 +435,7 @@
           }
         ],
         "requestBody": {
-          "description": "Banner shop upload data",
+          "description": "Upload Shop Banner",
           "required": true,
           "content": {
             "multipart/form-data": {
@@ -423,10 +444,28 @@
               }
             }
           }
+        },
+        "responses": {
+          "200": {
+            "description": "Shop banner uploaded successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Shop banner uploaded successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Shop not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
         }
       },
       "delete": {
-        "summary": "Delete Banner Shop",
+        "summary": "Delete shop banner",
         "tags": ["Shop"],
         "security": [
           {
@@ -435,17 +474,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Banner shop deleted successfully",
+            "description": "Shop banner deleted successfully",
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Banner shop deleted successfully"
+                  "message": "Shop banner deleted successfully"
                 }
               }
             }
           },
           "404": {
-            "description": "Banner not found"
+            "description": "Shop not found"
           }
         }
       }
