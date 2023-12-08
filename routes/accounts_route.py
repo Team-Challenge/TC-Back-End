@@ -186,16 +186,25 @@ def user_info():
     user = User.query.filter_by(id=get_jwt_identity()).first()
     return UserInfoSchema().dump(user)
 
-@accounts_route.route('/profile_photo', methods=['POST', 'DELETE'])
+@accounts_route.route('/profile_photo', methods=['POST', 'DELETE','GET'])
 @jwt_required()
 def profile_photo():
+    if request.method == 'GET':
+        user = User.query.filter_by(id=get_jwt_identity()).first()
+        return current_app.send_static_file('media/profile/' + user.profile_picture)
+    
     if request.method == 'POST':
         file = request.files['image']
-        extension = file.filename.split('.')[1]
+        _ , file_extension = os.path.splitext(file.filename)
         file_name = uuid.uuid4().hex
         user = User.query.filter_by(id=get_jwt_identity()).first()
-        user.profile_picture = file_name + '.' + extension
-        file.save(os.path.join(PROFILE_PHOTOS_PATH, file_name + '.' + extension))
+
+        prev_photo = os.path.join(PROFILE_PHOTOS_PATH, user.profile_picture)
+        if os.path.isfile(prev_photo):
+            os.remove(prev_photo)
+
+        user.profile_picture = file_name + file_extension
+        file.save(os.path.join(PROFILE_PHOTOS_PATH, file_name + file_extension))
         db.session.commit()
         return make_response(UserInfoSchema().dump(user), 200)
 

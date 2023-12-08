@@ -16,7 +16,7 @@ from dependencies import db, migrate, ma, jwt, cache, registry
 
 
 def create_app(config_class=Config) -> Flask:
-    app = Flask(__name__)
+    app = Flask(__name__,static_folder='static',static_url_path='/static')
 
     ram_metric = Gauge("memory_usage_percent", "Memory usage in percent.",
                        registry=registry)
