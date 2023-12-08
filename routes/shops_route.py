@@ -1,7 +1,7 @@
 
 import uuid
 
-from flask import jsonify, request, Blueprint, make_response
+from flask import jsonify, request, Blueprint, make_response, current_app
 from models.models import Shop, User
 from models.schemas import ShopSchema, ShopInfoPhotoShema, ShopInfoBannerShema
 from dependencies import db
@@ -51,12 +51,15 @@ def create_shop():
 
         return jsonify({'message': 'Shop created successfully'}), 201
 
-@shops_route.route('/shop_photo', methods=['POST', 'DELETE'])
+@shops_route.route('/shop_photo', methods=['POST', 'DELETE', 'GET'])
 @jwt_required()
 def shop_photo():
     current_user_id = get_jwt_identity()
     user = User.query.filter_by(id=current_user_id).first()
     shop = Shop.query.filter_by(owner_id=user.id).first()
+
+    if request.method == 'GET':
+        return current_app.send_static_file('media/shops/' + shop.photo_shop)
 
     if shop:
         if request.method == 'POST':
@@ -72,12 +75,15 @@ def shop_photo():
     return make_response('There is no store by user', 404)
 
 
-@shops_route.route('/shop_banner', methods=['POST', 'DELETE'])
+@shops_route.route('/shop_banner', methods=['POST', 'DELETE', 'GET'])
 @jwt_required()
 def shop_banner():
     current_user_id = get_jwt_identity()
     user = User.query.filter_by(id=current_user_id).first()
     shop = Shop.query.filter_by(owner_id=user.id).first()
+
+    if request.method == 'GET':
+        return current_app.send_static_file('media/banner_shops/' + shop.banner_shop)
 
     if shop:
         if request.method == 'POST':

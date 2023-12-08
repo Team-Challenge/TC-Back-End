@@ -390,6 +390,34 @@
       }
     },
     "/shops/shop_photo": {
+      "get": {
+        "summary": "Get Shop Photo",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop photo retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Shop photo retrieved successfully",
+                  "profile_picture": "shop_photo.jpg"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Shop not found"
+          },
+          "401": {
+            "description": "Unauthorized - JWT token is missing or invalid"
+          }
+        }
+      },
       "post": {
         "summary": "Upload Shop Photo",
         "tags": ["Shop"],
@@ -454,6 +482,34 @@
       }
     },
     "/shops/shop_banner": {
+      "get": {
+        "summary": "Get Profile Photo",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Banner shop retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Banner shop retrieved successfully",
+                  "profile_picture": "profile_picture.jpg"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Banner shop not found"
+          },
+          "401": {
+            "description": "Unauthorized - JWT token is missing or invalid"
+          }
+        }
+      },
       "post": {
         "summary": "Upload Shop Banner",
         "tags": ["Shop"],
