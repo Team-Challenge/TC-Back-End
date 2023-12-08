@@ -12,13 +12,11 @@ from sqlalchemy.orm import relationship
 from config import Config
 from sqlalchemy import Integer, String, DateTime, Boolean,UniqueConstraint
 from typing import List
+from flask_jwt_extended import get_jwt_identity
 
 
 SHOPS_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'shops')
 SHOPS_BANNER_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'banner_shops')
-
-os.makedirs(SHOPS_PHOTOS_PATH, exist_ok=True)
-os.makedirs(SHOPS_BANNER_PHOTOS_PATH, exist_ok=True)
 
 class User(db.Model):
     __tablename__ = "users"
@@ -36,6 +34,11 @@ class User(db.Model):
     phone_number = mapped_column(String, default=None)
 
     shops: Mapped["Shop"] = relationship("Shop", back_populates="owner")
+
+    @classmethod
+    def get_user_id(cls):
+        current_user_id = get_jwt_identity()
+        return User.query.filter_by(id=current_user_id).first()
 
 
 class Security(db.Model):

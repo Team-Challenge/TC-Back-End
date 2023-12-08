@@ -28,7 +28,7 @@ PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
 
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 
-CORS(accounts_route, supports_credentials=True)
+
 
 @jwt.token_in_blocklist_loader
 def check_if_token_is_revoked(jwt_header, jwt_payload: dict):  # pylint: disable=unused-argument
