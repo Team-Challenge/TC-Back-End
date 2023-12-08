@@ -21,3 +21,8 @@ PyJWT==2.8.0
 PyYAML==6.0.1
 python-dateutil==2.8.2
 python-dotenv==1.0.0
+requests==2.31.0
+google-api-python-client==2.110.0
+google-auth
+google-auth-oauthlib
+google-auth-httplib2

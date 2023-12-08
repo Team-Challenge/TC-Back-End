@@ -2,7 +2,7 @@ import os
 import uuid
 import re
 
-from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
+from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort, redirect
 from datetime import timedelta
 from models.models import User, Security, full_name_validation
 from models.schemas import UserSchema, SigninUserSchema, SignupUserSchema, FullNameChangeSchema, UserInfoSchema, PasswordChangeSchema
@@ -11,7 +11,7 @@ from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
 from flask_cors import CORS
 from routes.error_handlers import APIAuthError
-from dependencies import db, jwt, cache
+from dependencies import db, jwt, cache, authorization_url
 from config import Config
 from flask_jwt_extended import (
     create_access_token,
@@ -20,7 +20,6 @@ from flask_jwt_extended import (
     get_jwt,
     jwt_required
 )
-
 
 ACCESS_EXPIRES = timedelta(hours=1)
 PROFILE_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'profile')
@@ -71,6 +70,16 @@ def signup() -> Response:
     response = {"user": user_schema.dump(user_to_add), "link": verification_link}
 
     return make_response(jsonify(response), 200)
+
+
+@accounts_route.route("/google-auth")
+def google_auth() -> Response:
+    return redirect(authorization_url)
+
+
+@accounts_route.route("/authorize")
+def authorize() -> Response:
+    return 'OK'
 
 @accounts_route.route("/signin", methods=["POST"])
 def signin() -> Response:
