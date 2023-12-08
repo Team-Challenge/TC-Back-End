@@ -17,8 +17,8 @@ class SigninUserSchema(Schema):
 
 class SignupUserSchema(Schema):
     email = fields.Email(validate=email_is_unique)
-    full_name = fields.Str(validate=validate.Length(min=2, max=50))
-    password = fields.Str(validate=validate.Regexp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'))  # noqa: W605
+    full_name = fields.Str(validate=validate.Regexp(r"^[a-zA-Zа-яА-ЯґҐєЄіІїЇ\s]+$"))
+    password = fields.Str(validate=validate.Regexp(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$", error='invalid'))  # noqa: W605
 
 
 class UserInfoSchema(ma.SQLAlchemyAutoSchema):

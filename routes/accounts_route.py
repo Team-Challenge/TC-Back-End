@@ -46,9 +46,8 @@ def signup() -> Response:
 
     try:
         user_data = SignupUserSchema().load(request.get_json(silent=True))
-        full_name_validation(user_data["full_name"])
-    except Exception as e:
-        abort(400, str(e))
+    except ValidationError as e:
+        return make_response(jsonify(e.messages), 400)
 
     user_to_add = User(user_data["email"], user_data["full_name"])
     security_to_add = Security(generate_password_hash(user_data["password"]))
