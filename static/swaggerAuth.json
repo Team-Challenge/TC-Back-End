@@ -298,6 +298,34 @@
       }
     },
     "/accounts/profile_photo": {
+      "get": {
+        "summary": "Get Profile Photo",
+        "tags": ["Accounts"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile photo retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Profile photo retrieved successfully",
+                  "profile_picture": "profile_picture.jpg"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "401": {
+            "description": "Unauthorized - JWT token is missing or invalid"
+          }
+        }
+      },
       "post": {
         "summary": "Upload Profile Photo",
         "tags": ["Accounts"],

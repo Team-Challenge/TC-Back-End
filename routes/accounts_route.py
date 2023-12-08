@@ -199,9 +199,10 @@ def profile_photo():
         file_name = uuid.uuid4().hex
         user = User.query.filter_by(id=get_jwt_identity()).first()
 
-        prev_photo = os.path.join(PROFILE_PHOTOS_PATH, user.profile_picture)
-        if os.path.isfile(prev_photo):
-            os.remove(prev_photo)
+        if user.profile_picture is not None:
+            prev_photo = os.path.join(PROFILE_PHOTOS_PATH, user.profile_picture)
+            if os.path.isfile(prev_photo):
+                os.remove(prev_photo)
 
         user.profile_picture = file_name + file_extension
         file.save(os.path.join(PROFILE_PHOTOS_PATH, file_name + file_extension))
