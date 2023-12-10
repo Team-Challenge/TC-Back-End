@@ -411,7 +411,7 @@
             }
           },
           "404": {
-            "description": "Shop not found"
+            "description": "Photo shop not found"
           },
           "401": {
             "description": "Unauthorized - JWT token is missing or invalid"

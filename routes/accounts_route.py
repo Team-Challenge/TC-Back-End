@@ -4,7 +4,7 @@ import re
 
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import timedelta
-from models.models import User, Security, full_name_validation
+from models.models import User, Security, full_name_validation, phone_validation
 from models.schemas import UserSchema, SigninUserSchema, SignupUserSchema, FullNameChangeSchema, UserInfoSchema, PasswordChangeSchema
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
@@ -28,7 +28,7 @@ PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
 
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 
-
+CORS(accounts_route, supports_credentials=True)
 
 @jwt.token_in_blocklist_loader
 def check_if_token_is_revoked(jwt_header, jwt_payload: dict):  # pylint: disable=unused-argument
@@ -141,18 +141,18 @@ def change_phone_number():
 
     phone_number = request_data['phone_number']
 
-    
-    if not re.match(r'^\+380\d{9}$', phone_number):
-        return jsonify({'error': 'Invalid phone number format. Must start with +380 and have 9 digits.'}), 400
-
     current_user_id = get_jwt_identity()
     user = User.query.filter_by(id=current_user_id).first()
 
     if user:
-        user.phone_number = phone_number
-        db.session.commit()
-        return jsonify({'message': 'Phone number updated successfully'}), 200
-    return jsonify({'error': 'User not found'}), 404
+        try:
+            phone_validation(phone_number)
+            user.phone_number = phone_number
+            db.session.commit()
+            return jsonify({'message': 'Phone number updated successfully'}), 200
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 400
+    return jsonify({'error': 'User not found'}), 404 
 
 @accounts_route.route('/change_full_name', methods=['POST'])
 @jwt_required()
@@ -191,8 +191,11 @@ def user_info():
 def profile_photo():
     if request.method == 'GET':
         user = User.query.filter_by(id=get_jwt_identity()).first()
-        return current_app.send_static_file('media/profile/' + user.profile_picture)
-    
+        if user.profile_picture is not None:
+            return current_app.send_static_file('media/profile/' + user.profile_picture)
+        else:
+            return make_response('Profile_photo not alloved', 400)
+
     if request.method == 'POST':
         file = request.files['image']
         _ , file_extension = os.path.splitext(file.filename)
@@ -214,7 +217,7 @@ def profile_photo():
         file = os.path.join(PROFILE_PHOTOS_PATH, user.profile_picture)
         if os.path.isfile(file):
             os.remove(file)
-        user.profile_picture = ''
+        user.profile_picture = None
         db.session.commit()
         return make_response('OK', 200)
 

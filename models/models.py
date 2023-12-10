@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from config import Config
+from flask import jsonify
 from sqlalchemy import Integer, String, DateTime, Boolean,UniqueConstraint
 from typing import List
 from flask_jwt_extended import get_jwt_identity
@@ -217,3 +218,12 @@ def email_is_unique(email):
 def full_name_validation(full_name):
     if not re.match(r"^[a-zA-Zа-яА-ЯґҐєЄіІїЇ\s]+$",full_name):
         raise ValidationError('Invalid characters in the field full_name')
+
+def phone_validation(phone_number):
+    if not re.match(r'^\+380\d{9}$', phone_number):
+        raise ValueError('Invalid phone number format. Must start with +380 and have 9 digits.')
+
+def name_shop_validation(name):
+    pattern = r'^[a-zA-Zа-яА-ЯґҐєЄіІїЇ0-9\s!@#$%^&*()_+=\\|?/.,;:`~]{3,30}$'
+    if not re.match(pattern, name):
+        raise ValueError('Invalid shop name format.')

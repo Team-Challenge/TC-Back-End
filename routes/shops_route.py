@@ -2,7 +2,7 @@
 import uuid
 
 from flask import jsonify, request, Blueprint, make_response, current_app
-from models.models import Shop, User
+from models.models import Shop, User, phone_validation, name_shop_validation
 from models.schemas import ShopSchema, ShopInfoPhotoShema, ShopInfoBannerShema
 from dependencies import db
 from marshmallow.exceptions import ValidationError
@@ -35,17 +35,38 @@ def create_shop():
 
     existing_shop = Shop.get_shop_by_owner_id(user.id)
 
+    phone_number = request_data.get("phone_number")
+    name = request_data.get("name")
+
     if existing_shop:
+
+        if 'phone_number' in request_data:
+            try:
+                phone_validation(phone_number)
+            except ValueError as e:
+                return jsonify({'error': str(e)}), 400
+        if 'name' in request_data:
+            try:
+                name_shop_validation(name)
+            except ValueError as e:
+                return jsonify({'error': str(e)}), 400
+        
         existing_shop.update_shop_details(**request_data)
         return jsonify({'message': 'Shop details updated successfully'}), 200
 
     else:
-        if not request_data or "name" and "phone_number" not in request_data or len(request_data["name"]) < 3:
+        if not request_data or "name" not in request_data or "phone_number" not in request_data:
             return jsonify({'error': 'Incomplete or empty name or phone. Provide name and phone for the shop.'}), 401
 
-        new_shop = Shop.create_shop(owner_id=user.id, name=request_data["name"],
+        try:
+           name_shop_validation(name)
+           phone_validation(phone_number)
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 400
+
+        new_shop = Shop.create_shop(owner_id=user.id, name=name,
                             description=request_data.get("description"),
-                            phone_number=request_data.get("phone_number"),
+                            phone_number=phone_number,
                             link=request_data.get("link"))
 
         return jsonify({'message': 'Shop created successfully'}), 201
@@ -59,6 +80,8 @@ def shop_photo():
     if request.method == 'GET' and shop:
         if shop.photo_shop is not None:
             return current_app.send_static_file('media/shops/' + shop.photo_shop)
+        else:
+            return make_response('Photo shop not found', 404)
 
     if shop:
         if request.method == 'POST':
@@ -84,6 +107,8 @@ def shop_banner():
     if request.method == 'GET' and shop:
         if shop.banner_shop is not None:
             return current_app.send_static_file('media/banner_shops/' + shop.banner_shop)
+        else:
+            return make_response('Banner shop not found', 404)
 
     if shop:
         if request.method == 'POST':
