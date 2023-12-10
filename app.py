@@ -11,6 +11,7 @@ from routes.accounts_route import accounts_route
 from routes.orders_route import orders_route
 from routes.error_handlers import error_handlers
 from routes.users import users_route
+from routes.shops_route import shops_route
 from dependencies import db, migrate, ma, jwt, cache, registry
 
 
@@ -48,5 +49,6 @@ def create_app(config_class=Config) -> Flask:
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
     app.register_blueprint(error_handlers)
     app.register_blueprint(users_route)
+    app.register_blueprint(shops_route)
 
     return app

@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Auth API Documentation",
-    "description": "API for user registration, sign in, email verification, and user information update.",
+    "description": "API for marketplase.",
     "version": "1.0.3"
   },
   "paths": {
@@ -38,6 +38,9 @@
           },
           "400": {
             "description": "Bad Request"
+          },
+          "401": {
+            "description": "User with such email already exists"
           }
         }
       }
@@ -251,7 +254,78 @@
         }
       }
     },
+    "/shops/shop": {
+      "post": {
+        "summary": "Create shop or update shop info",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Create shop or update shop info",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUpdateShopSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shop created/updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Shop created/updated successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "401": {
+            "description": "Incomplete or empty name. Provide name for the shop."
+          }
+        }
+      }
+    },
     "/accounts/profile_photo": {
+      "get": {
+        "summary": "Get Profile Photo",
+        "tags": ["Accounts"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile photo retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Profile photo retrieved successfully",
+                  "profile_picture": "profile_picture.jpg"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "401": {
+            "description": "Unauthorized - JWT token is missing or invalid"
+          }
+        }
+      },
       "post": {
         "summary": "Upload Profile Photo",
         "tags": ["Accounts"],
@@ -311,6 +385,190 @@
           },
           "404": {
             "description": "User not found"
+          }
+        }
+      }
+    },
+    "/shops/shop_photo": {
+      "get": {
+        "summary": "Get Shop Photo",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop photo retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Shop photo retrieved successfully",
+                  "profile_picture": "shop_photo.jpg"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Photo shop not found"
+          },
+          "401": {
+            "description": "Unauthorized - JWT token is missing or invalid"
+          }
+        }
+      },
+      "post": {
+        "summary": "Upload Shop Photo",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Shop photo upload",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopPhotoUploadSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shop photo uploaded successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Shop photo uploaded successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Shop not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete shop Photo",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop photo deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Shop photo deleted successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Shop not found"
+          }
+        }
+      }
+    },
+    "/shops/shop_banner": {
+      "get": {
+        "summary": "Get Profile Photo",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Banner shop retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Banner shop retrieved successfully",
+                  "profile_picture": "profile_picture.jpg"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Banner shop not found"
+          },
+          "401": {
+            "description": "Unauthorized - JWT token is missing or invalid"
+          }
+        }
+      },
+      "post": {
+        "summary": "Upload Shop Banner",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Upload Shop Banner",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopBannerUploadSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shop banner uploaded successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Shop banner uploaded successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Shop not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete shop banner",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop banner deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Shop banner deleted successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Shop not found"
           }
         }
       }
@@ -380,8 +638,37 @@
           }
         }
       }
+    },
+    "/shops/shop_info": {
+      "get": {
+        "summary": "Get Shop Information",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopInfo"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "There is no store by user"
+          }
+        }
+      }
     }
-  },       
+  },      
   "components": {
     "schemas": {
       "SignupUserSchema": {
@@ -402,6 +689,27 @@
           }
         },
         "required": ["email", "full_name", "password"]
+      },
+      "CreateUpdateShopSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "phone_number": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          }
+        },
+        "required": ["owner_id", "name", "description", "phone_number"]
       },
       "SigninUserSchema": {
         "type": "object",
@@ -437,6 +745,26 @@
         "required": ["full_name"]
       },
       "ProfilePhotoUploadSchema": {
+        "type": "object",
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": ["image"]
+      },
+      "ShopPhotoUploadSchema": {
+        "type": "object",
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": ["image"]
+      },
+      "ShopBannerUploadSchema": {
         "type": "object",
         "properties": {
           "image": {
@@ -486,6 +814,39 @@
             "type": "string",
             "format": "uri",
             "description": "URL to the user's profile photo"
+          }
+        }
+      },
+      "ShopInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "owner_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "shop_photo": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to the shop"
+          },
+          "banner_photo": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to the shop"
+          },
+          "phone_number": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
           }
         }
       },
