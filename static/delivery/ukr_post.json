@@ -1,0 +1,148 @@
+[
+    {
+      "city_name": "Київ",
+      "branches": [
+        {
+          "branch_number": "18001",
+          "address": "вул. Хрещатик, 1"
+        },
+        {
+          "branch_number": "18135",
+          "address": "вул. Перемоги, 20"
+        },
+        {
+          "branch_number": "18004",
+          "address": "вул. Льва Толстого, 5"
+        },
+        {
+          "branch_number": "18034",
+          "address": "вул. Б. Хмельницького, 10"
+        },
+        {
+          "branch_number": "18150",
+          "address": "просп. Лобановського, 42"
+        },
+        {
+          "branch_number": "18010",
+          "address": "вул. Політехнічна, 15"
+        }
+      ]
+    },
+    {
+      "city_name": "Вінниця",
+      "branches": [
+        {
+          "branch_number": "21000",
+          "address": "вул. Степана Бандери, 10"
+        },
+        {
+          "branch_number": "21031",
+          "address": "вул. Пекарська, 28"
+        },
+        {
+          "branch_number": "21019",
+          "address": "вул. Івана Франка, 5"
+        },
+        {
+          "branch_number": "21044",
+          "address": "вул. Коперника, 14"
+        },
+        {
+          "branch_number": "21011",
+          "address": "пл. Ринок, 1"
+        },
+        {
+          "branch_number": "21026",
+          "address": "вул. Городоцька, 14"
+        }
+      ]
+    },
+    {
+      "city_name": "Дніпро",
+      "branches": [
+        {
+          "branch_number": "49000",
+          "address": "вул. Дерибасівська, 1"
+        },
+        {
+          "branch_number": "49012",
+          "address": "вул. Катерининська, 17"
+        },
+        {
+          "branch_number": "49045",
+          "address": "вул. Леонтовича, 9"
+        },
+        {
+          "branch_number": "49080",
+          "address": "вул. Пастера, 25"
+        },
+        {
+          "branch_number": "49100",
+          "address": "вул. Маршала Говорова, 2"
+        },
+        {
+          "branch_number": "49121",
+          "address": "вул. Французький бульвар, 23"
+        }
+      ]
+    },
+    {
+      "city_name": "Запоріжжя",
+      "branches": [
+        {
+          "branch_number": "69000",
+          "address": "вул. Сумська, 10"
+        },
+        {
+          "branch_number": "69023",
+          "address": "пл. Конституції, 5"
+        },
+        {
+          "branch_number": "69045",
+          "address": "просп. Науки, 20"
+        },
+        {
+          "branch_number": "69080",
+          "address": "вул. Революції, 30"
+        },
+        {
+          "branch_number": "69100",
+          "address": "просп. Гагаріна, 15"
+        },
+        {
+          "branch_number": "69121",
+          "address": "вул. Шевченка, 25"
+        }
+      ]
+    },
+    {
+      "city_name": "Луцьк",
+      "branches": [
+        {
+          "branch_number": "43001",
+          "address": "вул. Панаса Мирного 17"
+        },
+        {
+          "branch_number": "43017",
+          "address": "вул. Курчатова 117"
+        },
+        {
+          "branch_number": "43025",
+          "address": "пр.Миру 101"
+        },
+        {
+          "branch_number": "43035",
+          "address": "вул. Свободи, 35"
+        },
+        {
+          "branch_number": "43050",
+          "address": "вул. Шевченка 45"
+        },
+        {
+          "branch_number": "43100",
+          "address": "вул. Перемоги 12/Б"
+        }
+      ]
+    }
+  ]
+  
