@@ -1,5 +1,6 @@
-
+import os
 import re
+import uuid
 
 from datetime import datetime
 from dependencies import db
@@ -8,9 +9,15 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
-from sqlalchemy import Integer, String, DateTime, Boolean
+from config import Config
+from flask import jsonify
+from sqlalchemy import Integer, String, DateTime, Boolean,UniqueConstraint
 from typing import List
+from flask_jwt_extended import get_jwt_identity
 
+
+SHOPS_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'shops')
+SHOPS_BANNER_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'banner_shops')
 
 class User(db.Model):
     __tablename__ = "users"
@@ -27,6 +34,13 @@ class User(db.Model):
     profile_picture = mapped_column(String)
     phone_number = mapped_column(String, default=None)
 
+    shops: Mapped["Shop"] = relationship("Shop", back_populates="owner")
+
+    @classmethod
+    def get_user_id(cls):
+        current_user_id = get_jwt_identity()
+        return User.query.filter_by(id=current_user_id).first()
+
 
 class Security(db.Model):
     __tablename__ = "security"
@@ -34,8 +48,7 @@ class Security(db.Model):
     def __init__(self, password):
         self.password_hash = password
 
-    user_id = mapped_column(Integer, ForeignKey(
-        "users.id"), primary_key=True)
+    user_id = mapped_column(Integer, ForeignKey("users.id"), primary_key=True)
     password_hash = mapped_column(String(64))
 
 
@@ -62,7 +75,7 @@ class Order(db.Model):
         self.date = datetime.utcnow()
 
     id = mapped_column(Integer, primary_key=True)
-    user_id = mapped_column(String, ForeignKey("users.id"))
+    user_id = mapped_column(Integer, ForeignKey("users.id"))
     date = mapped_column(DateTime)
     status_id = mapped_column(String, ForeignKey('order_status.id'))
     comment = mapped_column(String)
@@ -80,13 +93,91 @@ class OrderStatus(db.Model):
 class Shop(db.Model):
     __tablename__ = "shops"
 
-    def __init__(self, owner_id, name):
+    def __init__(self, name=None, description=None, photo_shop=None, banner_shop=None, phone_number=None, owner_id=None, link=None):
+        
         self.owner_id = owner_id
         self.name = name
+        self.description = description
+        self.photo_shop = photo_shop
+        self.banner_shop = banner_shop
+        self.phone_number = phone_number
+        self.link = link
 
     id = mapped_column(Integer, primary_key=True)
-    owner_id = mapped_column(String, ForeignKey("users.id"))
+    owner_id = mapped_column(Integer, ForeignKey("users.id"))
     name = mapped_column(String)
+    description = mapped_column(String, default=None)
+    photo_shop = mapped_column(String, default=None )
+    banner_shop = mapped_column(String, default=None)
+    phone_number = mapped_column(String, default=None)
+    link = mapped_column(String, default=None)
+
+    owner: Mapped["User"] = relationship("User", back_populates="shops")
+
+    @classmethod
+    def get_shop_by_owner_id(cls, owner_id):
+        return cls.query.filter_by(owner_id=owner_id).first()
+
+    @classmethod
+    def create_shop(cls, owner_id, name, description, phone_number, link):
+        new_shop = cls(owner_id=owner_id, name=name, description=description,
+                       phone_number=phone_number, link=link)
+        db.session.add(new_shop)
+        db.session.commit()
+        return new_shop
+
+    def update_shop_details(self, name=None, description=None, phone_number=None, link=None):
+        if name:
+            self.name = name
+        if description:
+            self.description = description
+        if phone_number:
+            self.phone_number = phone_number
+        if link:
+            self.link = link
+        db.session.commit()
+    
+    def add_photo(self, photo):
+        file_extension = photo.filename.split('.')[-1]
+        file_name = uuid.uuid4().hex
+        file_path = os.path.join(SHOPS_PHOTOS_PATH, f"{file_name}.{file_extension}")
+
+        if self.photo_shop:
+            old_file_path = os.path.join(SHOPS_PHOTOS_PATH, self.photo_shop)
+            if os.path.isfile(old_file_path):
+                os.remove(old_file_path)
+
+        self.photo_shop = f"{file_name}.{file_extension}"
+        photo.save(file_path)
+        db.session.commit()
+
+    def add_banner(self, banner):
+        file_extension = banner.filename.split('.')[-1]
+        file_name = uuid.uuid4().hex
+        file_path = os.path.join(SHOPS_BANNER_PHOTOS_PATH, f"{file_name}.{file_extension}")
+
+        if self.banner_shop:
+            old_file_path = os.path.join(SHOPS_BANNER_PHOTOS_PATH, self.banner_shop)
+            if os.path.isfile(old_file_path):
+                os.remove(old_file_path)
+
+        self.banner_shop = f"{file_name}.{file_extension}"
+        banner.save(file_path)
+        db.session.commit()
+
+    def remove_photo(self):
+        file_path = os.path.join(SHOPS_PHOTOS_PATH, self.photo_shop)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        self.photo_shop = None
+        db.session.commit()
+
+    def remove_banner(self):
+        file_path = os.path.join(SHOPS_BANNER_PHOTOS_PATH, self.banner_shop)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        self.banner_shop = None
+        db.session.commit()
 
 
 class ProductOrder(db.Model):
@@ -122,8 +213,17 @@ class ProductPhoto(db.Model):
 
 def email_is_unique(email):
     if User.query.filter_by(email=email).first():
-        raise ValidationError('User with such email already exist')
+        raise ValidationError('User with such email already exist') 
 
 def full_name_validation(full_name):
     if not re.match(r"^[a-zA-Zа-яА-ЯґҐєЄіІїЇ\s]+$",full_name):
         raise ValidationError('Invalid characters in the field full_name')
+
+def phone_validation(phone_number):
+    if not re.match(r'^\+380\d{9}$', phone_number):
+        raise ValueError('Invalid phone number format. Must start with +380 and have 9 digits.')
+
+def name_shop_validation(name):
+    pattern = r'^[a-zA-Zа-яА-ЯґҐєЄіІїЇ0-9\s!@#$%^&*()_+=\\|?/.,;:`~]{3,30}$'
+    if not re.match(pattern, name):
+        raise ValueError('Invalid shop name format.')
