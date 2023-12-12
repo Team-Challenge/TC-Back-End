@@ -184,7 +184,13 @@ def change_full_name():
 @jwt_required()
 def user_info():
     user = User.query.filter_by(id=get_jwt_identity()).first()
-    return UserInfoSchema().dump(user)
+    user_info = UserInfoSchema().dump(user)
+    
+    # Отримати повний URL-адрес для profile_picture
+    if user_info["profile_picture"] is not None:
+        user_info["profile_picture"] = url_for('static', filename=f'media/profile/{user_info["profile_picture"]}', _external=True)
+
+    return user_info
 
 @accounts_route.route('/profile_photo', methods=['POST', 'DELETE','GET'])
 @jwt_required()
@@ -192,9 +198,10 @@ def profile_photo():
     if request.method == 'GET':
         user = User.query.filter_by(id=get_jwt_identity()).first()
         if user.profile_picture is not None:
-            return current_app.send_static_file('media/profile/' + user.profile_picture)
+            filename = user.profile_picture
+            return url_for('static', filename=f'media/profile/{filename}', _external=True)
         else:
-            return make_response('Profile_photo not alloved', 400)
+            return make_response('Profile_photo not allowed', 400)
 
     if request.method == 'POST':
         file = request.files['image']
@@ -210,7 +217,8 @@ def profile_photo():
         user.profile_picture = file_name + file_extension
         file.save(os.path.join(PROFILE_PHOTOS_PATH, file_name + file_extension))
         db.session.commit()
-        return make_response(UserInfoSchema().dump(user), 200)
+        filename = user.profile_picture
+        return url_for('static', filename=f'media/profile/{filename}', _external=True)
 
     if request.method == 'DELETE':
         user = User.query.filter_by(id=get_jwt_identity()).first()
