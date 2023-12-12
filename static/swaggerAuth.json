@@ -313,7 +313,7 @@
               "application/json": {
                 "example": {
                   "message": "Profile photo retrieved successfully",
-                  "profile_picture": "profile_picture.jpg"
+                  "profile_picture": "URL to profile_picture.jpg"
                 }
               }
             }
@@ -340,7 +340,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/ProfilePhotoUploadSchema"
+                "$ref": "URL"
               }
             }
           }
@@ -351,7 +351,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Profile photo uploaded successfully"
+                  "profile_picture": "http://127.0.0.1:5000/static/media/profile/53db1121852641378ef533b9d4603db7.jpg"
                 }
               }
             }
