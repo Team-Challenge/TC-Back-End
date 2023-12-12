@@ -573,6 +573,50 @@
         }
       }
     },
+    "/orders/nova_post": {
+      "get": {
+        "summary": "Get Nova Post JSON",
+        "tags": ["Orders"],
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "JSON data for Nova Post"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found in the specified location"
+          }
+        }
+      }
+    },
+    "/orders/ukr_post": {
+      "get": {
+        "summary": "Get Ukr Post JSON",
+        "tags": ["Orders"],
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "JSON data for Ukr Post"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found in the specified location"
+          }
+        }
+      }
+    },
     "/accounts/change_password": {
       "post": {
         "summary": "Change Password",
