@@ -117,7 +117,7 @@ def refresh():
     token = create_access_token(identity=user, fresh=False)
     jti = get_jwt()["jti"]
     cache.set(jti, "1", timeout=86400)
-    response = {"access_token": access_token, "refresh_token": refresh_token}
+    response = {"access_token": token, "refresh_token": new_refresh_token}
 
     return make_response(response, 200)
 
