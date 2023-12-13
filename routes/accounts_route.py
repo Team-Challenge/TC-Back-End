@@ -11,8 +11,9 @@ from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
 from flask_cors import CORS
 from routes.error_handlers import APIAuthError
-from dependencies import db, jwt, cache, authorization_url
+from dependencies import db, jwt, cache
 from config import Config
+from google.auth.jwt import decode
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -71,15 +72,20 @@ def signup() -> Response:
 
     return make_response(jsonify(response), 200)
 
-
-@accounts_route.route("/google-auth")
-def google_auth() -> Response:
-    return redirect(authorization_url)
-
-
-@accounts_route.route("/authorize")
+@accounts_route.route("/authorize", methods=["GET"])
 def authorize() -> Response:
-    return 'OK'
+    id_token = 'token'
+    token_dict = decode(id_token, verify=False)
+    user = User.query.filter_by(email=token_dict.get('email')).first()
+    if user is None:
+        user_to_add = User(token_dict.get('email'), token_dict.get('name'))
+        db.session.add(user_to_add)
+        db.session.commit()
+    access_token = create_access_token(identity=user.id, fresh=True)
+    refresh_token = create_refresh_token(user.id)
+    response = {"access_token": access_token, "refresh_token": refresh_token}
+    
+    return make_response(response, 200) 
 
 @accounts_route.route("/signin", methods=["POST"])
 def signin() -> Response:
