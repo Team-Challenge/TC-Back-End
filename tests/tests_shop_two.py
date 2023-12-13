@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 import json
 from config.config import TestConfig
 from flask_jwt_extended import create_access_token
+from werkzeug.datastructures import FileStorage
 
 class TestAccountsRoutes(unittest.TestCase):
     
@@ -110,6 +111,51 @@ class TestAccountsRoutes(unittest.TestCase):
         self.assertIn("phone_number", response_data)
         self.assertIn("photo_shop", response_data)
         self.assertEqual(response.status_code, 200)
+
+    def test_ycreate_get_delete_photo(self):
+        # create
+        headers = {'Authorization': f'Bearer {self.access_token}'}
+        with open('tests/test_images/alf.jpg', 'rb') as image_file:
+            file_storage = FileStorage(image_file, content_type='image/jpeg', name='image.jpg')
+            response = self.test_client.post('/shops/shop_photo', headers=headers, data= {'image':    file_storage})
+
+        # get
+        response = self.test_client.get('/shops/shop_photo', headers=headers)
+        self.assertEqual(response.status_code, 200)
+
+        # put
+        response = self.test_client.put('/shops/shop_photo', headers=headers)
+        self.assertEqual(response.status_code, 405)
+
+        # delete
+        with open('tests/test_images/alf.jpg', 'rb') as image_file:
+            file_storage = FileStorage(image_file, content_type='image/jpeg', name='image.jpg')
+            response = self.test_client.delete('/shops/shop_photo', headers=headers, data= {'image':    file_storage})
+        
+
+    def test_ycreate_get_delete_banner(self):
+        # create
+        headers = {'Authorization': f'Bearer {self.access_token}'}
+
+        with open('tests/test_images/alf.jpg', 'rb') as image_file:
+            file_storage = FileStorage(image_file, content_type='image/jpeg', name='image.jpg')
+            response = self.test_client.post('/shops/shop_banner', headers=headers, data={'image': file_storage})
+
+        self.assertEqual(response.status_code, 200)
+
+        # get
+        response = self.test_client.get('/shops/shop_banner', headers=headers)
+        self.assertEqual(response.status_code, 200)
+
+        # put
+        response = self.test_client.put('/shops/shop_banner', headers=headers)
+        self.assertEqual(response.status_code, 405)
+
+        # delete
+        with open('tests/test_images/alf.jpg', 'rb') as image_file:
+            file_storage = FileStorage(image_file, content_type='image/jpeg', name='image.jpg')
+            response = self.test_client.delete('/shops/shop_banner', headers=headers, data={'image':    file_storage})
+
 
 
 if __name__ == '__main__':
