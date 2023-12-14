@@ -33,9 +33,9 @@ class TestAccountsRoutes(unittest.TestCase):
     def test_valid_signup_and_verify_and_signin_and_logout(self):
         #signup
         valid_signup_data = {
-            "email": "test@example.com",
-            "full_name": "Test_name test_last_name",
-            "password": "password123"
+            "email": "test_test@example.com",
+            "full_name": "Testname testlastname",
+            "password": "Password123"
         }
 
         response = self.test_client.post('/accounts/signup', data=json.dumps(valid_signup_data), content_type='application/json')

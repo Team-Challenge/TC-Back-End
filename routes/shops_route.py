@@ -95,7 +95,7 @@ def shop_photo():
                 return make_response('OK', 200)
 
         return make_response('Method Not Allowed', 405)
-    return make_response('There is no store by user', 404)
+    return jsonify({'message': 'There is no store by user'}), 404
 
 
 @shops_route.route('/shop_banner', methods=['POST', 'DELETE', 'GET'])
