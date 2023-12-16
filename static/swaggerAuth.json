@@ -296,6 +296,110 @@
           }
         }
       }
+    },"/accounts/delivery_info": {
+      "post": {
+        "summary": "Create user delivery info",
+        "tags": ["Accounts"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Create user delivery info",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUpdateDelivery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Address created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Address created successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update user delivery info",
+        "tags": ["Accounts"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Update user delivery info",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUpdateDelivery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Address updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Address updated successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete delivery info",
+        "tags": ["Accounts"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "OK"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "400": {
+            "description": "User not have delivery address"
+          }
+        }
+      }
     },
     "/accounts/profile_photo": {
       "get": {
@@ -340,7 +444,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "URL"
+                "$ref": "#/components/schemas/ProfilePhotoUploadSchema"
               }
             }
           }
@@ -755,6 +859,23 @@
         },
         "required": ["owner_id", "name", "description", "phone_number"]
       },
+      "CreateUpdateDelivery": {
+        "type": "object",
+        "properties": {
+          "post": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "branch_name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          }
+        }
+      },
       "SigninUserSchema": {
         "type": "object",
         "properties": {
@@ -911,6 +1032,18 @@
             "type": "string",
             "format": "uri",
             "description": "URL to the user's profile photo"
+          },
+          "post": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "branch_name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
           }
         }
       }

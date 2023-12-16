@@ -183,11 +183,24 @@ def change_full_name():
 @jwt_required()
 def user_info():
     user = User.query.filter_by(id=get_jwt_identity()).first()
-    user_info = UserInfoSchema().dump(user)
     
-    # Отримати повний URL-адрес для profile_picture
-    if user_info["profile_picture"] is not None:
-        user_info["profile_picture"] = url_for('static', filename=f'media/profile/{user_info["profile_picture"]}', _external=True)
+    user_info = {
+        "phone_number": user.phone_number,
+        "full_name": user.full_name,
+        "email": user.email,
+        "profile_photo": url_for('static', filename=f'media/profile/{user.profile_picture}',    _external=True) if user.profile_picture else None,
+        "post": None,
+        "city": None,
+        "branch_name": None,
+        "address": None}
+
+    delivery_info = DeliveryUserInfo.get_delivery_info_by_owner_id(user.id)
+
+    if delivery_info:
+        user_info["post"] = delivery_info.post
+        user_info["city"] = delivery_info.city
+        user_info["branch_name"] = delivery_info.branch_name
+        user_info["address"] = delivery_info.address
 
     return user_info
 
