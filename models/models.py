@@ -210,6 +210,52 @@ class ProductPhoto(db.Model):
     product_id = mapped_column(Integer, ForeignKey('products.id'))
     picture_id = mapped_column(String(64))
 
+class DeliveryUserInfo(db.Model):
+    __tablename__ = "delivery_user_info"
+
+    def __init__(self, owner_id=None, post=None, city=None, branch_name=None, address=None):
+        
+        self.owner_id = owner_id
+        self.post = post
+        self.city = city
+        self.branch_name = branch_name
+        self.address = address
+
+    id = mapped_column(Integer, primary_key=True)
+    owner_id = mapped_column(Integer, ForeignKey("users.id"))
+    post = mapped_column(String, default=None)
+    city = mapped_column(String, default=None)
+    branch_name = mapped_column(String, default=None)
+    address = mapped_column(String, default=None)
+
+    owner: Mapped["User"] = relationship("User", back_populates="delivery_user_info")
+
+    @classmethod
+    def get_delivery_info_by_owner_id(cls, owner_id):
+        return cls.query.filter_by(owner_id=owner_id).first()
+
+    @classmethod
+    def add_delivery_info(cls, owner_id, post, city, branch_name, address):
+        new_delivery_address = cls(owner_id=owner_id, post=post, city=city, branch_name=branch_name, address=address)
+        db.session.add(new_delivery_address)
+        db.session.commit()
+        return new_delivery_address
+
+    def update_delivery_info(self, post=None, city=None, branch_name=None, address=None):
+        if post:
+            self.post = post
+        if city:
+            self.city = city
+        if branch_name:
+            self.branch_name = branch_name
+        if address:
+            self.address = address
+        db.session.commit()
+
+    def remove_delivery_info(self):
+        db.session.delete(self)
+        db.session.commit()
+
 
 def email_is_unique(email):
     if User.query.filter_by(email=email).first():
