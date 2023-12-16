@@ -35,6 +35,7 @@ class User(db.Model):
     phone_number = mapped_column(String, default=None)
 
     shops: Mapped["Shop"] = relationship("Shop", back_populates="owner")
+    delivery_user_info: Mapped[List["DeliveryUserInfo"]] = relationship("DeliveryUserInfo", back_populates="owner")
 
     @classmethod
     def get_user_id(cls):

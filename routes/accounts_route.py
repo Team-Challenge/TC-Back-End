@@ -4,8 +4,8 @@ import re
 
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import timedelta
-from models.models import User, Security, full_name_validation, phone_validation
-from models.schemas import UserSchema, SigninUserSchema, SignupUserSchema, FullNameChangeSchema, UserInfoSchema, PasswordChangeSchema
+from models.models import User, Security, full_name_validation, phone_validation, DeliveryUserInfo
+from models.schemas import UserSchema, SigninUserSchema, SignupUserSchema, FullNameChangeSchema, UserInfoSchema, PasswordChangeSchema, UserDeliveryInfoSchema
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
@@ -256,3 +256,38 @@ def change_password():
         return jsonify({'error': 'Current password is incorrect'}), 400
 
     return jsonify({'error': 'User not found'}), 404
+
+@accounts_route.route('/delivery_info', methods=['POST', 'PUT', 'DELETE'])
+@jwt_required()
+def add_delivery_info():
+    request_data = request.get_json(silent=True)
+    user = User.get_user_id()
+    existing_delivery = DeliveryUserInfo.get_delivery_info_by_owner_id(user.id)
+
+    if user:
+        if request.method == "POST":
+            try:
+                delivery_data = UserDeliveryInfoSchema().load(request_data)
+                new_delivery = DeliveryUserInfo.add_delivery_info(owner_id=user.id,
+                                post=request_data.get("post"),
+                                city=request_data.get("city"),
+                                branch_name=request_data.get("branch_name"),
+                                address=request_data.get("address"))
+
+                return jsonify({'message': 'Delivery address created successfully'}), 201
+            except ValueError as e:
+                return jsonify({'error': str(e)}), 400
+
+        if request.method == "PUT":
+            if existing_delivery:
+                existing_delivery.update_delivery_info(**request_data)
+                return jsonify({'message': 'Delivery address updated successfully'}), 200
+            return jsonify({'error': 'User not have delivery address'}), 400
+
+        if request.method == "DELETE":
+            if existing_delivery:
+                existing_delivery.remove_delivery_info()
+                return jsonify({'message': 'OK'}), 200
+            return jsonify({'error': 'User not have delivery address'}), 400
+
+    return jsonify({'error': 'User not found'}), 404 
