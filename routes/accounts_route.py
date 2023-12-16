@@ -266,17 +266,19 @@ def add_delivery_info():
 
     if user:
         if request.method == "POST":
-            try:
-                delivery_data = UserDeliveryInfoSchema().load(request_data)
-                new_delivery = DeliveryUserInfo.add_delivery_info(owner_id=user.id,
-                                post=request_data.get("post"),
-                                city=request_data.get("city"),
-                                branch_name=request_data.get("branch_name"),
-                                address=request_data.get("address"))
+            if not existing_delivery:
+                try:
+                    delivery_data = UserDeliveryInfoSchema().load(request_data)
+                    new_delivery = DeliveryUserInfo.add_delivery_info(owner_id=user.id,
+                                    post=request_data.get("post"),
+                                    city=request_data.get("city"),
+                                    branch_name=request_data.get("branch_name"),
+                                    address=request_data.get("address"))
 
-                return jsonify({'message': 'Delivery address created successfully'}), 201
-            except ValueError as e:
-                return jsonify({'error': str(e)}), 400
+                    return jsonify({'message': 'Delivery address created successfully'}), 201
+                except ValueError as e:
+                    return jsonify({'error': str(e)}), 400
+            return jsonify({'error': 'User have delivery address'}), 400
 
         if request.method == "PUT":
             if existing_delivery:
