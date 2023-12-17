@@ -222,8 +222,3 @@ def full_name_validation(full_name):
 def phone_validation(phone_number):
     if not re.match(Config.PHONE_NUMBER_PATTERN, phone_number):
         raise ValueError('Invalid phone number format. Must start with +380 and have 9 digits.')
-
-def name_shop_validation(name):
-    pattern = Config.NAME_SHOP_PATTERN
-    if not re.match(pattern, name):
-        raise ValueError('Invalid shop name format.')

@@ -1,8 +1,8 @@
 
 import uuid
 
-from flask import jsonify, request, Blueprint, make_response, current_app
-from models.models import Shop, User, phone_validation, name_shop_validation
+from flask import jsonify, request, Blueprint, make_response, current_app, url_for
+from models.models import Shop, User, phone_validation
 from models.schemas import ShopSchema, ShopInfoPhotoShema, ShopInfoBannerShema
 from dependencies import db
 from marshmallow.exceptions import ValidationError
@@ -34,6 +34,7 @@ def create_shop():
         return jsonify({"error": str(e)}), 400
 
     existing_shop = Shop.get_shop_by_owner_id(user.id)
+    current_shop = Shop.query.filter_by(name=request_data["name"]).first()
 
     phone_number = request_data.get("phone_number")
     name = request_data.get("name")
@@ -47,7 +48,8 @@ def create_shop():
                 return jsonify({'error': str(e)}), 400
         if 'name' in request_data:
             try:
-                name_shop_validation(name)
+                if current_shop and existing_shop.id != current_shop.id:
+                    raise ValueError('Shop name must be unique.')
             except ValueError as e:
                 return jsonify({'error': str(e)}), 400
         
@@ -59,7 +61,8 @@ def create_shop():
             return jsonify({'error': 'Incomplete or empty name or phone. Provide name and phone for the shop.'}), 401
 
         try:
-           name_shop_validation(name)
+           if current_shop:
+                raise ValueError('Shop name must be unique.')
            phone_validation(phone_number)
         except ValueError as e:
             return jsonify({'error': str(e)}), 400
@@ -87,7 +90,7 @@ def shop_photo():
         if request.method == 'POST':
             file = request.files['image']
             shop.add_photo(file)
-            return make_response(ShopInfoPhotoShema().dump(shop), 200)
+            return url_for('static', filename=f'media/shops/{file}', _external=True)
 
         elif request.method == 'DELETE':
             if shop.photo_shop is not None:
@@ -114,7 +117,7 @@ def shop_banner():
         if request.method == 'POST':
             file = request.files['image']
             shop.add_banner(file)
-            return make_response(ShopInfoBannerShema().dump(shop), 200)
+            return url_for('static', filename=f'media/banner_shops/{file}', _external=True)
 
         elif request.method == 'DELETE':
             if shop.banner_shop is not None:
@@ -138,6 +141,12 @@ def get_shop_info():
     if shop:
         shop_schema = ShopSchema()
         shop_info = shop_schema.dump(shop)
+        if shop_info["photo_shop"] is not None:
+            shop_info["photo_shop"] = url_for('static', filename=f'media/shops/{shop_info["photo_shop"]}', _external=True)
+
+        if shop_info["banner_shop"] is not None:
+            shop_info["banner_shop"] = url_for('static', filename=f'media/banner_shops/{shop_info["banner_shop"]}', _external=True)
+        
         return jsonify(shop_info), 200
 
     return make_response('There is no store by user', 404)
