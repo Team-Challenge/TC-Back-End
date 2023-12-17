@@ -223,7 +223,3 @@ def phone_validation(phone_number):
     if not re.match(r'^\+380\d{9}$', phone_number):
         raise ValueError('Invalid phone number format. Must start with +380 and have 9 digits.')
 
-def name_shop_validation(name):
-    pattern = r'^[a-zA-Zа-яА-ЯґҐєЄіІїЇ0-9\s!@#$%^&*()_+=\\|?/.,;:`~]{3,30}$'
-    if not re.match(pattern, name):
-        raise ValueError('Invalid shop name format.')

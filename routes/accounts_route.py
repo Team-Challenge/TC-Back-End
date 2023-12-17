@@ -185,7 +185,6 @@ def user_info():
     user = User.query.filter_by(id=get_jwt_identity()).first()
     user_info = UserInfoSchema().dump(user)
     
-    # Отримати повний URL-адрес для profile_picture
     if user_info["profile_picture"] is not None:
         user_info["profile_picture"] = url_for('static', filename=f'media/profile/{user_info["profile_picture"]}', _external=True)
 
