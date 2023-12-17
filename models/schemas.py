@@ -2,6 +2,7 @@ from marshmallow import fields, Schema, validate
 
 from dependencies import ma
 from models.models import User, Order, Product, ProductOrder, email_is_unique, Shop
+from config import Config
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
@@ -17,8 +18,8 @@ class SigninUserSchema(Schema):
 
 class SignupUserSchema(Schema):
     email = fields.Email(validate=email_is_unique)
-    full_name = fields.Str(validate=validate.Regexp(r"^[a-zA-Zа-яА-ЯґҐєЄіІїЇ\s]+$"))
-    password = fields.Str(validate=validate.Regexp(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$", error='invalid'))  # noqa: W605
+    full_name = fields.Str(validate=validate.Regexp(Config.FULL_NAME_PATTERN))
+    password = fields.Str(validate=validate.Regexp(Config.PASSWORD_PATTERN, error='invalid'))  # noqa: W605
 
 
 class UserInfoSchema(ma.SQLAlchemyAutoSchema):
@@ -37,7 +38,7 @@ class FullNameChangeSchema(Schema):
 
 class PasswordChangeSchema(Schema):
     current_password = fields.Str()
-    new_password = fields.Str(validate=validate.Regexp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'))    # noqa: W605
+    new_password = fields.Str(validate=validate.Regexp(Config.PASSWORD_PATTERN))    # noqa: W605
 
 
 class ProductSchema(ma.SQLAlchemyAutoSchema):

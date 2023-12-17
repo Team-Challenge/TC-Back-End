@@ -16,6 +16,10 @@ class Config:
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
     MEDIA_PATH = os.path.join(basedir, 'static', 'media')
     JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(seconds=int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES')))
+    FULL_NAME_PATTERN = os.environ.get('FULL_NAME_PATTERN')
+    PHONE_NUMBER_PATTERN = os.environ.get('PHONE_NUMBER_PATTERN')
+    NAME_SHOP_PATTERN = os.environ.get('NAME_SHOP_PATTERN')
+    PASSWORD_PATTERN = os.environ.get('PASSWORD_PATTERN')
 
 class TestConfig:
     TESTING = True

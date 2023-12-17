@@ -216,10 +216,9 @@ def email_is_unique(email):
         raise ValidationError('User with such email already exist') 
 
 def full_name_validation(full_name):
-    if not re.match(r"^[a-zA-Zа-яА-ЯґҐєЄіІїЇ\s]+$",full_name):
+    if not re.match(Config.FULL_NAME_PATTERN,full_name):
         raise ValidationError('Invalid characters in the field full_name')
 
 def phone_validation(phone_number):
-    if not re.match(r'^\+380\d{9}$', phone_number):
+    if not re.match(Config.PHONE_NUMBER_PATTERN, phone_number):
         raise ValueError('Invalid phone number format. Must start with +380 and have 9 digits.')
-
