@@ -28,7 +28,8 @@ def create_shops():
         return jsonify({"error": str(e)}), 400
 
     existing_shop = Shop.get_shop_by_owner_id(user.id)
-    current_shop = Shop.query.filter_by(name=request_data["name"]).first()
+    if 'name' in request_data:
+        current_shop = Shop.query.filter_by(name=request_data["name"]).first()
 
     if existing_shop:
         if 'phone_number' in request_data:
