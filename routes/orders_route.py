@@ -2,7 +2,6 @@
 import os
 
 from flask import Blueprint, current_app, send_from_directory, make_response, jsonify
-from werkzeug.exceptions import HTTPException
 from models.models import Order
 from models.schemas import OrderSchema
 from flask_cors import CORS

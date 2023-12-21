@@ -1,11 +1,16 @@
 import os
 import uuid
-import re
 
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import timedelta
 from models.models import User, Security, full_name_validation, phone_validation, DeliveryUserInfo
-from models.schemas import UserSchema, SigninUserSchema, SignupUserSchema, FullNameChangeSchema, UserInfoSchema, PasswordChangeSchema, UserDeliveryInfoSchema
+from models.schemas import (UserSchema,
+                            SigninUserSchema,
+                            SignupUserSchema,
+                            FullNameChangeSchema,
+                            UserInfoSchema,
+                            PasswordChangeSchema,
+                            UserDeliveryInfoSchema)
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
@@ -41,7 +46,9 @@ def signup() -> Response:
     
     request_data = request.get_json(silent=True)
 
-    if not request_data or "email" not in request_data or "full_name" not in request_data or "password" not in request_data:
+    if not request_data or "email" not in request_data \
+        or "full_name" not in request_data \
+        or "password" not in request_data:
         abort(400, "Incomplete data. Please provide email, full_name, and password.")
 
     try:
@@ -64,7 +71,8 @@ def signup() -> Response:
 
     db.session.commit()
 
-    verification_link = url_for('accounts_route.verify_email', token=verification_token, _external=True)
+    verification_link = url_for('accounts_route.verify_email',
+                    token=verification_token, _external=True)
     user_schema = UserSchema(exclude=["id", "joined_at", "is_active"])
 
     response = {"user": user_schema.dump(user_to_add), "link": verification_link}
@@ -188,7 +196,8 @@ def user_info():
         "phone_number": user.phone_number,
         "full_name": user.full_name,
         "email": user.email,
-        "profile_photo": url_for('static', filename=f'media/profile/{user.profile_picture}',    _external=True) if user.profile_picture else None,
+        "profile_photo": url_for('static', filename=f'media/profile/{user.profile_picture}',
+                                _external=True) if user.profile_picture else None,
         "post": None,
         "city": None,
         "branch_name": None,
@@ -212,8 +221,7 @@ def profile_photo():
         if user.profile_picture is not None:
             filename = user.profile_picture
             return url_for('static', filename=f'media/profile/{filename}', _external=True)
-        else:
-            return make_response('Profile_photo not allowed', 400)
+        return make_response('Profile_photo not allowed', 400)
 
     if request.method == 'POST':
         file = request.files['image']

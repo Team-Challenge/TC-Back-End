@@ -275,7 +275,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Shop created/updated successfully",
             "content": {
               "application/json": {
