@@ -3,7 +3,7 @@ name: Run Prospector & Pytest
 on:
   pull_request:
     branches: [development]
-    types: [opened, synchronize, closed]
+    types: [opened, edited, synchronize]
 
 jobs:
   build:
@@ -29,3 +29,4 @@ jobs:
       - name: Test with pytest
         run: |
           echo 'not implemented yet'
+        continue-on-error: false
