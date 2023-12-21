@@ -9,13 +9,19 @@ basedir = os.path.abspath('.')
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'data',
-                                                          os.environ.get('SQLALCHEMY_DB_NAME'))
-    SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get(
-        'SQLALCHEMY_TRACK_MODIFICATIONS') == "True"
+    db_name = os.environ.get('SQLALCHEMY_DB_NAME')
+    if db_name:
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'data', db_name)
+    track_modifications = os.environ.get('SQLALCHEMY_TRACK_MODIFICATIONS')
+    SQLALCHEMY_TRACK_MODIFICATIONS = track_modifications == "True" if track_modifications else False
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
     MEDIA_PATH = os.path.join(basedir, 'static', 'media')
-    JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(seconds=int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES')))
+    jwt_access_token_expires = os.environ.get('JWT_ACCESS_TOKEN_EXPIRES')
+    JWT_ACCESS_TOKEN_EXPIRES = (
+        datetime.timedelta(seconds=int(jwt_access_token_expires))
+        if jwt_access_token_expires
+        else None
+    )
 
 class TestConfig:
     TESTING = True

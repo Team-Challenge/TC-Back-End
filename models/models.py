@@ -10,8 +10,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from config import Config
-from flask import jsonify
-from sqlalchemy import Integer, String, DateTime, Boolean,UniqueConstraint
+from sqlalchemy import Integer, String, DateTime, Boolean
 from typing import List
 from flask_jwt_extended import get_jwt_identity
 
@@ -93,15 +92,16 @@ class OrderStatus(db.Model):
 class Shop(db.Model):
     __tablename__ = "shops"
 
-    def __init__(self, name=None, description=None, photo_shop=None, banner_shop=None, phone_number=None, owner_id=None, link=None):
-        
-        self.owner_id = owner_id
-        self.name = name
-        self.description = description
-        self.photo_shop = photo_shop
-        self.banner_shop = banner_shop
-        self.phone_number = phone_number
-        self.link = link
+    def __init__(self, **kwargs):
+
+        self.owner_id = kwargs.get('owner_id')
+        self.name = kwargs.get('name')
+        self.description = kwargs.get('description')
+        self.photo_shop = kwargs.get('photo_shop')
+        self.banner_shop = kwargs.get('banner_shop')
+        self.phone_number = kwargs.get('phone_number')
+        self.link = kwargs.get('link')
+
 
     id = mapped_column(Integer, primary_key=True)
     owner_id = mapped_column(Integer, ForeignKey("users.id"))
@@ -119,9 +119,8 @@ class Shop(db.Model):
         return cls.query.filter_by(owner_id=owner_id).first()
 
     @classmethod
-    def create_shop(cls, owner_id, name, description, phone_number, link):
-        new_shop = cls(owner_id=owner_id, name=name, description=description,
-                       phone_number=phone_number, link=link)
+    def create_shop(cls, owner_id, name, phone_number, **kwargs):
+        new_shop = cls(owner_id=owner_id, name=name, phone_number=phone_number, **kwargs)
         db.session.add(new_shop)
         db.session.commit()
         return new_shop
@@ -222,4 +221,3 @@ def full_name_validation(full_name):
 def phone_validation(phone_number):
     if not re.match(r'^\+380\d{9}$', phone_number):
         raise ValueError('Invalid phone number format. Must start with +380 and have 9 digits.')
-
