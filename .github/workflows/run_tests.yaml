@@ -3,7 +3,7 @@ name: Run Prospector & Pytest
 on:
   pull_request:
     branches: [development]
-    types: [opened, synchronize, closed]
+    types: [opened, edited, synchronize]
 
 jobs:
   build:
