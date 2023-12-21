@@ -34,7 +34,8 @@ class User(db.Model):
     phone_number = mapped_column(String, default=None)
 
     shops: Mapped["Shop"] = relationship("Shop", back_populates="owner")
-    delivery_user_info: Mapped[List["DeliveryUserInfo"]] = relationship("DeliveryUserInfo", back_populates="owner")
+    delivery_user_info: Mapped[List["DeliveryUserInfo"]] = relationship("DeliveryUserInfo",
+                                                                        back_populates="owner")
 
     @classmethod
     def get_user_id(cls):
@@ -213,13 +214,12 @@ class ProductPhoto(db.Model):
 class DeliveryUserInfo(db.Model):
     __tablename__ = "delivery_user_info"
 
-    def __init__(self, owner_id=None, post=None, city=None, branch_name=None, address=None):
-        
-        self.owner_id = owner_id
-        self.post = post
-        self.city = city
-        self.branch_name = branch_name
-        self.address = address
+    def __init__(self, **kwargs):
+        self.owner_id = kwargs.get('owner_id')
+        self.post = kwargs.get('post')
+        self.city = kwargs.get('city')
+        self.branch_name = kwargs.get('branch_name')
+        self.address = kwargs.get('address')
 
     id = mapped_column(Integer, primary_key=True)
     owner_id = mapped_column(Integer, ForeignKey("users.id"))
@@ -235,8 +235,8 @@ class DeliveryUserInfo(db.Model):
         return cls.query.filter_by(owner_id=owner_id).first()
 
     @classmethod
-    def add_delivery_info(cls, owner_id, post, city, branch_name, address):
-        new_delivery_address = cls(owner_id=owner_id, post=post, city=city, branch_name=branch_name, address=address)
+    def add_delivery_info(cls, **kwargs):
+        new_delivery_address = cls(**kwargs)
         db.session.add(new_delivery_address)
         db.session.commit()
         return new_delivery_address

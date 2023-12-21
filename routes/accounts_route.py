@@ -8,7 +8,6 @@ from models.schemas import (UserSchema,
                             SigninUserSchema,
                             SignupUserSchema,
                             FullNameChangeSchema,
-                            UserInfoSchema,
                             PasswordChangeSchema,
                             UserDeliveryInfoSchema)
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -289,8 +288,8 @@ def add_delivery_info():
         if request.method == "POST":
             if not existing_delivery:
                 try:
-                    delivery_data = UserDeliveryInfoSchema().load(request_data)
-                    new_delivery = DeliveryUserInfo.add_delivery_info(owner_id=user.id,
+                    UserDeliveryInfoSchema().load(request_data)
+                    DeliveryUserInfo.add_delivery_info(owner_id=user.id,
                                     post=request_data.get("post"),
                                     city=request_data.get("city"),
                                     branch_name=request_data.get("branch_name"),

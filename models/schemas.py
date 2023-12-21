@@ -1,7 +1,13 @@
 from marshmallow import fields, Schema, validate
 
 from dependencies import ma
-from models.models import User, Order, Product, ProductOrder, email_is_unique, Shop, DeliveryUserInfo
+from models.models import (User,
+                        Order,
+                        Product,
+                        ProductOrder,
+                        email_is_unique,
+                        Shop,
+                        DeliveryUserInfo)
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
