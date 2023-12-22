@@ -277,9 +277,9 @@ def change_password():
 
     return jsonify({'error': 'User not found'}), 404
 
-@accounts_route.route('/delivery_info', methods=['POST', 'PUT', 'DELETE'])
+@accounts_route.route('/delivery_info', methods=['POST', 'DELETE'])
 @jwt_required()
-def add_delivery_info():
+def manage_delivery_info():
     request_data = request.get_json(silent=True)
     user = User.get_user_id()
     existing_delivery = DeliveryUserInfo.get_delivery_info_by_owner_id(user.id)
@@ -298,18 +298,14 @@ def add_delivery_info():
                     return jsonify({'message': 'Delivery address created successfully'}), 201
                 except ValueError as e:
                     return jsonify({'error': str(e)}), 400
-            return jsonify({'error': 'User have delivery address'}), 400
-
-        if request.method == "PUT":
-            if existing_delivery:
+            else:
                 existing_delivery.update_delivery_info(**request_data)
                 return jsonify({'message': 'Delivery address updated successfully'}), 200
-            return jsonify({'error': 'User not have delivery address'}), 400
 
-        if request.method == "DELETE":
+        elif request.method == "DELETE":
             if existing_delivery:
                 existing_delivery.remove_delivery_info()
-                return jsonify({'message': 'OK'}), 200
-            return jsonify({'error': 'User not have delivery address'}), 400
+                return jsonify({'message': 'Delivery address removed successfully'}), 200
+            return jsonify({'error': 'User does not have a delivery address'}), 400
 
-    return jsonify({'error': 'User not found'}), 404 
+    return jsonify({'error': 'User not found'}), 404
