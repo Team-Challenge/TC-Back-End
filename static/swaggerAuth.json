@@ -335,44 +335,6 @@
           }
         }
       },
-      "put": {
-        "summary": "Update user delivery info",
-        "tags": ["Accounts"],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "description": "Update user delivery info",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateUpdateDelivery"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Address updated successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "message": "Address updated successfully"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "User not found"
-          },
-          "400": {
-            "description": "Invalid request data"
-          }
-        }
-      },
       "delete": {
         "summary": "Delete delivery info",
         "tags": ["Accounts"],
