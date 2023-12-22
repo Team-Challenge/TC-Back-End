@@ -3,13 +3,13 @@ import uuid
 
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import timedelta
-from models.models import User, Security, full_name_validation, phone_validation
+from models.models import User, Security, full_name_validation, phone_validation, DeliveryUserInfo
 from models.schemas import (UserSchema,
                             SigninUserSchema,
                             SignupUserSchema,
                             FullNameChangeSchema,
-                            UserInfoSchema,
-                            PasswordChangeSchema)
+                            PasswordChangeSchema,
+                            UserDeliveryInfoSchema)
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
@@ -190,11 +190,25 @@ def change_full_name():
 @jwt_required()
 def user_info():
     user = User.query.filter_by(id=get_jwt_identity()).first()
-    user_info = UserInfoSchema().dump(user)
     
-    if user_info["profile_picture"] is not None:
-        user_info["profile_picture"] = url_for('static',
-            filename=f'media/profile/{user_info["profile_picture"]}', _external=True)
+    user_info = {
+        "phone_number": user.phone_number,
+        "full_name": user.full_name,
+        "email": user.email,
+        "profile_photo": url_for('static', filename=f'media/profile/{user.profile_picture}',
+                                _external=True) if user.profile_picture else None,
+        "post": None,
+        "city": None,
+        "branch_name": None,
+        "address": None}
+
+    delivery_info = DeliveryUserInfo.get_delivery_info_by_owner_id(user.id)
+
+    if delivery_info:
+        user_info["post"] = delivery_info.post
+        user_info["city"] = delivery_info.city
+        user_info["branch_name"] = delivery_info.branch_name
+        user_info["address"] = delivery_info.address
 
     return user_info
 
@@ -262,3 +276,40 @@ def change_password():
         return jsonify({'error': 'Current password is incorrect'}), 400
 
     return jsonify({'error': 'User not found'}), 404
+
+@accounts_route.route('/delivery_info', methods=['POST', 'PUT', 'DELETE'])
+@jwt_required()
+def add_delivery_info():
+    request_data = request.get_json(silent=True)
+    user = User.get_user_id()
+    existing_delivery = DeliveryUserInfo.get_delivery_info_by_owner_id(user.id)
+
+    if user:
+        if request.method == "POST":
+            if not existing_delivery:
+                try:
+                    UserDeliveryInfoSchema().load(request_data)
+                    DeliveryUserInfo.add_delivery_info(owner_id=user.id,
+                                    post=request_data.get("post"),
+                                    city=request_data.get("city"),
+                                    branch_name=request_data.get("branch_name"),
+                                    address=request_data.get("address"))
+
+                    return jsonify({'message': 'Delivery address created successfully'}), 201
+                except ValueError as e:
+                    return jsonify({'error': str(e)}), 400
+            return jsonify({'error': 'User have delivery address'}), 400
+
+        if request.method == "PUT":
+            if existing_delivery:
+                existing_delivery.update_delivery_info(**request_data)
+                return jsonify({'message': 'Delivery address updated successfully'}), 200
+            return jsonify({'error': 'User not have delivery address'}), 400
+
+        if request.method == "DELETE":
+            if existing_delivery:
+                existing_delivery.remove_delivery_info()
+                return jsonify({'message': 'OK'}), 200
+            return jsonify({'error': 'User not have delivery address'}), 400
+
+    return jsonify({'error': 'User not found'}), 404 

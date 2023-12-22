@@ -1,7 +1,13 @@
 from marshmallow import fields, Schema, validate
 
 from dependencies import ma
-from models.models import User, Order, Product, ProductOrder, email_is_unique, Shop
+from models.models import (User,
+                        Order,
+                        Product,
+                        ProductOrder,
+                        email_is_unique,
+                        Shop,
+                        DeliveryUserInfo)
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
@@ -77,3 +83,9 @@ class ShopInfoBannerShema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Shop
         exclude = ("id", "owner_id", "name", "description", "photo_shop", "phone_number", "link")
+
+class UserDeliveryInfoSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = DeliveryUserInfo
+        include_relationships = True
+        load_instance = True
