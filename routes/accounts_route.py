@@ -1,7 +1,7 @@
 import os
 import uuid
 
-from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort, redirect
+from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import timedelta
 from models.models import User, Security, full_name_validation, phone_validation, DeliveryUserInfo
 from models.schemas import (UserSchema,
