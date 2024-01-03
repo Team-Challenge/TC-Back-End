@@ -1,7 +1,13 @@
 from marshmallow import fields, Schema, validate
 
 from dependencies import ma
-from models.models import User, Order, Product, ProductOrder, email_is_unique
+from models.models import (User,
+                        Order,
+                        Product,
+                        ProductOrder,
+                        email_is_unique,
+                        Shop,
+                        DeliveryUserInfo)
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
@@ -21,8 +27,8 @@ class GoogleAuthSchema(Schema):
     
 class SignupUserSchema(Schema):
     email = fields.Email(validate=email_is_unique)
-    full_name = fields.Str(validate=validate.Length(min=2, max=50))
-    password = fields.Str(validate=validate.Regexp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'))  # noqa: W605
+    full_name = fields.Str(validate=validate.Regexp(r"^[a-zA-Zа-яА-ЯґҐєЄіІїЇ\s]+$"))
+    password = fields.Str(validate=validate.Regexp(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$", error='invalid'))  # noqa: W605
 
 
 class UserInfoSchema(ma.SQLAlchemyAutoSchema):
@@ -65,3 +71,25 @@ class OrderSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
         include_relationships = True
     products = fields.Nested(ProductOrderSchema, many=True)
+
+class ShopSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Shop
+        include_relationships = True
+        load_instance = True
+
+class ShopInfoPhotoShema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Shop
+        exclude = ("id", "owner_id", "name", "description", "banner_shop", "phone_number", "link")
+
+class ShopInfoBannerShema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Shop
+        exclude = ("id", "owner_id", "name", "description", "photo_shop", "phone_number", "link")
+
+class UserDeliveryInfoSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = DeliveryUserInfo
+        include_relationships = True
+        load_instance = True
