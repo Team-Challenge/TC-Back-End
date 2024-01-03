@@ -5,7 +5,7 @@ import re
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort, redirect
 from datetime import timedelta
 from models.models import User, Security, full_name_validation
-from models.schemas import UserSchema, SigninUserSchema, SignupUserSchema, FullNameChangeSchema, UserInfoSchema, PasswordChangeSchema
+from models.schemas import UserSchema, SigninUserSchema, SignupUserSchema, FullNameChangeSchema, UserInfoSchema, PasswordChangeSchema, GoogleAuthSchema
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
@@ -72,10 +72,10 @@ def signup() -> Response:
 
     return make_response(jsonify(response), 200)
 
-@accounts_route.route("/authorize", methods=["GET"])
+@accounts_route.route("/authorize", methods=["POST"])
 def authorize() -> Response:
-    id_token = 'token'
-    token_dict = decode(id_token, verify=False)
+    google_auth_data = GoogleAuthSchema().load(request.get_json(silent=True))
+    token_dict = decode(google_auth_data['id_token'], verify=False)
     user = User.query.filter_by(email=token_dict.get('email')).first()
     if user is None:
         user_to_add = User(token_dict.get('email'), token_dict.get('name'))
