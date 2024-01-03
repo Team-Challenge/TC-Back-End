@@ -3,6 +3,36 @@ doc-warnings: false
 test-warnings: false
 autodetect: true
 member-warnings: false
+inherits:
+  - default
+ignore-paths:
+  - docs
+  - venv
+  - .venv
+  - conf
+  - migrations
+ignore-patterns:
+  - (^|/)skip(this)?(/|$)
+  - venv/|.venv|conf/|migrations/
+max-line-length: 100
+
 pylint:
+  run: true
   disable:
     - import-error
+    - bad-builtin
+    - too-few-public-methods
+    - use-symbolic-message-instead
+    - consider-using-f-string
+
+mypy:
+  run: true
+  options:
+    ignore-missing-imports: true
+    follow-imports: skip
+
+pycodestyle:
+  enable:
+    - W601
+  options:
+    max-line-length: 100
