@@ -19,8 +19,12 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
 class SigninUserSchema(Schema):
     email = fields.Email()
     password = fields.Str()
-    
 
+
+class GoogleAuthSchema(Schema):
+    id_token = fields.Str()
+    
+    
 class SignupUserSchema(Schema):
     email = fields.Email(validate=email_is_unique)
     full_name = fields.Str(validate=validate.Regexp(r"^[a-zA-Zа-яА-ЯґҐєЄіІїЇ\s]+$"))
