@@ -1,6 +1,5 @@
 import os
 import uuid
-import re
 
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort, redirect
 from datetime import timedelta
