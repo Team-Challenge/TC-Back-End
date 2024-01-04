@@ -14,4 +14,3 @@ ma = Marshmallow()
 jwt = JWTManager()
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 registry = CollectorRegistry()
-

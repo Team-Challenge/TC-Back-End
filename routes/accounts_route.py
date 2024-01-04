@@ -1,6 +1,7 @@
 import os
 import uuid
 
+from google_auth_oauthlib.flow import Flow
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import timedelta
 from models.models import User, Security, full_name_validation, phone_validation, DeliveryUserInfo
@@ -18,7 +19,6 @@ from flask_cors import CORS
 from routes.error_handlers import APIAuthError
 from dependencies import db, jwt, cache
 from config import Config
-from google.auth.jwt import decode
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -81,18 +81,35 @@ def signup() -> Response:
 
 @accounts_route.route("/authorize", methods=["POST"])
 def authorize() -> Response:
+
     google_auth_data = GoogleAuthSchema().load(request.get_json(silent=True))
-    token_dict = decode(google_auth_data['id_token'], verify=False)
-    user = User.query.filter_by(email=token_dict.get('email')).first()
+    flow = Flow.from_client_secrets_file(
+        './client_secret.json',
+        scopes=['https://www.googleapis.com/auth/userinfo.email',
+                'https://www.googleapis.com/auth/userinfo.profile',
+                'openid'],
+    redirect_uri='http://localhost:8000')
+    flow.authorization_url(prompt='consent')
+    flow.fetch_token(code=google_auth_data['id_token'])
+
+    session = flow.authorized_session()
+    profile_info = session.get('https://www.googleapis.com/userinfo/v2/me').json()
+
+    email = profile_info['email']
+    name = profile_info['name']
+
+    user = User.query.filter_by(email=email).first()
     if user is None:
-        user_to_add = User(token_dict.get('email'), token_dict.get('name'))
+        user_to_add = User(email, name)
         db.session.add(user_to_add)
         db.session.commit()
+        user = User.query.filter_by(email=email).first()
+
     access_token = create_access_token(identity=user.id, fresh=True)
     refresh_token = create_refresh_token(user.id)
+
     response = {"access_token": access_token, "refresh_token": refresh_token}
-    
-    return make_response(response, 200) 
+    return make_response(response, 200)
 
 @accounts_route.route("/signin", methods=["POST"])
 def signin() -> Response:
