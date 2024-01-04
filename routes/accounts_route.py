@@ -19,7 +19,6 @@ from flask_cors import CORS
 from routes.error_handlers import APIAuthError
 from dependencies import db, jwt, cache
 from config import Config
-from google.auth.jwt import decode
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
