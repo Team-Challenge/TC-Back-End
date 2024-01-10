@@ -10,7 +10,8 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from config import Config
-from sqlalchemy import Integer, String, DateTime, Boolean
+from config.patterns import SubCategoryEnum, Delivery_Post, ProductStatus
+from sqlalchemy import Integer, String, DateTime, Boolean, Float, Text
 from typing import List
 from flask_jwt_extended import get_jwt_identity
 
@@ -35,7 +36,9 @@ class User(db.Model):
 
     shops: Mapped["Shop"] = relationship("Shop", back_populates="owner")
     delivery_user_info: Mapped[List["DeliveryUserInfo"]] = relationship("DeliveryUserInfo",
-                                                                        back_populates="owner")
+                                                                back_populates="owner")
+    comment: Mapped[List["ProductComment"]] = relationship("ProductComment",
+                                                                back_populates="user_comment")
 
     @classmethod
     def get_user_id(cls):
@@ -56,40 +59,35 @@ class Security(db.Model):
 class Product(db.Model):
     __tablename__ = "products"
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, shop_id, **kwargs):
+        self.category_id = kwargs.get('category_id')
+        self.sub_category_name = kwargs.get('sub_category_name')
+        self.shop_id = shop_id
+        self.product_name = kwargs.get('product_name')
+        self.product_description = kwargs.get('product_decsription')
+        self.time_added = datetime.utcnow()
+        self.time_modifeid = datetime.utcnow()
+        self.is_active = kwargs.get('is_active')
 
     id = mapped_column(Integer, primary_key=True)
-    name = mapped_column(String(36))
-    description = mapped_column(String(512))
-    seller_id = mapped_column(Integer, ForeignKey('shops.id'))
-    category_id = mapped_column(Integer, ForeignKey('product_category.id'))
-    price = mapped_column(Integer)
-    is_avaliable = mapped_column(Boolean)
+    category_id = mapped_column(Integer, ForeignKey('categories.id'))
+    sub_category_name = mapped_column(SubCategoryEnum)
+    shop_id = mapped_column(Integer, ForeignKey('shops.id'))
+    product_name = mapped_column(String(100))
+    product_description = mapped_column(String(1000))
+    time_added = mapped_column(DateTime)
+    time_modifeid = mapped_column(DateTime)
+    is_active = mapped_column(Boolean, default=True)
 
-
-class Order(db.Model):
-    __tablename__ = "orders"
-
-    def __init__(self, user_id):
-        self.user_id = user_id
-        self.date = datetime.utcnow()
-
-    id = mapped_column(Integer, primary_key=True)
-    user_id = mapped_column(Integer, ForeignKey("users.id"))
-    date = mapped_column(DateTime)
-    status_id = mapped_column(String, ForeignKey('order_status.id'))
-    comment = mapped_column(String)
-    delivery_address = mapped_column(String)
-
-    products: Mapped[List["ProductOrder"]] = relationship()
-
-
-class OrderStatus(db.Model):
-    __tablename__ = "order_status"
-    id = mapped_column(Integer, primary_key=True)
-    status = mapped_column(String(24))
-
+    categories: Mapped["Categories"] = relationship("Categories",
+                                                            back_populates="products")
+    product_to_comment: Mapped["ProductComment"] = relationship("ProductComment",
+                                                            back_populates="product_comment")
+    product_to_raiting: Mapped["ProductRaiting"] = relationship("ProductRaiting",
+                                                            back_populates="product_raiting")
+    owner_shop: Mapped["Shop"] = relationship("Shop", back_populates="shop_to_products")
+    product_to_detail: Mapped["ProductDetail"] = relationship("ProductDetail",
+                                                        back_populates="product_detail")
 
 class Shop(db.Model):
     __tablename__ = "shops"
@@ -115,6 +113,7 @@ class Shop(db.Model):
     link = mapped_column(String, default=None)
 
     owner: Mapped["User"] = relationship("User", back_populates="shops")
+    shop_to_products: Mapped["Product"] = relationship("Product", back_populates="owner_shop")
 
     @classmethod
     def get_shop_by_owner_id(cls, owner_id):
@@ -181,35 +180,35 @@ class Shop(db.Model):
         db.session.commit()
 
 
-class ProductOrder(db.Model):
-    __tablename__ = "product_order"
+class Categories(db.Model):
+    __tablename__ = "categories"
 
-    def __init__(self, order_id, product_id, amount):
-        self.order_id = order_id
-        self.product_id = product_id
-        self.amount = amount
-
-    order_id = mapped_column(ForeignKey('orders.id'), primary_key=True)
-    product_id = mapped_column(ForeignKey('products.id'), primary_key=True)
-    unit_price = mapped_column(Integer)
-    amount = mapped_column(Integer)
-    product: Mapped["Product"] = relationship()
-
-
-class ProductCategory(db.Model):
-    __tablename__ = "product_category"
+    def __init__(self, category_name):
+        self.category_name = category_name
 
     id = mapped_column(Integer, primary_key=True)
-    name = mapped_column(String)
-    description = mapped_column(String)
+    category_name = mapped_column(String)
+
+    products: Mapped[List["Product"]] = relationship("Product", back_populates="categories")
 
 
 class ProductPhoto(db.Model):
-    __tablename__ = "products_photos"
+    __tablename__ = "product_photos"
+
+    def __init__(self, product_detail_id, product_photo, main):
+        self.timestamp = datetime.utcnow()
+        self.product_detail_id = product_detail_id
+        self.product_photo = product_photo
+        self.main = main
 
     id = mapped_column(Integer, primary_key=True)
-    product_id = mapped_column(Integer, ForeignKey('products.id'))
-    picture_id = mapped_column(String(64))
+    product_detail_id = mapped_column(Integer, ForeignKey('product_details.id'))
+    product_photo = mapped_column(String)
+    timestamp = mapped_column(DateTime)
+    main = mapped_column(Boolean, default=False)
+
+    product_image: Mapped["ProductDetail"] = relationship("ProductDetail",
+                                                        back_populates="product_to_photo")
 
 class DeliveryUserInfo(db.Model):
     __tablename__ = "delivery_user_info"
@@ -256,6 +255,65 @@ class DeliveryUserInfo(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+class ProductDetail(db.Model):
+    __tablename__ = "product_details"
+
+    def __init__(self, **kwargs):
+        self.product_id = kwargs.get('product_id')
+        self.price = kwargs.get('price')
+        self.product_status = kwargs.get('product_status')
+        self.product_characteristic = kwargs.get('product_characteristic')
+        self.is_return = kwargs.get('is_return')
+        self.delivery_post = kwargs.get('post')
+        self.method_of_payment = kwargs.get('method_of_payment')
+        self.is_unique = kwargs.get('is_unique')
+
+    id = mapped_column(Integer, primary_key=True)
+    product_id = mapped_column(Integer, ForeignKey("products.id"))
+    price = mapped_column(Float)
+    product_status = mapped_column(ProductStatus)
+    product_characteristic = mapped_column(Text)
+    is_return = mapped_column(Boolean, default=False)
+    delivery_post = mapped_column(Delivery_Post)
+    method_of_payment = mapped_column(String)
+    is_unique = mapped_column(Boolean, default=False)
+
+    product_detail: Mapped["Product"] = relationship("Product", back_populates="product_to_detail")
+    product_to_photo: Mapped["ProductPhoto"] = relationship("ProductPhoto",
+                                                        back_populates="product_image")
+
+
+class ProductRaiting(db.Model):
+    __tablename__ = 'product_raitings'
+
+    def __init__(self, product_id, product_rating):
+        self.product_id = product_id
+        self.product_rating = product_rating
+
+    id = mapped_column(Integer, primary_key=True)
+    product_id = mapped_column(Integer, ForeignKey("products.id"))
+    product_rating = mapped_column(Float)
+    votes = mapped_column(Integer, default=0)
+
+    product_raiting: Mapped["Product"] = relationship("Product", 
+                                                        back_populates="product_to_raiting")
+
+class ProductComment(db.Model):
+    __tablename__ = "product_comment"
+
+    def __init__(self, user_id, product_id, comment):
+        self.user_id = user_id
+        self.product_id = product_id
+        self.comment = comment
+
+    id = mapped_column(Integer, primary_key=True)
+    product_id = mapped_column(Integer, ForeignKey("products.id"))
+    user_id = mapped_column(Integer, ForeignKey("users.id"))
+    comment = mapped_column(String(200)) 
+
+    product_comment: Mapped["Product"] = relationship("Product",
+                                                     back_populates="product_to_comment")
+    user_comment: Mapped["User"] = relationship("User", back_populates="comment")
 
 def email_is_unique(email):
     if User.query.filter_by(email=email).first():
