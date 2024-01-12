@@ -10,7 +10,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from config import Config
-from config.patterns import SubCategoryEnum, Delivery_Post, ProductStatus
+from models.patterns import SubCategoryEnum, Delivery_Post, ProductStatus
 from sqlalchemy import Integer, String, DateTime, Boolean, Float, Text
 from typing import List
 from flask_jwt_extended import get_jwt_identity
