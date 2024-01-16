@@ -2,9 +2,7 @@ from marshmallow import fields, Schema, validate
 
 from dependencies import ma
 from models.models import (User,
-                        Order,
                         Product,
-                        ProductOrder,
                         email_is_unique,
                         Shop,
                         DeliveryUserInfo)
@@ -55,22 +53,6 @@ class ProductSchema(ma.SQLAlchemyAutoSchema):
         model = Product
         load_instance = True
         include_relationships = True
-
-
-class ProductOrderSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = ProductOrder
-        load_instance = True
-        include_relationships = True
-    product = fields.Nested(ProductSchema)
-
-
-class OrderSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Order
-        load_instance = True
-        include_relationships = True
-    products = fields.Nested(ProductOrderSchema, many=True)
 
 class ShopSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
