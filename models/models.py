@@ -18,6 +18,7 @@ from flask_jwt_extended import get_jwt_identity
 
 SHOPS_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'shops')
 SHOPS_BANNER_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'banner_shops')
+PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
 
 class User(db.Model):
     __tablename__ = "users"
@@ -64,7 +65,7 @@ class Product(db.Model):
         self.sub_category_name = kwargs.get('sub_category_name')
         self.shop_id = shop_id
         self.product_name = kwargs.get('product_name')
-        self.product_description = kwargs.get('product_decsription')
+        self.product_description = kwargs.get('product_description')
         self.time_added = datetime.utcnow()
         self.time_modifeid = datetime.utcnow()
         self.is_active = kwargs.get('is_active')
@@ -88,6 +89,30 @@ class Product(db.Model):
     owner_shop: Mapped["Shop"] = relationship("Shop", back_populates="shop_to_products")
     product_to_detail: Mapped["ProductDetail"] = relationship("ProductDetail",
                                                         back_populates="product_detail")
+                                                        
+    @classmethod
+    def add_product(cls, shop_id, **kwargs):
+        product = cls(shop_id, **kwargs)
+        time_added = datetime.utcnow()
+        db.session.add(product)
+        db.session.commit()
+        return product
+
+    @classmethod
+    def get_product_by_id(cls, product_id):
+        return cls.query.filter_by(id=product_id).first()
+    
+    def update_product(self, product_id, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        time_modified = datetime.utcnow()
+        db.session.commit()
+
+    def delete_product(self):
+        self.is_active = False
+        self.time_modified = datetime.utcnow()
+        db.session.commit()
+
 
 class Shop(db.Model):
     __tablename__ = "shops"
@@ -191,6 +216,21 @@ class Categories(db.Model):
 
     products: Mapped[List["Product"]] = relationship("Product", back_populates="categories")
 
+    @classmethod
+    def create_category(cls, category_name):
+        new_category = cls(category_name=category_name)
+        db.session.add(new_category)
+        db.session.commit()
+        return new_category
+
+    @staticmethod
+    def get_all_categories():
+        categories = Categories.query.all()
+        return categories
+
+    def as_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
 
 class ProductPhoto(db.Model):
     __tablename__ = "product_photos"
@@ -209,6 +249,35 @@ class ProductPhoto(db.Model):
 
     product_image: Mapped["ProductDetail"] = relationship("ProductDetail",
                                                         back_populates="product_to_photo")
+
+    @classmethod
+    def add_product_photo(cls, product_detail_id, photo, main):
+        file_extension = photo.filename.split('.')[-1]
+        file_name = uuid.uuid4().hex
+        file_path = os.path.join(PRODUCT_PHOTOS_PATH, f"{file_name}.{file_extension}")
+
+        photo.save(file_path)
+
+        new_photo = cls(product_detail_id=product_detail_id, product_photo=f"{file_name}.{file_extension}", main=main)
+        db.session.add(new_photo)
+        db.session.commit()
+
+        return new_photo
+        
+    def serialize(self):
+        return {
+                "id": self.id,
+                "product_photo": self.product_photo,
+                "timestamp": self.timestamp.isoformat(),
+                "main": self.main
+                }
+
+    def remove_product_photo(self):
+        file_path = os.path.join(PRODUCT_PHOTOS_PATH, self.product_photo)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        db.session.delete(self)
+        db.session.commit()
 
 class DeliveryUserInfo(db.Model):
     __tablename__ = "delivery_user_info"
@@ -264,7 +333,7 @@ class ProductDetail(db.Model):
         self.product_status = kwargs.get('product_status')
         self.product_characteristic = kwargs.get('product_characteristic')
         self.is_return = kwargs.get('is_return')
-        self.delivery_post = kwargs.get('post')
+        self.delivery_post = kwargs.get('delivery_post')
         self.method_of_payment = kwargs.get('method_of_payment')
         self.is_unique = kwargs.get('is_unique')
 
@@ -279,8 +348,42 @@ class ProductDetail(db.Model):
     is_unique = mapped_column(Boolean, default=False)
 
     product_detail: Mapped["Product"] = relationship("Product", back_populates="product_to_detail")
-    product_to_photo: Mapped["ProductPhoto"] = relationship("ProductPhoto",
-                                                        back_populates="product_image")
+    product_to_photo: Mapped[List["ProductPhoto"]] = relationship(
+        "ProductPhoto",
+        back_populates="product_image",
+        lazy="joined",
+        uselist=True
+    )
+
+    @classmethod
+    def add_product_detail(cls, product_id, **kwargs):
+        product_detail = cls(product_id=product_id, **kwargs)
+        db.session.add(product_detail)
+        db.session.commit()
+        return product_detail
+
+    @classmethod
+    def get_product_detail_by_id(cls, product_detail_id):
+        return cls.query.filter_by(id=product_detail_id).first()
+
+    def update_product_detail(self, product_id, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        db.session.commit()
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "product_id": self.product_id,
+            "price": self.price,
+            "product_status": self.product_status,
+            "product_characteristic": self.product_characteristic,
+            "is_return": self.is_return,
+            "delivery_post": self.delivery_post,
+            "method_of_payment": self.method_of_payment,
+            "is_unique": self.is_unique,
+            "photos": [photo.serialize() for photo in self.product_to_photo],
+        }
 
 
 class ProductRaiting(db.Model):
