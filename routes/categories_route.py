@@ -1,5 +1,5 @@
 
-from flask import jsonify, request, Blueprint, make_response, current_app, url_for
+from flask import jsonify, request, Blueprint
 from marshmallow.exceptions import ValidationError
 from models.models import Categories
 from models.schemas import CategorySchema

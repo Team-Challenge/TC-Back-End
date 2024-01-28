@@ -66,18 +66,18 @@ class Product(db.Model):
         self.shop_id = shop_id
         self.product_name = kwargs.get('product_name')
         self.product_description = kwargs.get('product_description')
-        self.time_added = datetime.utcnow()
-        self.time_modifeid = datetime.utcnow()
         self.is_active = kwargs.get('is_active')
+        self.time_added = kwargs.get('time_added')
+        self.time_modifeid = kwargs.get('time_modifeid')
 
     id = mapped_column(Integer, primary_key=True)
     category_id = mapped_column(Integer, ForeignKey('categories.id'))
     sub_category_name = mapped_column(SubCategoryEnum)
     shop_id = mapped_column(Integer, ForeignKey('shops.id'))
     product_name = mapped_column(String(100))
-    product_description = mapped_column(String(1000))
-    time_added = mapped_column(DateTime)
-    time_modifeid = mapped_column(DateTime)
+    product_description = mapped_column(String(1000), default=None)
+    time_added = mapped_column(DateTime, default=None)
+    time_modifeid = mapped_column(DateTime, default=None)
     is_active = mapped_column(Boolean, default=True)
 
     categories: Mapped["Categories"] = relationship("Categories",
@@ -92,8 +92,8 @@ class Product(db.Model):
                                                         
     @classmethod
     def add_product(cls, shop_id, **kwargs):
-        product = cls(shop_id, **kwargs)
         time_added = datetime.utcnow()
+        product = cls(shop_id, time_added=time_added, **kwargs)
         db.session.add(product)
         db.session.commit()
         return product
@@ -102,15 +102,14 @@ class Product(db.Model):
     def get_product_by_id(cls, product_id):
         return cls.query.filter_by(id=product_id).first()
     
-    def update_product(self, product_id, **kwargs):
+    def update_product(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        time_modified = datetime.utcnow()
+        self.time_modifeid = datetime.utcnow()
         db.session.commit()
 
     def delete_product(self):
         self.is_active = False
-        self.time_modified = datetime.utcnow()
         db.session.commit()
 
 
@@ -258,7 +257,8 @@ class ProductPhoto(db.Model):
 
         photo.save(file_path)
 
-        new_photo = cls(product_detail_id=product_detail_id, product_photo=f"{file_name}.{file_extension}", main=main)
+        new_photo = cls(product_detail_id=product_detail_id, 
+                                product_photo=f"{file_name}.{file_extension}", main=main)
         db.session.add(new_photo)
         db.session.commit()
 
@@ -340,11 +340,11 @@ class ProductDetail(db.Model):
     id = mapped_column(Integer, primary_key=True)
     product_id = mapped_column(Integer, ForeignKey("products.id"))
     price = mapped_column(Float)
-    product_status = mapped_column(ProductStatus)
-    product_characteristic = mapped_column(Text)
+    product_status = mapped_column(ProductStatus, default=None)
+    product_characteristic = mapped_column(Text, default=None)
     is_return = mapped_column(Boolean, default=False)
-    delivery_post = mapped_column(Delivery_Post)
-    method_of_payment = mapped_column(String)
+    delivery_post = mapped_column(Delivery_Post, default=None)
+    method_of_payment = mapped_column(String, default=None)
     is_unique = mapped_column(Boolean, default=False)
 
     product_detail: Mapped["Product"] = relationship("Product", back_populates="product_to_detail")
@@ -366,7 +366,7 @@ class ProductDetail(db.Model):
     def get_product_detail_by_id(cls, product_detail_id):
         return cls.query.filter_by(id=product_detail_id).first()
 
-    def update_product_detail(self, product_id, **kwargs):
+    def update_product_detail(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
         db.session.commit()
@@ -423,7 +423,7 @@ def email_is_unique(email):
         raise ValidationError('User with such email already exist') 
 
 def full_name_validation(full_name):
-    if not re.match(r"^[a-zA-Zа-яА-ЯґҐєЄіІїЇ\s]+$",full_name):
+    if not re.match(r"^[a-zA-Zа-яА-ЯґҐєЄіІї-'`Ї\s]+$",full_name):
         raise ValidationError('Invalid characters in the field full_name')
 
 def phone_validation(phone_number):

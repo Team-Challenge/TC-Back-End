@@ -891,11 +891,11 @@
         },
         "responses": {
           "201": {
-            "description": "Product created successfully",
+            "description": "Product updated successfully",
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Product created successfully"
+                  "message": "Product updated successfully"
                 }
               }
             }

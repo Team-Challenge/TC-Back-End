@@ -1,15 +1,13 @@
 
 import json
 
-from flask import jsonify, request, Blueprint, make_response, current_app, url_for
+from flask import jsonify, request, Blueprint, url_for, abort
 from models.models import Shop, User, Product, ProductDetail, ProductPhoto
-from models.schemas import ProductSchema
-from marshmallow.exceptions import ValidationError
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required
-from werkzeug.utils import secure_filename
 from dependencies import db
-
+from models.validation import DetailValid, UpdateProductValid
+from pydantic import ValidationError
 
 products_route = Blueprint("products_route", __name__, url_prefix="/products")
 
@@ -27,12 +25,28 @@ def create_product():
 
     data = request.json
     try:
-        product = Product.add_product(shop_id=shop.id, **data)
-        product_characteristic_dict = data.get('product_characteristic', {})
-        data['product_characteristic'] = json.dumps(product_characteristic_dict, ensure_ascii=False)
-        data['product_id'] = product.id
-        product_detail = ProductDetail.add_product_detail(**data)
-        return jsonify({"message": "Product created successfully"}), 201
+        validated_data = DetailValid(**data).dict(exclude_none=True)
+    except ValidationError as e:
+        abort(400, description=str(e))
+
+    product_characteristic_dict = validated_data.get('product_characteristic', {})
+    validated_data['product_characteristic'] = json.dumps(product_characteristic_dict,
+                                                        ensure_ascii=False)
+    try:
+        DetailValid.name_validator(value=validated_data.get('product_name'))
+        if validated_data.get('product_description'):
+            DetailValid.description_validator(value=validated_data.get('product_description'))
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    try:
+        product = Product.add_product(shop_id=shop.id, **validated_data)
+        product_characteristic_dict = validated_data.get('product_characteristic', {})
+        validated_data['product_characteristic'] = json.dumps(product_characteristic_dict,
+                                                                ensure_ascii=False)
+        validated_data['product_id'] = product.id
+        ProductDetail.add_product_detail(**validated_data)
+        return jsonify({"message": "Product created successfully"},
+                        {"product_id": product.id}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -56,12 +70,16 @@ def add_product_photo(product_id):
         if not product_detail:
             return jsonify({'error': 'Product detail not found'}), 404
 
-        main_photo = True if request.form.get('main', '').lower() == 'true' else False
+        raw_value = request.form.get('main', '').lower()
+        main_photo = raw_value == 'true'
         photo = request.files['image']
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+        if '.' in photo.filename and photo.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
+            ProductPhoto.add_product_photo(product_detail.id, photo, main_photo)
+            return jsonify({"message": "Photo product uploaded successfully"}), 200
 
-        ProductPhoto.add_product_photo(product_detail.id, photo, main_photo)
+        return jsonify({"error": "Invalid file extension"}), 400
 
-        return jsonify({"message": "Photo product uploaded successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -78,7 +96,7 @@ def get_shop_products():
     try:
         shop_products = db.session.query(Product, ProductDetail, ProductPhoto) \
             .join(ProductDetail, Product.id == ProductDetail.product_id) \
-            .join(ProductPhoto, ProductDetail.id == ProductPhoto.product_detail_id) \
+            .outerjoin(ProductPhoto, ProductDetail.id == ProductPhoto.product_detail_id) \
             .filter(Product.shop_id == shop.id) \
             .distinct(Product.id) \
             .all()
@@ -86,7 +104,7 @@ def get_shop_products():
         result = []
         unique_product_ids = set()
 
-        for product, product_detail, product_photos in shop_products:
+        for product, product_detail, _product_photo in shop_products:
             if product.id not in unique_product_ids:
                 photos = [photo.serialize() for photo in product_detail.product_to_photo]
                 product_data = {
@@ -96,8 +114,8 @@ def get_shop_products():
                     "shop_id": product.shop_id,
                     "product_name": product.product_name,
                     "product_description": product.product_description,
-                    "time_added": product.time_added.isoformat(),
-                    "time_modifeid": product.time_modifeid.isoformat(),
+                    "time_added": product.time_added,
+                    "time_modifeid": product.time_modifeid,
                     "is_active": product.is_active,
                     "price": product_detail.price,
                     "product_status": product_detail.product_status,
@@ -120,7 +138,7 @@ def get_shop_products():
 
         return jsonify(result), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 400
 
 @products_route.route("/update/<int:product_id>", methods=["PUT"])
 @jwt_required()
@@ -134,26 +152,30 @@ def update_product(product_id):
 
     data = request.json
     try:
+        validated_data = UpdateProductValid(**data).dict(exclude_none=True)
+    except ValidationError as e:
+        abort(400, description=str(e))
+    try:
+        if validated_data.get('product_name'):
+            DetailValid.name_validator(value=validated_data.get('product_name'))
+        if validated_data.get('product_description'):
+            DetailValid.description_validator(value=validated_data.get('product_description'))
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    try:
         product = Product.get_product_by_id(product_id)
         if not product or product.shop_id != shop.id:
             return jsonify({'error': 'Product not found or does not belong to the shop'}), 404
 
         product_detail = product.product_to_detail
 
-        product.update_product(product.id, **data)
+        product.update_product(**validated_data)
 
-        product_characteristic_dict = data.get('product_characteristic', {})
-        data['product_characteristic'] = json.dumps(product_characteristic_dict, ensure_ascii=False)
-        product_detail.update_product_detail(product.id, **data)
+        product_characteristic_dict = validated_data.get('product_characteristic', {})
+        validated_data['product_characteristic'] = json.dumps(product_characteristic_dict,
+                                                                ensure_ascii=False)
+        product_detail.update_product_detail(**validated_data)
 
         return jsonify({"message": "Product updated successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-
-
-
-
-
-
-
-

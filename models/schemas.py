@@ -2,7 +2,6 @@ from marshmallow import fields, Schema, validate
 
 from dependencies import ma
 from models.models import (User,
-                        Product,
                         email_is_unique,
                         Shop,
                         DeliveryUserInfo,
@@ -47,13 +46,6 @@ class FullNameChangeSchema(Schema):
 class PasswordChangeSchema(Schema):
     current_password = fields.Str()
     new_password = fields.Str(validate=validate.Regexp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'))    # noqa: W605
-
-
-class ProductSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Product
-        load_instance = True
-        include_relationships = True
 
 class ShopSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
