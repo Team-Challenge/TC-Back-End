@@ -23,10 +23,6 @@ PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
 class User(db.Model):
     __tablename__ = "users"
 
-    def __init__(self, email, full_name):
-        self.email = email
-        self.full_name = full_name
-
     id = mapped_column(Integer, primary_key=True)
     full_name = mapped_column(String)
     email = mapped_column(String)
@@ -41,6 +37,10 @@ class User(db.Model):
     comment: Mapped[List["ProductComment"]] = relationship("ProductComment",
                                                                 back_populates="user_comment")
 
+    def __init__(self, email, full_name):
+        self.email = email
+        self.full_name = full_name
+
     @classmethod
     def get_user_id(cls):
         current_user_id = get_jwt_identity()
@@ -50,25 +50,14 @@ class User(db.Model):
 class Security(db.Model):
     __tablename__ = "security"
 
-    def __init__(self, password):
-        self.password_hash = password
-
     user_id = mapped_column(Integer, ForeignKey("users.id"), primary_key=True)
     password_hash = mapped_column(String(64))
 
+    def __init__(self, password):
+        self.password_hash = password
 
 class Product(db.Model):
     __tablename__ = "products"
-
-    def __init__(self, shop_id, **kwargs):
-        self.category_id = kwargs.get('category_id')
-        self.sub_category_name = kwargs.get('sub_category_name')
-        self.shop_id = shop_id
-        self.product_name = kwargs.get('product_name')
-        self.product_description = kwargs.get('product_description')
-        self.is_active = kwargs.get('is_active')
-        self.time_added = kwargs.get('time_added')
-        self.time_modifeid = kwargs.get('time_modifeid')
 
     id = mapped_column(Integer, primary_key=True)
     category_id = mapped_column(Integer, ForeignKey('categories.id'))
@@ -79,6 +68,16 @@ class Product(db.Model):
     time_added = mapped_column(DateTime, default=None)
     time_modifeid = mapped_column(DateTime, default=None)
     is_active = mapped_column(Boolean, default=True)
+
+    def __init__(self, shop_id, **kwargs):
+        self.category_id = kwargs.get('category_id')
+        self.sub_category_name = kwargs.get('sub_category_name')
+        self.shop_id = shop_id
+        self.product_name = kwargs.get('product_name')
+        self.product_description = kwargs.get('product_description')
+        self.is_active = kwargs.get('is_active', True)
+        self.time_added = kwargs.get('time_added', None)
+        self.time_modifeid = kwargs.get('time_modifeid')
 
     categories: Mapped["Categories"] = relationship("Categories",
                                                             back_populates="products")
@@ -93,7 +92,10 @@ class Product(db.Model):
     @classmethod
     def add_product(cls, shop_id, **kwargs):
         time_added = datetime.utcnow()
-        product = cls(shop_id, time_added=time_added, **kwargs)
+        time_modifeid = datetime.utcnow()
+        kwargs['time_added'] = time_added
+        kwargs['time_modifeid'] = time_modifeid
+        product = cls(shop_id, **kwargs)
         db.session.add(product)
         db.session.commit()
         return product
@@ -116,17 +118,6 @@ class Product(db.Model):
 class Shop(db.Model):
     __tablename__ = "shops"
 
-    def __init__(self, **kwargs):
-
-        self.owner_id = kwargs.get('owner_id')
-        self.name = kwargs.get('name')
-        self.description = kwargs.get('description')
-        self.photo_shop = kwargs.get('photo_shop')
-        self.banner_shop = kwargs.get('banner_shop')
-        self.phone_number = kwargs.get('phone_number')
-        self.link = kwargs.get('link')
-
-
     id = mapped_column(Integer, primary_key=True)
     owner_id = mapped_column(Integer, ForeignKey("users.id"))
     name = mapped_column(String)
@@ -135,6 +126,16 @@ class Shop(db.Model):
     banner_shop = mapped_column(String, default=None)
     phone_number = mapped_column(String, default=None)
     link = mapped_column(String, default=None)
+
+    def __init__(self, **kwargs):
+        self.owner_id = kwargs.get('owner_id')
+        self.name = kwargs.get('name')
+        self.description = kwargs.get('description')
+        self.photo_shop = kwargs.get('photo_shop')
+        self.banner_shop = kwargs.get('banner_shop')
+        self.phone_number = kwargs.get('phone_number')
+        self.link = kwargs.get('link')
+
 
     owner: Mapped["User"] = relationship("User", back_populates="shops")
     shop_to_products: Mapped["Product"] = relationship("Product", back_populates="owner_shop")
@@ -207,13 +208,13 @@ class Shop(db.Model):
 class Categories(db.Model):
     __tablename__ = "categories"
 
-    def __init__(self, category_name):
-        self.category_name = category_name
-
     id = mapped_column(Integer, primary_key=True)
     category_name = mapped_column(String)
 
     products: Mapped[List["Product"]] = relationship("Product", back_populates="categories")
+
+    def __init__(self, category_name):
+        self.category_name = category_name
 
     @classmethod
     def create_category(cls, category_name):
@@ -234,12 +235,6 @@ class Categories(db.Model):
 class ProductPhoto(db.Model):
     __tablename__ = "product_photos"
 
-    def __init__(self, product_detail_id, product_photo, main):
-        self.timestamp = datetime.utcnow()
-        self.product_detail_id = product_detail_id
-        self.product_photo = product_photo
-        self.main = main
-
     id = mapped_column(Integer, primary_key=True)
     product_detail_id = mapped_column(Integer, ForeignKey('product_details.id'))
     product_photo = mapped_column(String)
@@ -248,6 +243,12 @@ class ProductPhoto(db.Model):
 
     product_image: Mapped["ProductDetail"] = relationship("ProductDetail",
                                                         back_populates="product_to_photo")
+
+    def __init__(self, product_detail_id, product_photo, main):
+        self.timestamp = datetime.utcnow()
+        self.product_detail_id = product_detail_id
+        self.product_photo = product_photo
+        self.main = main
 
     @classmethod
     def add_product_photo(cls, product_detail_id, photo, main):
@@ -282,13 +283,6 @@ class ProductPhoto(db.Model):
 class DeliveryUserInfo(db.Model):
     __tablename__ = "delivery_user_info"
 
-    def __init__(self, **kwargs):
-        self.owner_id = kwargs.get('owner_id')
-        self.post = kwargs.get('post')
-        self.city = kwargs.get('city')
-        self.branch_name = kwargs.get('branch_name')
-        self.address = kwargs.get('address')
-
     id = mapped_column(Integer, primary_key=True)
     owner_id = mapped_column(Integer, ForeignKey("users.id"))
     post = mapped_column(String, default=None)
@@ -297,6 +291,13 @@ class DeliveryUserInfo(db.Model):
     address = mapped_column(String, default=None)
 
     owner: Mapped["User"] = relationship("User", back_populates="delivery_user_info")
+
+    def __init__(self, **kwargs):
+        self.owner_id = kwargs.get('owner_id')
+        self.post = kwargs.get('post')
+        self.city = kwargs.get('city')
+        self.branch_name = kwargs.get('branch_name')
+        self.address = kwargs.get('address')
 
     @classmethod
     def get_delivery_info_by_owner_id(cls, owner_id):
@@ -327,16 +328,6 @@ class DeliveryUserInfo(db.Model):
 class ProductDetail(db.Model):
     __tablename__ = "product_details"
 
-    def __init__(self, **kwargs):
-        self.product_id = kwargs.get('product_id')
-        self.price = kwargs.get('price')
-        self.product_status = kwargs.get('product_status')
-        self.product_characteristic = kwargs.get('product_characteristic')
-        self.is_return = kwargs.get('is_return')
-        self.delivery_post = kwargs.get('delivery_post')
-        self.method_of_payment = kwargs.get('method_of_payment')
-        self.is_unique = kwargs.get('is_unique')
-
     id = mapped_column(Integer, primary_key=True)
     product_id = mapped_column(Integer, ForeignKey("products.id"))
     price = mapped_column(Float)
@@ -354,6 +345,16 @@ class ProductDetail(db.Model):
         lazy="joined",
         uselist=True
     )
+
+    def __init__(self, **kwargs):
+        self.product_id = kwargs.get('product_id')
+        self.price = kwargs.get('price')
+        self.product_status = kwargs.get('product_status')
+        self.product_characteristic = kwargs.get('product_characteristic')
+        self.is_return = kwargs.get('is_return')
+        self.delivery_post = kwargs.get('delivery_post')
+        self.method_of_payment = kwargs.get('method_of_payment')
+        self.is_unique = kwargs.get('is_unique')
 
     @classmethod
     def add_product_detail(cls, product_id, **kwargs):
@@ -389,10 +390,6 @@ class ProductDetail(db.Model):
 class ProductRaiting(db.Model):
     __tablename__ = 'product_raitings'
 
-    def __init__(self, product_id, product_rating):
-        self.product_id = product_id
-        self.product_rating = product_rating
-
     id = mapped_column(Integer, primary_key=True)
     product_id = mapped_column(Integer, ForeignKey("products.id"))
     product_rating = mapped_column(Float)
@@ -401,13 +398,12 @@ class ProductRaiting(db.Model):
     product_raiting: Mapped["Product"] = relationship("Product", 
                                                         back_populates="product_to_raiting")
 
+    def __init__(self, product_id, product_rating):
+        self.product_id = product_id
+        self.product_rating = product_rating
+
 class ProductComment(db.Model):
     __tablename__ = "product_comment"
-
-    def __init__(self, user_id, product_id, comment):
-        self.user_id = user_id
-        self.product_id = product_id
-        self.comment = comment
 
     id = mapped_column(Integer, primary_key=True)
     product_id = mapped_column(Integer, ForeignKey("products.id"))
@@ -417,6 +413,11 @@ class ProductComment(db.Model):
     product_comment: Mapped["Product"] = relationship("Product",
                                                      back_populates="product_to_comment")
     user_comment: Mapped["User"] = relationship("User", back_populates="comment")
+
+    def __init__(self, user_id, product_id, comment):
+        self.user_id = user_id
+        self.product_id = product_id
+        self.comment = comment
 
 def email_is_unique(email):
     if User.query.filter_by(email=email).first():

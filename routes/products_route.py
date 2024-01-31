@@ -25,7 +25,7 @@ def create_product():
 
     data = request.json
     try:
-        validated_data = DetailValid(**data).dict(exclude_none=True)
+        validated_data = DetailValid(**data).model_dump(exclude_none=True)
     except ValidationError as e:
         abort(400, description=str(e))
 
@@ -98,7 +98,6 @@ def get_shop_products():
             .join(ProductDetail, Product.id == ProductDetail.product_id) \
             .outerjoin(ProductPhoto, ProductDetail.id == ProductPhoto.product_detail_id) \
             .filter(Product.shop_id == shop.id) \
-            .distinct(Product.id) \
             .all()
 
         result = []
@@ -152,7 +151,7 @@ def update_product(product_id):
 
     data = request.json
     try:
-        validated_data = UpdateProductValid(**data).dict(exclude_none=True)
+        validated_data = UpdateProductValid(**data).model_dump(exclude_none=True)
     except ValidationError as e:
         abort(400, description=str(e))
     try:
