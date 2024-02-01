@@ -47,15 +47,9 @@ class TestProductsRoutes(unittest.TestCase):
                 "phone_number": "+380961122333",
                 "link": "string"
                 }
-            response = cls.test_client.post('/shops/shop', data=json.dumps(shop_data), headers=headers,
-                                        content_type='application/json')
-            response_data = response.data.decode('utf-8')
-            data = {
-                "category_name": "test"
-            }
-
-            response = cls.test_client.post('/categories/category', data=json.dumps(data),      
-                                                content_type='application/json')
+            response = cls.test_client.post('/shops/shop', data=json.dumps(shop_data),
+                                        headers=headers, content_type='application/json')
+    
     #create product
     def test_create_product_with_authenticated_user(self):
         headers = {'Authorization': f'Bearer {self.access_token}'}
@@ -97,6 +91,14 @@ class TestProductsRoutes(unittest.TestCase):
             product_id = 1
             product = db.session.get(Product, product_id)
             found_product = product.product_name == "Updated Product"
+            self.assertTrue(found_product, "Updated Product not found among shop products")
+
+            response = self.test_client.delete('/products/deactivate/1', headers=headers)
+            self.assertEqual(response.status_code, 200)
+
+            product_id = 1
+            product = db.session.get(Product, product_id)
+            found_product = product.is_active is False
             self.assertTrue(found_product, "Updated Product not found among shop products")
 
     #not requirements field to create product
@@ -203,6 +205,11 @@ class TestProductsRoutes(unittest.TestCase):
     def test_get_shop_products_with_not_authenticated_user(self):
         response = self.test_client.get('/products/shop_products')
         self.assertEqual(response.status_code, 401)
+
+    #get categories
+    def test_get_categories(self):
+        response = self.test_client.get('/categories/categories')
+        self.assertEqual(response.status_code, 200)
     
 
 if __name__ == '__main__':
