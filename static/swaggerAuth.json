@@ -930,6 +930,49 @@
         }
       }
     },
+    "/products/deactivate/{product_id}":{
+      "delete":{
+        "summary": "Deactivate a product",
+        "tags":["Product"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "description": "ID of the product to update",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deactivated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product deactivated"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Error"
+          }
+        }
+      }
+    },
     "/products/product":{
       "post":{
         "summary": "Create a product",

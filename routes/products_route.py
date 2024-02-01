@@ -178,3 +178,24 @@ def update_product(product_id):
         return jsonify({"message": "Product updated successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+@products_route.route("/deactivate/<int:product_id>", methods=["DELETE"])
+@jwt_required()
+def deactivate_product(product_id):
+    user = User.get_user_id()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    shop = Shop.get_shop_by_owner_id(user.id)
+    if not shop:
+        return jsonify({'error': 'Shop not found'}), 404
+    
+    try:
+        product = Product.get_product_by_id(product_id)
+        if not product or product.shop_id != shop.id:
+            return jsonify({'error': 'Product not found or does not belong to the shop'}), 404
+
+        Product.delete_product(product_id)
+
+        return jsonify({"message": "Product deactivated"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400

@@ -88,6 +88,12 @@ class Product(db.Model):
     owner_shop: Mapped["Shop"] = relationship("Shop", back_populates="shop_to_products")
     product_to_detail: Mapped["ProductDetail"] = relationship("ProductDetail",
                                                         back_populates="product_detail")
+    @staticmethod
+    def delete_product(product_id):
+        product = Product.query.get(product_id)
+        if product:
+            product.is_active = False
+            db.session.commit()
                                                         
     @classmethod
     def add_product(cls, shop_id, **kwargs):
@@ -109,11 +115,6 @@ class Product(db.Model):
             setattr(self, key, value)
         self.time_modifeid = datetime.utcnow()
         db.session.commit()
-
-    def delete_product(self):
-        self.is_active = False
-        db.session.commit()
-
 
 class Shop(db.Model):
     __tablename__ = "shops"
