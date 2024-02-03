@@ -76,8 +76,8 @@ class Product(db.Model):
         self.product_name = kwargs.get('product_name')
         self.product_description = kwargs.get('product_description')
         self.is_active = kwargs.get('is_active', True)
-        self.time_added = kwargs.get('time_added', None)
-        self.time_modifeid = kwargs.get('time_modifeid')
+        self.time_added = datetime.utcnow()
+        self.time_modifeid = datetime.utcnow()
 
     categories: Mapped["Categories"] = relationship("Categories",
                                                             back_populates="products")
@@ -97,10 +97,6 @@ class Product(db.Model):
                                                         
     @classmethod
     def add_product(cls, shop_id, **kwargs):
-        time_added = datetime.utcnow()
-        time_modifeid = datetime.utcnow()
-        kwargs['time_added'] = time_added
-        kwargs['time_modifeid'] = time_modifeid
         product = cls(shop_id, **kwargs)
         db.session.add(product)
         db.session.commit()
@@ -210,7 +206,7 @@ class Categories(db.Model):
     __tablename__ = "categories"
 
     id = mapped_column(Integer, primary_key=True)
-    category_name = mapped_column(String)
+    category_name = mapped_column(String, unique=True)
 
     products: Mapped[List["Product"]] = relationship("Product", back_populates="categories")
 

@@ -15,7 +15,10 @@ cursor = conn.cursor()
 
 
 for value in categories_fixtures:
-    cursor.execute('INSERT INTO categories (category_name) VALUES (?)', (value,))
+    try:
+        cursor.execute('INSERT INTO categories (category_name) VALUES (?)', (value,))
+    except sqlite3.IntegrityError:
+        pass
 
 conn.commit()
 conn.close()
