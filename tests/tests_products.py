@@ -73,6 +73,15 @@ class TestProductsRoutes(unittest.TestCase):
         found_product = any(product.get('product_name') == "Test Product" for product in products)
         self.assertTrue(found_product, "Test Product not found among shop products")
 
+    #update product request not valid
+    def test_update_product_request_not_valid(self):
+        headers = {'Authorization': f'Bearer {self.access_token}'}
+        product_data = {"is_active": "125.36"}
+
+        response = self.test_client.put('/products/update/1', headers=headers,
+                            data=json.dumps(product_data), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
     #update product info
     def test_update_product_with_authenticated_user(self):
         headers = {'Authorization': f'Bearer {self.access_token}'}
@@ -210,7 +219,45 @@ class TestProductsRoutes(unittest.TestCase):
     def test_get_categories(self):
         response = self.test_client.get('/categories/categories')
         self.assertEqual(response.status_code, 200)
-    
+
+    #test add photo to product
+    def test_post_product_photo_with_authenticated_user(self):
+        headers = {'Authorization': f'Bearer {self.access_token}'}
+
+        with open('tests/test_images/alf.jpg', 'rb') as image_file:
+            response = self.test_client.post('/products/product_photo/1', 
+                                            headers=headers, data={'image': image_file})
+
+        self.assertEqual(response.status_code, 200)
+
+    #test add photo to product if not product
+    def test_post_product_photo_any_product_authenticated_user(self):
+        headers = {'Authorization': f'Bearer {self.access_token}'}
+
+        with open('tests/test_images/alf.jpg', 'rb') as image_file:
+            response = self.test_client.post('/products/product_photo/2', 
+                                            headers=headers, data={'image': image_file})
+
+        self.assertEqual(response.status_code, 404)
+
+    #test add photo bad file format
+    def test_post_product_photo_bad_file_format_authenticated_user(self):
+        headers = {'Authorization': f'Bearer {self.access_token}'}
+
+        with open('static/delivery/nova_post.json', 'rb') as image_file:
+            response = self.test_client.post('/products/product_photo/1', 
+                                            headers=headers, data={'image': image_file})
+
+        self.assertEqual(response.status_code, 400)
+
+    #test delete photo to any product
+    def test_delete_product_photo_any_product(self):
+        headers = {'Authorization': f'Bearer {self.access_token}'}
+
+        response = self.test_client.delete('/products/deactivate/2', 
+                                            headers=headers)
+
+        self.assertEqual(response.status_code, 404)    
 
 if __name__ == '__main__':
     unittest.main()
