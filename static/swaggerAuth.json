@@ -683,6 +683,98 @@
         }
       }
     },
+	"/categories/categories": {
+      "get": {
+        "summary": "Get static categories and subcategories JSON",
+        "tags": [
+          "Categories"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": 1,
+                    "label": "На голову",
+                    "subcategories": [
+                      [
+                        1,
+                        "Заколки"
+                      ]
+                    ]
+                  },
+                  {
+                    "id": 2,
+                    "label": "На вуха",
+                    "subcategories": [
+                      [
+                        5,
+                        "Сережки"
+                      ]
+                    ]
+                  }
+                ],
+                "schema": {
+                  "type": "object",
+                  "description": "JSON data for categories and subcategories"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found in the specified location"
+          }
+        }
+      }
+    },
+    "/categories/categories_detail": {
+      "get": {
+        "summary": "Get categories and subcategories JSON from active products in DB",
+        "tags": [
+          "Categories"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": 1,
+                    "label": "На голову",
+                    "subcategories": [
+                      [
+                        1,
+                        "Заколки"
+                      ]
+                    ]
+                  },
+                  {
+                    "id": 2,
+                    "label": "На вуха",
+                    "subcategories": [
+                      [
+                        5,
+                        "Сережки"
+                      ]
+                    ]
+                  }
+                ],
+                "schema": {
+                  "type": "object",
+                  "description": "JSON data for categories and subcategories"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found in the specified location"
+          }
+        }
+      }
+    },
     "/accounts/change_password": {
       "post": {
         "summary": "Change Password",
