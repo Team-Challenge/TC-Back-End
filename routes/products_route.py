@@ -6,7 +6,9 @@ from models.models import Shop, User, Product, ProductDetail, ProductPhoto
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required
 from dependencies import db
-from models.validation import DetailValid, UpdateProductValid
+from models.validation import (DetailValid, 
+                            UpdateProductValid,
+                            check_sub_category_belongs_to_category)
 from pydantic import ValidationError
 
 products_route = Blueprint("products_route", __name__, url_prefix="/products")
@@ -28,9 +30,21 @@ def create_product():
         validated_data = DetailValid(**data).model_dump(exclude_none=True)
     except ValidationError as e:
         abort(400, description=str(e))
+    
+    check_sub_category_belongs_to_category(category_id=data.get('category_id'),
+                                           sub_category_name=data.get('sub_category_name'))
 
-    product_characteristic_dict = validated_data.get('product_characteristic', {})
-    validated_data['product_characteristic'] = json.dumps(product_characteristic_dict,
+    if validated_data.get('product_characteristic'):
+        product_characteristic_dict = validated_data.get('product_characteristic', {})
+        validated_data['product_characteristic'] = json.dumps(product_characteristic_dict,
+                                                        ensure_ascii=False)
+    if validated_data.get('delivery_post'):
+        product_delivery_post = validated_data.get('delivery_post', {})
+        validated_data['delivery_post'] = json.dumps(product_delivery_post,
+                                                        ensure_ascii=False)
+    if validated_data.get('method_of_payment'):
+        product_method_of_payment = validated_data.get('method_of_payment', {})
+        validated_data['method_of_payment'] = json.dumps(product_method_of_payment,
                                                         ensure_ascii=False)
     try:
         DetailValid.name_validator(value=validated_data.get('product_name'))
@@ -40,9 +54,6 @@ def create_product():
         return jsonify({"error": str(e)}), 400
     try:
         product = Product.add_product(shop_id=shop.id, **validated_data)
-        product_characteristic_dict = validated_data.get('product_characteristic', {})
-        validated_data['product_characteristic'] = json.dumps(product_characteristic_dict,
-                                                                ensure_ascii=False)
         validated_data['product_id'] = product.id
         ProductDetail.add_product_detail(**validated_data)
         return jsonify({"message": "Product created successfully"},
@@ -69,7 +80,11 @@ def add_product_photo(product_id):
         product_detail = ProductDetail.get_product_detail_by_id(product_id)
         if not product_detail:
             return jsonify({'error': 'Product detail not found'}), 404
-
+        
+        num_photos = ProductPhoto.get_num_photos_by_product_detail_id(product_detail.id)
+        if num_photos >= 4:
+            return jsonify({'error': 'The maximum photos for product has been 4'}), 400
+        
         raw_value = request.form.get('main', '').lower()
         main_photo = raw_value == 'true'
         photo = request.files['image']
@@ -120,8 +135,8 @@ def get_shop_products():
                     "product_status": product_detail.product_status,
                     "product_characteristic": json.loads(product_detail.product_characteristic),
                     "is_return": product_detail.is_return,
-                    "delivery_post": product_detail.delivery_post,
-                    "method_of_payment": product_detail.method_of_payment,
+                    "delivery_post": json.loads(product_detail.delivery_post),
+                    "method_of_payment": json.loads(product_detail.method_of_payment),
                     "is_unique": product_detail.is_unique,
                     "photos": [{
                         "id": photo.get('id'),
@@ -170,9 +185,18 @@ def update_product(product_id):
 
         product.update_product(**validated_data)
 
-        product_characteristic_dict = validated_data.get('product_characteristic', {})
-        validated_data['product_characteristic'] = json.dumps(product_characteristic_dict,
+        if validated_data.get('product_characteristic'):
+            product_characteristic_dict = validated_data.get('product_characteristic', {})
+            validated_data['product_characteristic'] = json.dumps(product_characteristic_dict,
                                                                 ensure_ascii=False)
+        if validated_data.get('delivery_post'):
+            product_delivery_post = validated_data.get('delivery_post', {})
+            validated_data['delivery_post'] = json.dumps(product_delivery_post,
+                                                        ensure_ascii=False)
+        if validated_data.get('method_of_payment'):
+            product_method_of_payment = validated_data.get('method_of_payment', {})
+            validated_data['method_of_payment'] = json.dumps(product_method_of_payment,
+                                                        ensure_ascii=False)
         product_detail.update_product_detail(**validated_data)
 
         return jsonify({"message": "Product updated successfully"}), 200

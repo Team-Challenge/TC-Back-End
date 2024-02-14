@@ -10,7 +10,6 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from config import Config
-from models.patterns import SubCategoryEnum, Delivery_Post, ProductStatus
 from sqlalchemy import Integer, String, DateTime, Boolean, Float, Text
 from typing import List
 from flask_jwt_extended import get_jwt_identity
@@ -61,7 +60,7 @@ class Product(db.Model):
 
     id = mapped_column(Integer, primary_key=True)
     category_id = mapped_column(Integer, ForeignKey('categories.id'))
-    sub_category_name = mapped_column(SubCategoryEnum)
+    sub_category_name = mapped_column(String)
     shop_id = mapped_column(Integer, ForeignKey('shops.id'))
     product_name = mapped_column(String(100))
     product_description = mapped_column(String(1000), default=None)
@@ -83,8 +82,6 @@ class Product(db.Model):
                                                             back_populates="products")
     product_to_comment: Mapped["ProductComment"] = relationship("ProductComment",
                                                             back_populates="product_comment")
-    product_to_raiting: Mapped["ProductRaiting"] = relationship("ProductRaiting",
-                                                            back_populates="product_raiting")
     owner_shop: Mapped["Shop"] = relationship("Shop", back_populates="shop_to_products")
     product_to_detail: Mapped["ProductDetail"] = relationship("ProductDetail",
                                                         back_populates="product_detail")
@@ -261,6 +258,10 @@ class ProductPhoto(db.Model):
         db.session.commit()
 
         return new_photo
+    
+    @classmethod
+    def get_num_photos_by_product_detail_id(cls, product_detail_id):
+        return cls.query.filter_by(product_detail_id=product_detail_id).count()
         
     def serialize(self):
         return {
@@ -328,11 +329,11 @@ class ProductDetail(db.Model):
     id = mapped_column(Integer, primary_key=True)
     product_id = mapped_column(Integer, ForeignKey("products.id"))
     price = mapped_column(Float)
-    product_status = mapped_column(ProductStatus, default=None)
+    product_status = mapped_column(String, default=None)
     product_characteristic = mapped_column(Text, default=None)
     is_return = mapped_column(Boolean, default=False)
-    delivery_post = mapped_column(Delivery_Post, default=None)
-    method_of_payment = mapped_column(String, default=None)
+    delivery_post = mapped_column(Text, default=None)
+    method_of_payment = mapped_column(Text, default=None)
     is_unique = mapped_column(Boolean, default=False)
 
     product_detail: Mapped["Product"] = relationship("Product", back_populates="product_to_detail")
@@ -383,45 +384,34 @@ class ProductDetail(db.Model):
             "photos": [photo.serialize() for photo in self.product_to_photo],
         }
 
-
-class ProductRaiting(db.Model):
-    __tablename__ = 'product_raitings'
-
-    id = mapped_column(Integer, primary_key=True)
-    product_id = mapped_column(Integer, ForeignKey("products.id"))
-    product_rating = mapped_column(Float)
-    votes = mapped_column(Integer, default=0)
-
-    product_raiting: Mapped["Product"] = relationship("Product", 
-                                                        back_populates="product_to_raiting")
-
-    def __init__(self, product_id, product_rating):
-        self.product_id = product_id
-        self.product_rating = product_rating
-
 class ProductComment(db.Model):
     __tablename__ = "product_comment"
 
     id = mapped_column(Integer, primary_key=True)
     product_id = mapped_column(Integer, ForeignKey("products.id"))
     user_id = mapped_column(Integer, ForeignKey("users.id"))
-    comment = mapped_column(String(200)) 
+    comment = mapped_column(String(200))
+    raiting = mapped_column(Float)
+    time_added = mapped_column(DateTime)
+    is_confirmed_purchase = mapped_column(Boolean, default=False)
 
     product_comment: Mapped["Product"] = relationship("Product",
                                                      back_populates="product_to_comment")
     user_comment: Mapped["User"] = relationship("User", back_populates="comment")
 
-    def __init__(self, user_id, product_id, comment):
+    def __init__(self, user_id, product_id, comment, raiting):
         self.user_id = user_id
         self.product_id = product_id
         self.comment = comment
+        self.raiting = raiting
+        self.time_added = datetime.utcnow()
 
 def email_is_unique(email):
     if User.query.filter_by(email=email).first():
         raise ValidationError('User with such email already exist') 
 
 def full_name_validation(full_name):
-    if not re.match(r"^[a-zA-Zа-яА-ЯґҐєЄіІї-'`Ї\s]+$",full_name):
+    if not re.match(r"^[a-zA-Zа-яА-ЯґҐєЄіІїЇ'\-]+(?:\s[a-zA-Zа-яА-ЯґҐєЄіІїЇ'\-]+)*$",full_name):
         raise ValidationError('Invalid characters in the field full_name')
 
 def phone_validation(phone_number):

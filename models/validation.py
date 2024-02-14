@@ -1,39 +1,46 @@
 from pydantic import BaseModel, validator
-from typing import Optional
+from typing import Optional, Dict
 from enum import Enum
 import re
+from flask import abort
 
 class SubCategoryEnum(str, Enum):
-    zakolki = 'заколки'
-    obroochi = 'обручі'
-    rezinki = 'резинки'
-    khustinky = 'хустинки'
-    serezhki = 'сережки'
-    monoserezhki = 'моносережки'
-    zghardy = 'згарди'
-    shelesti = 'шелести'
-    herdany = 'гердани'
-    sylianky = 'силянки'
-    kryzi = 'кризи'
-    chokery = 'чокери'
-    namysta = 'намиста'
-    dukachi = 'дукачі'
-    kulony_ta_pidvisky = 'кулони та підвіски'
-    braslety = 'браслети'
-    kabluchky = 'каблучки'
-    kotyliony = 'котильйони'
-    broshky = 'брошки'
-    sumky = 'сумки'
+    zakolki = 'Заколки'
+    obroochi = 'Обручі'
+    rezinki = 'Резинки'
+    khustinky = 'Хустинки'
+    serezhki = 'Сережки'
+    monoserezhki = 'Моносережки'
+    zghardy= 'Зґарди'
+    shelesti = 'Шелести'
+    herdany = 'Ґердани'
+    sylianky = 'Силянки'
+    kryzi = 'Кризи'
+    chokery = 'Чокери'
+    namysta = 'Намиста'
+    dukachi = 'Дукачі'
+    kulony_ta_pidvisky = 'Кулони та підвіски'
+    braslety = 'Браслети'
+    kabluchky = 'Каблучки'
+    kotyliony = 'Котильйони'
+    broshky = 'Брошки'
+    sumky = 'Сумки'
+    set_cub_category = 'Набір'
 
-class ProductStatus(str, Enum):
+class ProductStatusEnum(str, Enum):
     in_availability = 'В наявності'
     to_order = 'Під замовлення'
     unique_instance = 'В єдиному екземплярі'
     not_available = 'Немає в наявності'
 
-class Delivery_Post(str, Enum):
-    nova_post = 'nova_post'
-    ukr_post = 'ukr_post'
+class DeliveryPostEnum(str, Enum):
+    nova_post = 'novaPost'
+    ukr_post = 'ukrPost'
+
+class MethodOfPaymentEnum(str, Enum):
+    card_payment = "cardPayment"
+    cash_payment = "cashPayment"
+    secure_payment = "securePayment"
 
 class ProductValid(BaseModel):
     category_id: int
@@ -44,11 +51,11 @@ class ProductValid(BaseModel):
 
 class DetailValid(ProductValid):
     price: float
-    product_status: Optional[ProductStatus] = None
+    product_status: Optional[ProductStatusEnum] = None
     product_characteristic: Optional[dict] = None
     is_return: Optional[bool] = None
-    delivery_post: Optional[Delivery_Post] = None  
-    method_of_payment: Optional[str] = None 
+    delivery_post: Optional[Dict[DeliveryPostEnum, bool]] = None  
+    method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None 
     is_unique: Optional[bool] = None  
 
     @validator('product_name')
@@ -76,9 +83,60 @@ class UpdateProductValid(BaseModel):
     price: Optional[float] = None
     product_description: Optional[str] = None
     is_active: Optional[bool] = None
-    product_status: Optional[ProductStatus] = None
+    product_status: Optional[ProductStatusEnum] = None
     product_characteristic: Optional[dict] = None
     is_return: Optional[bool] = None
-    delivery_post: Optional[Delivery_Post] = None
-    method_of_payment: Optional[str] = None 
+    delivery_post: Optional[Dict[DeliveryPostEnum, bool]] = None  
+    method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None 
     is_unique: Optional[bool] = None
+
+def check_sub_category_belongs_to_category(category_id, sub_category_name):
+    for category in const_category_list:
+        if category['id'] == category_id:
+            if sub_category_name in category['subcategories']:
+                return True
+    abort(400, description=f"'{sub_category_name}' not in category id '{category_id}'")
+
+
+const_category_list = [
+  {
+    "id": 1,
+    "label": 'На голову',
+    "subcategories": ['Заколки', 'Обручі', 'Резинки', 'Хустинки'],
+  },
+  {
+    "id": 2,
+    "label": 'На вуха',
+    "subcategories": ['Сережки', 'Моносережки'],
+  },
+  {
+    "id": 3,
+    "label": 'На шию',
+    "subcategories": [
+      'Зґарди',
+      'Шелести',
+      'Ґердани',
+      'Силянки',
+      'Кризи',
+      'Чокери',
+      'Намиста',
+      'Дукачі',
+      'Кулони та підвіски',
+    ],
+  },
+  {
+    "id": 4,
+    "label": 'На руки',
+    "subcategories": ['Браслети', 'Каблучки'],
+  },
+  {
+    "id": 5,
+    "label": 'Аксесуари',
+    "subcategories": ['Котильйони', 'Брошки', 'Сумки'],
+  },
+  {
+    "id": 6,
+    "label": 'Набори',
+    "subcategories": ['Набір']
+  },
+]
