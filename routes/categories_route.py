@@ -1,7 +1,5 @@
 
-import json
 import os
-from flask import jsonify, Blueprint, make_response
 from sqlalchemy import func
 from models.models import User, Product, Categories
 from flask_cors import CORS
@@ -10,9 +8,8 @@ from dependencies import db
 from models.patterns import SubCategoryDict
 from flask import Blueprint, current_app, send_from_directory, make_response, jsonify
 from werkzeug.exceptions import NotFound
+
 categories_route = Blueprint("categories_route", __name__, url_prefix="/categories")
-
-
 CORS(categories_route, supports_credentials=True)
 
 
@@ -30,7 +27,6 @@ def get_static_categories():
     except Exception as ex:
         error_message = {'error': f"{ex}"}
         return make_response(jsonify(error_message), 404)
-
 
 
 @categories_route.route('/categories_dynamic', methods=['GET'])
@@ -58,7 +54,6 @@ def get_dynamic_categories():
                 subcats.add(subcat)
                 subcategories_lst.append([SubCategoryDict.get(subcat), subcat])
 
-
         subcategories_lst.sort(key=lambda x: x[0])
 
         category_info = {
@@ -68,6 +63,4 @@ def get_dynamic_categories():
         }
         result.append(category_info)
 
-
     return jsonify(result), 200
-
