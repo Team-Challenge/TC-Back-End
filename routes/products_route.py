@@ -31,8 +31,8 @@ def create_product():
     except ValidationError as e:
         abort(400, description=str(e))
     
-    check_sub_category_belongs_to_category(category_id=data.get('category_id'),
-                                           sub_category_name=data.get('sub_category_name'))
+    check_sub_category_belongs_to_category(category_id=validated_data.get('category_id'),
+                                    sub_category_name=validated_data.get('sub_category_name'))
 
     if validated_data.get('product_characteristic'):
         product_characteristic_dict = validated_data.get('product_characteristic', {})
@@ -77,7 +77,7 @@ def add_product_photo(product_id):
         return jsonify({'error': 'Product not found'}), 404
 
     try:
-        product_detail = ProductDetail.get_product_detail_by_id(product_id)
+        product_detail = ProductDetail.get_product_detail_by_product_id(product.id)
         if not product_detail:
             return jsonify({'error': 'Product detail not found'}), 404
         
@@ -133,10 +133,13 @@ def get_shop_products():
                     "is_active": product.is_active,
                     "price": product_detail.price,
                     "product_status": product_detail.product_status,
-                    "product_characteristic": json.loads(product_detail.product_characteristic),
+                    "product_characteristic": json.loads(product_detail.product_characteristic)
+                    if product_detail.product_characteristic is not None else None,
                     "is_return": product_detail.is_return,
-                    "delivery_post": json.loads(product_detail.delivery_post),
-                    "method_of_payment": json.loads(product_detail.method_of_payment),
+                    "delivery_post": json.loads(product_detail.delivery_post)
+                    if product_detail.delivery_post is not None else None,
+                    "method_of_payment": json.loads(product_detail.method_of_payment)
+                    if product_detail.delivery_post is not None else None,
                     "is_unique": product_detail.is_unique,
                     "photos": [{
                         "id": photo.get('id'),
@@ -182,6 +185,8 @@ def update_product(product_id):
             return jsonify({'error': 'Product not found or does not belong to the shop'}), 404
 
         product_detail = product.product_to_detail
+        if product_detail is None:
+            return jsonify({'error': 'Product detail not found'}), 404
 
         product.update_product(**validated_data)
 

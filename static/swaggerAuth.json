@@ -1249,7 +1249,15 @@
             "type": "integer"
           },
           "delivery_post": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "nova_post": {
+                "type": "boolean"
+              },
+              "ukr_post": {
+                "type": "boolean"
+              }
+            }
           },
           "is_active": {
             "type": "boolean"
@@ -1261,7 +1269,18 @@
             "type": "boolean"
           },
           "method_of_payment": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "cardPayment": {
+                "type": "boolean"
+              },
+              "cashPayment": {
+                "type": "boolean"
+              },
+              "securePayment": {
+                "type": "boolean"
+              }
+            }
           },
           "photos": {
             "type": "array",
@@ -1398,10 +1417,29 @@
             "type": "boolean"
           },
           "delivery_post": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "nova_post": {
+                "type": "boolean"
+              },
+              "ukr_post": {
+                "type": "boolean"
+              }
+            }
           },
           "method_of_payment": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "cardPayment": {
+                "type": "boolean"
+              },
+              "cashPayment": {
+                "type": "boolean"
+              },
+              "securePayment": {
+                "type": "boolean"
+              }
+            }
           },
           "is_unique": {
             "type": "boolean"
@@ -1412,12 +1450,6 @@
       "ProductUpdateSchema":{
         "type": "object",
         "properties": {
-          "category_id": {
-            "type": "integer"
-          },
-          "sub_category_name": {
-            "type": "string"
-          },
           "product_name": {
             "type": "string"
           },
@@ -1448,10 +1480,29 @@
             "type": "boolean"
           },
           "delivery_post": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "nova_post": {
+                "type": "boolean"
+              },
+              "ukr_post": {
+                "type": "boolean"
+              }
+            }
           },
           "method_of_payment": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "cardPayment": {
+                "type": "boolean"
+              },
+              "cashPayment": {
+                "type": "boolean"
+              },
+              "securePayment": {
+                "type": "boolean"
+              }
+            }
           },
           "is_unique": {
             "type": "boolean"

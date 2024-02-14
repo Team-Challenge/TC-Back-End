@@ -362,8 +362,8 @@ class ProductDetail(db.Model):
         return product_detail
 
     @classmethod
-    def get_product_detail_by_id(cls, product_detail_id):
-        return cls.query.filter_by(id=product_detail_id).first()
+    def get_product_detail_by_product_id(cls, product_id):
+        return cls.query.filter_by(product_id=product_id).first()
 
     def update_product_detail(self, **kwargs):
         for key, value in kwargs.items():

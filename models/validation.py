@@ -77,8 +77,6 @@ class DetailValid(ProductValid):
         return value
 
 class UpdateProductValid(BaseModel):
-    category_id: Optional[int] = None
-    sub_category_name: Optional[SubCategoryEnum] = None
     product_name: Optional[str] = None
     price: Optional[float] = None
     product_description: Optional[str] = None
