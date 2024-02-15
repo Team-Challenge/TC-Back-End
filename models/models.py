@@ -13,6 +13,8 @@ from config import Config
 from sqlalchemy import Integer, String, DateTime, Boolean, Float, Text
 from typing import List
 from flask_jwt_extended import get_jwt_identity
+from flask import jsonify, abort
+from models.validation import DetailValid, UpdateProductValid
 
 
 SHOPS_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'shops')
@@ -364,6 +366,19 @@ class ProductDetail(db.Model):
     @classmethod
     def get_product_detail_by_product_id(cls, product_id):
         return cls.query.filter_by(product_id=product_id).first()
+    
+    def validate_product_data(data):
+        try:
+            validated_data = UpdateProductValid(**data).model_dump(exclude_none=True)
+            if validated_data.get('product_name'):
+                DetailValid.name_validator(value=validated_data.get('product_name'))
+            if validated_data.get('product_description'):
+                DetailValid.description_validator(value=validated_data.get('product_description'))
+            return validated_data
+        except ValidationError as e:
+            abort(400, description=str(e))
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
 
     def update_product_detail(self, **kwargs):
         for key, value in kwargs.items():

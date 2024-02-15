@@ -6,8 +6,7 @@ from models.models import Shop, User, Product, ProductDetail, ProductPhoto
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required
 from dependencies import db
-from models.validation import (DetailValid, 
-                            UpdateProductValid,
+from models.validation import (DetailValid,
                             check_sub_category_belongs_to_category)
 from pydantic import ValidationError
 
@@ -168,17 +167,7 @@ def update_product(product_id):
         return jsonify({'error': 'Shop not found'}), 404
 
     data = request.json
-    try:
-        validated_data = UpdateProductValid(**data).model_dump(exclude_none=True)
-    except ValidationError as e:
-        abort(400, description=str(e))
-    try:
-        if validated_data.get('product_name'):
-            DetailValid.name_validator(value=validated_data.get('product_name'))
-        if validated_data.get('product_description'):
-            DetailValid.description_validator(value=validated_data.get('product_description'))
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+    validated_data = ProductDetail.validate_product_data(data)
     try:
         product = Product.get_product_by_id(product_id)
         if not product or product.shop_id != shop.id:

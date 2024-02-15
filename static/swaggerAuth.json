@@ -1419,10 +1419,10 @@
           "delivery_post": {
             "type": "object",
             "properties": {
-              "nova_post": {
+              "novaPost": {
                 "type": "boolean"
               },
-              "ukr_post": {
+              "ukrPost": {
                 "type": "boolean"
               }
             }
@@ -1482,10 +1482,10 @@
           "delivery_post": {
             "type": "object",
             "properties": {
-              "nova_post": {
+              "novaPost": {
                 "type": "boolean"
               },
-              "ukr_post": {
+              "ukrPost": {
                 "type": "boolean"
               }
             }
