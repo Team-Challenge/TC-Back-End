@@ -53,7 +53,7 @@ class TestAccountsRoutes(unittest.TestCase):
         #signin
         valid_signin_data = {
             "email": "test@example.com",
-            "password": "password123"
+            "password": "Password123"
         }
 
         response = self.test_client.post('/accounts/signin', data=json.dumps(valid_signin_data), content_type='application/json')

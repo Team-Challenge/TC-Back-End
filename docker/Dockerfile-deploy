@@ -8,6 +8,7 @@ RUN pip3 install -r requirements.txt
 COPY . .
 
 RUN flask db upgrade
+RUN python data/create_categories_to_db.py
 
 EXPOSE 8080
 

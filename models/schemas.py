@@ -2,10 +2,10 @@ from marshmallow import fields, Schema, validate
 
 from dependencies import ma
 from models.models import (User,
-                        Product,
                         email_is_unique,
                         Shop,
-                        DeliveryUserInfo)
+                        DeliveryUserInfo,
+                        Categories)
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):
@@ -47,18 +47,12 @@ class PasswordChangeSchema(Schema):
     current_password = fields.Str()
     new_password = fields.Str(validate=validate.Regexp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'))    # noqa: W605
 
-
-class ProductSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Product
-        load_instance = True
-        include_relationships = True
-
 class ShopSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Shop
         include_relationships = True
         load_instance = True
+        exclude = ("shop_to_products",)
 
 class ShopInfoPhotoShema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -75,3 +69,30 @@ class UserDeliveryInfoSchema(ma.SQLAlchemyAutoSchema):
         model = DeliveryUserInfo
         include_relationships = True
         load_instance = True
+
+class CategorySchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Categories
+        include_relationships = True
+        load_instance = True
+
+class DetailsSchema(ma.Schema):
+    price = fields.Float(required=True)
+    product_status = fields.Str(required=True)
+    product_characteristic = fields.Dict(required=True)
+    is_return = fields.Bool(required=True)
+    delivery_post = fields.Str(required=True)
+    method_of_payment = fields.Str(required=True)
+    is_unique = fields.Bool(required=True)
+
+class PhotoSchema(ma.Schema):
+    product_photo = fields.Str(required=True)
+    main = fields.Bool(required=True)
+
+class ProductSchema(ma.SQLAlchemyAutoSchema):
+    category_id = fields.Integer(required=True)
+    sub_category_name = fields.Str(required=True)
+    product_name = fields.Str(required=True)
+    product_description = fields.Str(required=True)
+    is_active = fields.Bool(required=True)
+    details = fields.Nested(DetailsSchema, required=True)

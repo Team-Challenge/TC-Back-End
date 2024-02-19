@@ -6,7 +6,7 @@ import json
 from config.config import TestConfig
 from flask_jwt_extended import create_access_token
 
-class TestAccountsRoutes(unittest.TestCase):
+class TestShopsRoutes(unittest.TestCase):
     
     @classmethod
     def setUpClass(cls):
@@ -117,7 +117,6 @@ class TestAccountsRoutes(unittest.TestCase):
 
         shop_data = {
                 "name": "Test Shop name",
-                "phone_number": "+380123456789",
                 "link": "http://mytestshop.com"}
 
         response = self.test_client.post('/shops/shop', data=json.dumps(shop_data),    headers=headers)

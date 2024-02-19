@@ -34,6 +34,6 @@ SubCategoryDict = {
 
 ProductStatus = Enum('В наявності', 'Під замовлення',
                     'В єдиному екземплярі', 'Немає в наявності', 
-                    name='product_status')
+                     name='product_status')
 
 Delivery_Post = Enum('nova_post', 'ukr_post', name='delivery_post')
