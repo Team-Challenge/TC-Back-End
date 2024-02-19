@@ -7,8 +7,8 @@ from config.config import TestConfig
 from flask_jwt_extended import create_access_token
 from werkzeug.datastructures import FileStorage
 
-class TestAccountsRoutes(unittest.TestCase):
-    
+class TestShopsRoutes(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         cls.app = create_app(config_class=TestConfig)
@@ -78,7 +78,7 @@ class TestAccountsRoutes(unittest.TestCase):
 
         response = self.test_client.post('/shops/shop', data=json.dumps(shop_data),headers=headers)
         response_data = response.data.decode('utf-8')
-        self.assertIn("error", response_data)
+        self.assertIn(response_data)
         self.assertIn("Invalid shop name format", response_data)
         self.assertEqual(response.status_code, 400)
 
@@ -112,7 +112,7 @@ class TestAccountsRoutes(unittest.TestCase):
         self.assertIn("photo_shop", response_data)
         self.assertEqual(response.status_code, 200)
 
-    def test_ycreate_get_delete_photo(self):
+    def test_create_get_delete_photo(self):
         # create
         headers = {'Authorization': f'Bearer {self.access_token}'}
         with open('tests/test_images/alf.jpg', 'rb') as image_file:

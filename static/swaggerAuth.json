@@ -639,6 +639,57 @@
         }
       }
     },
+    "/products/product_photo/{product_id}": {
+      "post": {
+        "summary": "Add product photo",
+        "tags": ["Product"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "description": "ID of the product to update",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Add product photo",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductPhotoSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Photo product uploaded successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Photo product uploaded successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
+        }
+      }
+    },
     "/orders/nova_post": {
       "get": {
         "summary": "Get Nova Post JSON",
@@ -749,6 +800,53 @@
         }
       }
     },
+    "/products/shop_products": {
+      "get": {
+        "summary": "Get Shop Products Information",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop products information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductInfoResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "There is no store by user"
+          }
+        }
+      }
+    },
+    "/categories/categories": {
+      "get": {
+        "summary": "Get Shop Information",
+        "tags": ["Categories"],
+        "responses": {
+          "200": {
+            "description": "Categories information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoriesInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/shops/shop_info": {
       "get": {
         "summary": "Get Shop Information",
@@ -777,8 +875,148 @@
           }
         }
       }
+    },
+    "/products/update/{product_id}":{
+      "put":{
+        "summary": "Update a product",
+        "tags":["Product"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "description": "ID of the product to update",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Update product info",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductUpdateSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product updated successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "401": {
+            "description": "Mandatory fields are unfilled or empty"
+          }
+        }
+      }
+    },
+    "/products/deactivate/{product_id}":{
+      "delete":{
+        "summary": "Deactivate a product",
+        "tags":["Product"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "description": "ID of the product to update",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deactivated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product deactivated"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Error"
+          }
+        }
+      }
+    },
+    "/products/product":{
+      "post":{
+        "summary": "Create a product",
+        "tags":["Product"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Create product",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductCreateSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product created successfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "401": {
+            "description": "Mandatory fields are unfilled or empty"
+          }
+        }
+      }
     }
-  },      
+  },
   "components": {
     "schemas": {
       "SignupUserSchema": {
@@ -901,6 +1139,19 @@
         },
         "required": ["image"]
       },
+      "ProductPhotoSchema": {
+        "type": "object",
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary"
+          },
+          "main": {
+            "type": "boolean"
+          }
+        },
+        "required": ["image", "main"]
+      },
       "PasswordChangeSchema": {
         "type": "object",
         "properties": {
@@ -950,7 +1201,7 @@
           "id": {
             "type": "integer"
           },
-          "owner_id": {
+          "owner": {
             "type": "integer"
           },
           "name": {
@@ -959,12 +1210,12 @@
           "description": {
             "type": "string"
           },
-          "shop_photo": {
+          "photo_shop": {
             "type": "string",
             "format": "uri",
             "description": "URL to the shop"
           },
-          "banner_photo": {
+          "banner_shop": {
             "type": "string",
             "format": "uri",
             "description": "URL to the shop"
@@ -977,6 +1228,124 @@
           }
         }
       },
+      "CategoriesInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "category_name": {
+            "type": "string"
+          }
+        }
+      },
+      "ProductInfoResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "category_id": {
+            "type": "integer"
+          },
+          "delivery_post": {
+            "type": "object",
+            "properties": {
+              "nova_post": {
+                "type": "boolean"
+              },
+              "ukr_post": {
+                "type": "boolean"
+              }
+            }
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "is_return": {
+            "type": "boolean"
+          },
+          "is_unique": {
+            "type": "boolean"
+          },
+          "method_of_payment": {
+            "type": "object",
+            "properties": {
+              "cardPayment": {
+                "type": "boolean"
+              },
+              "cashPayment": {
+                "type": "boolean"
+              },
+              "securePayment": {
+                "type": "boolean"
+              }
+            }
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "main": {
+                  "type": "boolean"
+                },
+                "product_photo": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "price": {
+            "type": "number"
+          },
+          "product_characteristic": {
+            "type": "object",
+            "properties": {
+              "виготовлений": {
+                "type": "string"
+              },
+              "матеріал": {
+                "type": "string"
+              },
+              "розмір": {
+                "type": "string"
+              }
+            }
+          },
+          "product_description": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "product_status": {
+            "type": "string"
+          },
+          "shop_id": {
+            "type": "integer"
+          },
+          "sub_category_name": {
+            "type": "string"
+          },
+          "time_added": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "time_modifeid": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },      
       "UserInfoResponse": {
         "type": "object",
         "properties": {
@@ -1008,8 +1377,140 @@
             "type": "string"
           }
         }
-      }
-    },
+      },
+      "ProductCreateSchema": {
+        "type": "object",
+        "properties": {
+          "category_id": {
+            "type": "integer"
+          },
+          "sub_category_name": {
+            "type": "string"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "product_description": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "price": {
+            "type": "number"
+          },
+          "product_status": {
+            "type": "string"
+          },
+          "product_characteristic": {
+            "type": "object",
+            "properties": {
+              "size": {
+                "type": "string"
+              },
+              "weight": {
+                "type": "string"
+              }
+            }
+          },
+          "is_return": {
+            "type": "boolean"
+          },
+          "delivery_post": {
+            "type": "object",
+            "properties": {
+              "novaPost": {
+                "type": "boolean"
+              },
+              "ukrPost": {
+                "type": "boolean"
+              }
+            }
+          },
+          "method_of_payment": {
+            "type": "object",
+            "properties": {
+              "cardPayment": {
+                "type": "boolean"
+              },
+              "cashPayment": {
+                "type": "boolean"
+              },
+              "securePayment": {
+                "type": "boolean"
+              }
+            }
+          },
+          "is_unique": {
+            "type": "boolean"
+          }
+        },
+        "required": ["category_id", "sub_category_name", "product_name", "details", "photos"]
+      },
+      "ProductUpdateSchema":{
+        "type": "object",
+        "properties": {
+          "product_name": {
+            "type": "string"
+          },
+          "product_description": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "price": {
+            "type": "number"
+          },
+          "product_status": {
+            "type": "string"
+          },
+          "product_characteristic": {
+            "type": "object",
+            "properties": {
+              "size": {
+                "type": "string"
+              },
+              "weight": {
+                "type": "string"
+              }
+            }
+          },
+          "is_return": {
+            "type": "boolean"
+          },
+          "delivery_post": {
+            "type": "object",
+            "properties": {
+              "novaPost": {
+                "type": "boolean"
+              },
+              "ukrPost": {
+                "type": "boolean"
+              }
+            }
+          },
+          "method_of_payment": {
+            "type": "object",
+            "properties": {
+              "cardPayment": {
+                "type": "boolean"
+              },
+              "cashPayment": {
+                "type": "boolean"
+              },
+              "securePayment": {
+                "type": "boolean"
+              }
+            }
+          },
+          "is_unique": {
+            "type": "boolean"
+          }
+          }
+        },
+        "required": ["category_id", "sub_category_name", "product_name", "details", "photos"]
+      },
     "securitySchemes": {
       "BearerAuth": {
         "type": "apiKey",

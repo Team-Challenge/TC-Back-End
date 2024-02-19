@@ -10,6 +10,7 @@ COPY . .
 RUN python data/create_db.py
 RUN flask db upgrade
 RUN python data/create_fixtures.py
+RUN python data/create_categories_to_db.py
 
 EXPOSE 8080
 
