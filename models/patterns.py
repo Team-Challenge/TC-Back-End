@@ -31,12 +31,10 @@ SubCategoryEnum = Enum(*list(SubCategoryEnumDict.items()), name='sub_category_en
 
 def get_subcategory(val: Union[str, int]) -> Union[int, str]:
     if isinstance(val, str):
-        sub_cats = SubCategoryDict
-    elif isinstance(val, int):
-        sub_cats = SubCategoryEnumDict
-    else:
-        raise TypeError("Wrong subcategory type. Should be str or int.")
-    return sub_cats[val]
+        return SubCategoryDict[val]
+    if isinstance(val, int):
+        return SubCategoryEnumDict[val]
+    raise TypeError("Wrong subcategory type. Should be str or int.")
 
 
 ProductStatus = Enum('В наявності', 'Під замовлення',

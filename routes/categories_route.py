@@ -1,7 +1,7 @@
 
 import os
 from sqlalchemy import func
-from models.models import User, Product, Categories
+from models.models import Product, Categories
 from flask_cors import CORS
 from dependencies import db
 from models.patterns import SubCategoryDict
@@ -63,3 +63,4 @@ def get_dynamic_categories():
     except OperationalError as ex:
         if "no such table" in str(ex):
             return jsonify({"message": "No tables have been created.",}), 502
+    return None
