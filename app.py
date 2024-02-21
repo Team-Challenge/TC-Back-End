@@ -1,20 +1,17 @@
 
 import psutil
-
 from flask import Flask
 from flask_swagger_ui import get_swaggerui_blueprint
-from config import Config
+from prometheus_client import Gauge, make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
-from prometheus_client import make_wsgi_app
-from prometheus_client import Gauge
-from routes.accounts_route import accounts_route
-from routes.orders_route import orders_route
-from routes.error_handlers import error_handlers
-from routes.users import users_route
-from routes.shops_route import shops_route
-from routes.categories_route import categories_route
-from routes.products_route import products_route
-from dependencies import db, migrate, ma, jwt, cache, registry
+
+from config import Config
+from dependencies import cache, db, jwt, ma, migrate, registry
+from routes.accounts import accounts_route
+from routes.categories import categories_route
+from routes.orders import orders_route
+from routes.products import products_route
+from routes.shops import shops_route
 
 
 def create_app(config_class=Config) -> Flask:
@@ -49,8 +46,6 @@ def create_app(config_class=Config) -> Flask:
     app.register_blueprint(accounts_route)
     app.register_blueprint(orders_route)
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
-    app.register_blueprint(error_handlers)
-    app.register_blueprint(users_route)
     app.register_blueprint(shops_route)
     app.register_blueprint(categories_route)
     app.register_blueprint(products_route)
@@ -81,8 +76,6 @@ def create_testing_app(config_class=Config) -> Flask:
     app.register_blueprint(accounts_route)
     app.register_blueprint(orders_route)
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
-    app.register_blueprint(error_handlers)
-    app.register_blueprint(users_route)
     app.register_blueprint(shops_route)
     app.register_blueprint(categories_route)
 

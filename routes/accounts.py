@@ -1,36 +1,30 @@
 import os
 import uuid
-
-from google_auth_oauthlib.flow import Flow
-from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import timedelta
-from models.models import User, Security, full_name_validation, phone_validation, DeliveryUserInfo
-from models.schemas import (UserSchema,
-                            SigninUserSchema,
-                            SignupUserSchema,
-                            FullNameChangeSchema,
-                            PasswordChangeSchema,
-                            UserDeliveryInfoSchema,
-                            GoogleAuthSchema)
-from werkzeug.security import check_password_hash, generate_password_hash
+
+from flask import (Blueprint, Response, abort, current_app, jsonify,
+                   make_response, request, url_for)
+from flask_cors import CORS
+from flask_jwt_extended import (create_access_token, create_refresh_token,
+                                get_jwt, get_jwt_identity, jwt_required)
+from google_auth_oauthlib.flow import Flow
 from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
-from flask_cors import CORS
-from routes.error_handlers import APIAuthError
-from dependencies import db, jwt, cache
+from werkzeug.security import check_password_hash, generate_password_hash
+
 from config import Config
-from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
-    get_jwt_identity,
-    get_jwt,
-    jwt_required
-)
+from dependencies import cache, db, jwt
+from models.models import (DeliveryUserInfo, Security, User,
+                           full_name_validation, phone_validation)
+from models.schemas import (FullNameChangeSchema, GoogleAuthSchema,
+                            PasswordChangeSchema, SigninUserSchema,
+                            SignupUserSchema, UserDeliveryInfoSchema,
+                            UserSchema)
 
 ACCESS_EXPIRES = timedelta(hours=1)
 PROFILE_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'profile')
 PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
-
+GOOGLE_CLIENT_SECRETS_FILE = os.path.join(Config.MEDIA_PATH, 'google', 'client_secret_2.json')
 accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 
 CORS(accounts_route, supports_credentials=True)
@@ -84,7 +78,7 @@ def authorize() -> Response:
 
     google_auth_data = GoogleAuthSchema().load(request.get_json(silent=True))
     flow = Flow.from_client_secrets_file(
-        './client_secret.json',
+        GOOGLE_CLIENT_SECRETS_FILE,
         scopes=['https://www.googleapis.com/auth/userinfo.email',
                 'https://www.googleapis.com/auth/userinfo.profile',
                 'openid'],
@@ -110,6 +104,7 @@ def authorize() -> Response:
 
     response = {"access_token": access_token, "refresh_token": refresh_token}
     return make_response(response, 200)
+
 
 @accounts_route.route("/signin", methods=["POST"])
 def signin() -> Response:
