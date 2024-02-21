@@ -1,14 +1,15 @@
 
 import json
 
-from flask import jsonify, request, Blueprint, url_for, abort
-from models.models import Shop, User, Product, ProductDetail, ProductPhoto
+from flask import Blueprint, abort, jsonify, request, url_for
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required
-from dependencies import db
-from models.validation import (DetailValid,
-                            check_sub_category_belongs_to_category)
 from pydantic import ValidationError
+
+from dependencies import db
+from models.models import Product, ProductDetail, ProductPhoto, Shop, User
+from validation.products import (DetailValid,
+                                 check_sub_category_belongs_to_category)
 
 products_route = Blueprint("products_route", __name__, url_prefix="/products")
 

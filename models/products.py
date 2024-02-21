@@ -14,7 +14,7 @@ from dependencies import db
 from models.accounts import User
 from models.categories import Categories
 from models.shops import Shop
-from models.validation import DetailValid, UpdateProductValid
+from validation.products import DetailValid, UpdateProductValid
 
 PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
 
