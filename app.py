@@ -7,11 +7,12 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 from config import Config
 from dependencies import cache, db, jwt, ma, migrate, registry
-from routes.accounts import accounts_route
-from routes.categories import categories_route
-from routes.orders import orders_route
-from routes.products import products_route
-from routes.shops import shops_route
+from models import accounts, categories, orders, products, shops
+from routes.accounts import accounts
+from routes.categories import categories
+from routes.orders import orders
+from routes.products import products
+from routes.shops import shops
 
 
 def create_app(config_class=Config) -> Flask:
@@ -32,7 +33,8 @@ def create_app(config_class=Config) -> Flask:
     app.config.from_object(config_class)
 
     db.init_app(app)
-    migrate.init_app(app, db)
+    with app.app_context():
+        db.create_all()
     ma.init_app(app)
     cache.init_app(app)
     jwt.init_app(app)
@@ -43,12 +45,12 @@ def create_app(config_class=Config) -> Flask:
         SWAGGER_URL, API_URL, config={"app_name": "Authentication API"}
     )
 
-    app.register_blueprint(accounts_route)
-    app.register_blueprint(orders_route)
+    app.register_blueprint(accounts)
+    app.register_blueprint(orders)
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
-    app.register_blueprint(shops_route)
-    app.register_blueprint(categories_route)
-    app.register_blueprint(products_route)
+    app.register_blueprint(shops)
+    app.register_blueprint(categories)
+    app.register_blueprint(products)
 
     return app
 
@@ -73,10 +75,10 @@ def create_testing_app(config_class=Config) -> Flask:
         SWAGGER_URL, API_URL, config={"app_name": "Authentication API"}
     )
 
-    app.register_blueprint(accounts_route)
-    app.register_blueprint(orders_route)
+    app.register_blueprint(accounts)
+    app.register_blueprint(orders)
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
-    app.register_blueprint(shops_route)
-    app.register_blueprint(categories_route)
+    app.register_blueprint(shops)
+    app.register_blueprint(categories)
 
     return app

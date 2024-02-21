@@ -1,18 +1,16 @@
 
-from flask import jsonify, request, Blueprint, make_response, current_app, url_for
-from models.models import Shop, User, phone_validation
-from models.schemas import ShopSchema
-from marshmallow.exceptions import ValidationError
+from flask import (Blueprint, current_app, jsonify, make_response, request,
+                   url_for)
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required
+from marshmallow.exceptions import ValidationError
+
+shops = Blueprint("shops_route", __name__, url_prefix="/shops")
 
 
-shops_route = Blueprint("shops_route", __name__, url_prefix="/shops")
+CORS(shops, supports_credentials=True)
 
-
-CORS(shops_route, supports_credentials=True)
-
-@shops_route.route("/shop", methods=["POST"])
+@shops.route("/shop", methods=["POST"])
 @jwt_required()
 def create_shops():
     user = User.get_user_id()
@@ -62,7 +60,7 @@ def create_shops():
 
     return jsonify({'message': 'Shop created successfully'}), 201
 
-@shops_route.route('/shop_photo', methods=['POST', 'DELETE', 'GET'])
+@shops.route('/shop_photo', methods=['POST', 'DELETE', 'GET'])
 @jwt_required()
 def shop_photo():
     user = User.get_user_id()
@@ -88,7 +86,7 @@ def shop_photo():
     return jsonify({'message': 'There is no store by user'}), 404
 
 
-@shops_route.route('/shop_banner', methods=['POST', 'DELETE', 'GET'])
+@shops.route('/shop_banner', methods=['POST', 'DELETE', 'GET'])
 @jwt_required()
 def shop_banner():
     user = User.get_user_id()
@@ -113,7 +111,7 @@ def shop_banner():
     
     return jsonify({'message': 'There is no store by user'}), 404
 
-@shops_route.route('/shop_info', methods=['GET'])
+@shops.route('/shop_info', methods=['GET'])
 @jwt_required()
 def get_shop_info():
     user = User.get_user_id()

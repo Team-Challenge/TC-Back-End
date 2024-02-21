@@ -7,15 +7,14 @@ from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 
 from dependencies import db
-from models.models import Product, ProductDetail, ProductPhoto, Shop, User
 from validation.products import (DetailValid,
                                  check_sub_category_belongs_to_category)
 
-products_route = Blueprint("products_route", __name__, url_prefix="/products")
+products = Blueprint("products_route", __name__, url_prefix="/products")
 
-CORS(products_route, supports_credentials=True)
+CORS(products, supports_credentials=True)
 
-@products_route.route("/product", methods=["POST"])
+@products.route("/product", methods=["POST"])
 @jwt_required()
 def create_product():
     user = User.get_user_id()
@@ -61,7 +60,7 @@ def create_product():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@products_route.route("/product_photo/<int:product_id>", methods=["POST"])
+@products.route("/product_photo/<int:product_id>", methods=["POST"])
 @jwt_required()
 def add_product_photo(product_id):
     user = User.get_user_id()
@@ -98,7 +97,7 @@ def add_product_photo(product_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@products_route.route("/shop_products", methods=["GET"])
+@products.route("/shop_products", methods=["GET"])
 @jwt_required()
 def get_shop_products():
     user = User.get_user_id()
@@ -157,7 +156,7 @@ def get_shop_products():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@products_route.route("/update/<int:product_id>", methods=["PUT"])
+@products.route("/update/<int:product_id>", methods=["PUT"])
 @jwt_required()
 def update_product(product_id):
     user = User.get_user_id()
@@ -198,7 +197,7 @@ def update_product(product_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-@products_route.route("/deactivate/<int:product_id>", methods=["DELETE"])
+@products.route("/deactivate/<int:product_id>", methods=["DELETE"])
 @jwt_required()
 def deactivate_product(product_id):
     user = User.get_user_id()

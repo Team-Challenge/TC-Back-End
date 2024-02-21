@@ -14,20 +14,14 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from config import Config
 from dependencies import cache, db, jwt
-from models.models import (DeliveryUserInfo, Security, User,
-                           full_name_validation, phone_validation)
-from models.schemas import (FullNameChangeSchema, GoogleAuthSchema,
-                            PasswordChangeSchema, SigninUserSchema,
-                            SignupUserSchema, UserDeliveryInfoSchema,
-                            UserSchema)
 
 ACCESS_EXPIRES = timedelta(hours=1)
 PROFILE_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'profile')
 PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
 GOOGLE_CLIENT_SECRETS_FILE = os.path.join(Config.MEDIA_PATH, 'google', 'client_secret_2.json')
-accounts_route = Blueprint("accounts_route", __name__, url_prefix="/accounts")
+accounts = Blueprint("accounts_route", __name__, url_prefix="/accounts")
 
-CORS(accounts_route, supports_credentials=True)
+CORS(accounts, supports_credentials=True)
 
 @jwt.token_in_blocklist_loader
 def check_if_token_is_revoked(jwt_header, jwt_payload: dict):  # pylint: disable=unused-argument
@@ -35,7 +29,7 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):  # pylint: disable
     token_in_redis = cache.get(jti)
     return token_in_redis is not None
 
-@accounts_route.route("/signup", methods=["POST"])
+@accounts.route("/signup", methods=["POST"])
 def signup() -> Response:
     
     request_data = request.get_json(silent=True)
@@ -73,7 +67,7 @@ def signup() -> Response:
 
     return make_response(jsonify(response), 200)
 
-@accounts_route.route("/authorize", methods=["POST"])
+@accounts.route("/authorize", methods=["POST"])
 def authorize() -> Response:
 
     google_auth_data = GoogleAuthSchema().load(request.get_json(silent=True))
@@ -106,7 +100,7 @@ def authorize() -> Response:
     return make_response(response, 200)
 
 
-@accounts_route.route("/signin", methods=["POST"])
+@accounts.route("/signin", methods=["POST"])
 def signin() -> Response:
 
     request_data = request.get_json(silent=True)
@@ -131,7 +125,7 @@ def signin() -> Response:
 
     return make_response(response, 200)
 
-@accounts_route.route('/verify/<token>', methods=['GET'])
+@accounts.route('/verify/<token>', methods=['GET'])
 def verify_email(token):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
@@ -144,7 +138,7 @@ def verify_email(token):
     except Exception:
         abort(404, "Invalid verification token")
 
-@accounts_route.route("/refresh", methods=["POST"])
+@accounts.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
 def refresh():
     user = get_jwt_identity()
@@ -156,7 +150,7 @@ def refresh():
 
     return make_response(response, 200)
 
-@accounts_route.route("/logout", methods=["DELETE"])
+@accounts.route("/logout", methods=["DELETE"])
 @jwt_required(verify_type=False)
 def logout():
     token = get_jwt()
@@ -165,7 +159,7 @@ def logout():
     cache.set(jti, "1", timeout=86400)
     return jsonify(msg=f"{ttype.capitalize()} token successfully revoked")
 
-@accounts_route.route('/change_phone_number', methods=['POST'])
+@accounts.route('/change_phone_number', methods=['POST'])
 @jwt_required()
 def change_phone_number():
     request_data = request.get_json(silent=True)
@@ -188,7 +182,7 @@ def change_phone_number():
             return jsonify({'error': str(e)}), 400
     return jsonify({'error': 'User not found'}), 404 
 
-@accounts_route.route('/change_full_name', methods=['POST'])
+@accounts.route('/change_full_name', methods=['POST'])
 @jwt_required()
 def change_full_name():
     request_data = request.get_json(silent=True)
@@ -214,7 +208,7 @@ def change_full_name():
     
     return jsonify({'error': 'User not found'}), 404
 
-@accounts_route.route("/info", methods=["GET"])
+@accounts.route("/info", methods=["GET"])
 @jwt_required()
 def user_info():
     user = User.query.filter_by(id=get_jwt_identity()).first()
@@ -240,7 +234,7 @@ def user_info():
 
     return user_info
 
-@accounts_route.route('/profile_photo', methods=['POST', 'DELETE','GET'])
+@accounts.route('/profile_photo', methods=['POST', 'DELETE','GET'])
 @jwt_required()
 def profile_photo():
     if request.method == 'GET':
@@ -278,7 +272,7 @@ def profile_photo():
 
     return make_response('Method Not Allowed', 405)
 
-@accounts_route.route('/change_password', methods=['POST'])
+@accounts.route('/change_password', methods=['POST'])
 @jwt_required()
 def change_password():
     current_user_id = get_jwt_identity()
@@ -305,7 +299,7 @@ def change_password():
 
     return jsonify({'error': 'User not found'}), 404
 
-@accounts_route.route('/delivery_info', methods=['POST', 'DELETE'])
+@accounts.route('/delivery_info', methods=['POST', 'DELETE'])
 @jwt_required()
 def manage_delivery_info():
     request_data = request.get_json(silent=True)

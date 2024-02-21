@@ -1,8 +1,12 @@
 import re
+from enum import Enum
 
-from marshmallow import ValidationError
 from pydantic import BaseModel, validator
 
+
+class DeliveryPostEnum(str, Enum):
+    nova_post = 'nova_post'
+    ukr_post = 'ukr_post'
 
 class SigninValid(BaseModel):
     email:str
@@ -58,4 +62,10 @@ class PhoneNumberValid(BaseModel):
             raise ValueError('Invalid phone number format. Must start with +380 and have 9 digits.')
         return value
     
+
+class DeliveryPostValid(BaseModel):
+    post: DeliveryPostEnum
+    city: str
+    branch_name: str
+    address: str
 

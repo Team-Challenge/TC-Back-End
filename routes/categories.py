@@ -1,19 +1,21 @@
 
 import os
-from sqlalchemy import func
-from models.models import Product, Categories
+
+from flask import (Blueprint, current_app, jsonify, make_response,
+                   send_from_directory)
 from flask_cors import CORS
+from sqlalchemy import func
+from sqlalchemy.exc import OperationalError
+from werkzeug.exceptions import NotFound
+
 from dependencies import db
 from models.patterns import SubCategoryDict
-from flask import Blueprint, current_app, send_from_directory, make_response, jsonify
-from werkzeug.exceptions import NotFound
-from sqlalchemy.exc import OperationalError
 
-categories_route = Blueprint("categories_route", __name__, url_prefix="/categories")
-CORS(categories_route, supports_credentials=True)
+categories = Blueprint("categories", __name__, url_prefix="/categories")
+CORS(categories, supports_credentials=True)
 
 
-@categories_route.route('/categories', methods=['GET'])
+@categories.route('/categories', methods=['GET'])
 def get_static_categories():
 
     static_dir = os.path.join(current_app.root_path, 'static')
@@ -28,7 +30,7 @@ def get_static_categories():
         return make_response(jsonify(error_message), 404)
 
 
-@categories_route.route('/categories_detail', methods=['GET'])
+@categories.route('/categories_detail', methods=['GET'])
 def get_dynamic_categories():
     try:
         categories_with_subcategories = db.session.query(
