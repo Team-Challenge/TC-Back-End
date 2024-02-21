@@ -56,3 +56,34 @@ def create_app(config_class=Config) -> Flask:
     app.register_blueprint(products_route)
 
     return app
+
+def create_testing_app(config_class=Config) -> Flask:
+    app = Flask(__name__, static_folder='static', static_url_path='/static')
+    app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
+        '/healthcheck': make_wsgi_app(registry=registry)
+        })
+
+    app.config.from_object(config_class)
+
+    # db.init_app(app)  # To delay database initialization
+
+    migrate.init_app(app, db)
+    ma.init_app(app)
+    cache.init_app(app)
+    jwt.init_app(app)
+
+    SWAGGER_URL = "/swagger"
+    API_URL = "/static/swaggerAuth.json"
+    swaggerui_blueprint = get_swaggerui_blueprint(
+        SWAGGER_URL, API_URL, config={"app_name": "Authentication API"}
+    )
+
+    app.register_blueprint(accounts_route)
+    app.register_blueprint(orders_route)
+    app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+    app.register_blueprint(error_handlers)
+    app.register_blueprint(users_route)
+    app.register_blueprint(shops_route)
+    app.register_blueprint(categories_route)
+
+    return app

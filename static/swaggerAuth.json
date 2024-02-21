@@ -9,7 +9,9 @@
     "/accounts/signup": {
       "post": {
         "summary": "User Registration",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "requestBody": {
           "description": "User registration data",
           "required": true,
@@ -48,7 +50,9 @@
     "/accounts/signin": {
       "post": {
         "summary": "User Sign-In",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "requestBody": {
           "description": "User sign-in data",
           "required": true,
@@ -78,7 +82,9 @@
     "/accounts/verify/{token}": {
       "get": {
         "summary": "Verify Email",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "parameters": [
           {
             "name": "token",
@@ -109,7 +115,9 @@
     "/accounts/check_jwt_token": {
       "get": {
         "summary": "Check JWT Token",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "responses": {
           "200": {
             "description": "Token is valid",
@@ -130,7 +138,9 @@
     "/accounts/refresh": {
       "post": {
         "summary": "Refresh Access Token",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -154,7 +164,9 @@
     "/accounts/logout": {
       "delete": {
         "summary": "User Logout",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -177,7 +189,9 @@
     "/accounts/change_phone_number": {
       "post": {
         "summary": "Change Phone Number",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -217,7 +231,9 @@
     "/accounts/change_full_name": {
       "post": {
         "summary": "Change Full Name",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -257,7 +273,9 @@
     "/shops/shop": {
       "post": {
         "summary": "Create shop or update shop info",
-        "tags": ["Shop"],
+        "tags": [
+          "Shop"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -296,10 +314,13 @@
           }
         }
       }
-    },"/accounts/delivery_info": {
+    },
+    "/accounts/delivery_info": {
       "post": {
         "summary": "Create user delivery info",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -337,7 +358,9 @@
       },
       "delete": {
         "summary": "Delete delivery info",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -366,7 +389,9 @@
     "/accounts/profile_photo": {
       "get": {
         "summary": "Get Profile Photo",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -394,7 +419,9 @@
       },
       "post": {
         "summary": "Upload Profile Photo",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -432,7 +459,9 @@
       },
       "delete": {
         "summary": "Delete Profile Photo",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -458,7 +487,9 @@
     "/shops/shop_photo": {
       "get": {
         "summary": "Get Shop Photo",
-        "tags": ["Shop"],
+        "tags": [
+          "Shop"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -486,7 +517,9 @@
       },
       "post": {
         "summary": "Upload Shop Photo",
-        "tags": ["Shop"],
+        "tags": [
+          "Shop"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -524,7 +557,9 @@
       },
       "delete": {
         "summary": "Delete shop Photo",
-        "tags": ["Shop"],
+        "tags": [
+          "Shop"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -550,7 +585,9 @@
     "/shops/shop_banner": {
       "get": {
         "summary": "Get Profile Photo",
-        "tags": ["Shop"],
+        "tags": [
+          "Shop"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -578,7 +615,9 @@
       },
       "post": {
         "summary": "Upload Shop Banner",
-        "tags": ["Shop"],
+        "tags": [
+          "Shop"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -616,7 +655,9 @@
       },
       "delete": {
         "summary": "Delete shop banner",
-        "tags": ["Shop"],
+        "tags": [
+          "Shop"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -642,7 +683,9 @@
     "/products/product_photo/{product_id}": {
       "post": {
         "summary": "Add product photo",
-        "tags": ["Product"],
+        "tags": [
+          "Product"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -693,7 +736,9 @@
     "/orders/nova_post": {
       "get": {
         "summary": "Get Nova Post JSON",
-        "tags": ["Orders"],
+        "tags": [
+          "Orders"
+        ],
         "responses": {
           "200": {
             "description": "Successful",
@@ -715,7 +760,9 @@
     "/orders/ukr_post": {
       "get": {
         "summary": "Get Ukr Post JSON",
-        "tags": ["Orders"],
+        "tags": [
+          "Orders"
+        ],
         "responses": {
           "200": {
             "description": "Successful",
@@ -734,10 +781,304 @@
         }
       }
     },
+    "/categories/categories": {
+      "get": {
+        "summary": "Get static categories and subcategories JSON",
+        "tags": [
+          "Categories"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": 1,
+                    "label": "На голову",
+                    "subcategories": [
+                      [
+                        11,
+                        "Заколки"
+                      ],
+                      [
+                        12,
+                        "Обручі"
+                      ],
+                      [
+                        13,
+                        "Резинки"
+                      ],
+                      [
+                        14,
+                        "Хустинки"
+                      ]
+                    ]
+                  },
+                  {
+                    "id": 2,
+                    "label": "На вуха",
+                    "subcategories": [
+                      [
+                        21,
+                        "Сережки"
+                      ],
+                      [
+                        22,
+                        "Моносережки"
+                      ]
+                    ]
+                  },
+                  {
+                    "id": 3,
+                    "label": "На шию",
+                    "subcategories": [
+                      [
+                        31,
+                        "Зґарди"
+                      ],
+                      [
+                        32,
+                        "Шелести"
+                      ],
+                      [
+                        33,
+                        "Ґердани"
+                      ],
+                      [
+                        34,
+                        "Силянки"
+                      ],
+                      [
+                        35,
+                        "Кризи"
+                      ],
+                      [
+                        36,
+                        "Чокери"
+                      ],
+                      [
+                        37,
+                        "Намиста"
+                      ],
+                      [
+                        38,
+                        "Дукачі"
+                      ],
+                      [
+                        39,
+                        "Кулони та підвіски"
+                      ]
+                    ]
+                  },
+                  {
+                    "id": 4,
+                    "label": "На руки",
+                    "subcategories": [
+                      [
+                        41,
+                        "Браслети"
+                      ],
+                      [
+                        42,
+                        "Каблучки"
+                      ]
+                    ]
+                  },
+                  {
+                    "id": 5,
+                    "label": "Аксесуари",
+                    "subcategories": [
+                      [
+                        51,
+                        "Котильйони"
+                      ],
+                      [
+                        52,
+                        "Брошки"
+                      ],
+                      [
+                        53,
+                        "Сумки"
+                      ]
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "label": "Набори",
+                    "subcategories": [
+                      [
+                        61,
+                        "Набір"
+                      ]
+                    ]
+                  }
+                ],
+                "schema": {
+                  "type": "object",
+                  "description": "JSON data for categories and subcategories"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found in the specified location"
+          }
+        }
+      }
+    },
+    "/categories/categories_detail": {
+      "get": {
+        "summary": "Get categories and subcategories JSON from active products in DB",
+        "tags": [
+          "Categories"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful",
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": 1,
+                    "label": "На голову",
+                    "subcategories": [
+                      [
+                        11,
+                        "Заколки"
+                      ],
+                      [
+                        12,
+                        "Обручі"
+                      ],
+                      [
+                        13,
+                        "Резинки"
+                      ],
+                      [
+                        14,
+                        "Хустинки"
+                      ]
+                    ]
+                  },
+                  {
+                    "id": 2,
+                    "label": "На вуха",
+                    "subcategories": [
+                      [
+                        21,
+                        "Сережки"
+                      ],
+                      [
+                        22,
+                        "Моносережки"
+                      ]
+                    ]
+                  },
+                  {
+                    "id": 3,
+                    "label": "На шию",
+                    "subcategories": [
+                      [
+                        31,
+                        "Зґарди"
+                      ],
+                      [
+                        32,
+                        "Шелести"
+                      ],
+                      [
+                        33,
+                        "Ґердани"
+                      ],
+                      [
+                        34,
+                        "Силянки"
+                      ],
+                      [
+                        35,
+                        "Кризи"
+                      ],
+                      [
+                        36,
+                        "Чокери"
+                      ],
+                      [
+                        37,
+                        "Намиста"
+                      ],
+                      [
+                        38,
+                        "Дукачі"
+                      ],
+                      [
+                        39,
+                        "Кулони та підвіски"
+                      ]
+                    ]
+                  },
+                  {
+                    "id": 4,
+                    "label": "На руки",
+                    "subcategories": [
+                      [
+                        41,
+                        "Браслети"
+                      ],
+                      [
+                        42,
+                        "Каблучки"
+                      ]
+                    ]
+                  },
+                  {
+                    "id": 5,
+                    "label": "Аксесуари",
+                    "subcategories": [
+                      [
+                        51,
+                        "Котильйони"
+                      ],
+                      [
+                        52,
+                        "Брошки"
+                      ],
+                      [
+                        53,
+                        "Сумки"
+                      ]
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "label": "Набори",
+                    "subcategories": [
+                      [
+                        61,
+                        "Набір"
+                      ]
+                    ]
+                  }
+                ],
+                "schema": {
+                  "type": "object",
+                  "description": "JSON data for categories and subcategories"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found in the specified location"
+          }
+        }
+      }
+    },
     "/accounts/change_password": {
       "post": {
         "summary": "Change Password",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -777,7 +1118,9 @@
     "/accounts/info": {
       "get": {
         "summary": "Get User Information",
-        "tags": ["Accounts"],
+        "tags": [
+          "Accounts"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -803,7 +1146,9 @@
     "/products/shop_products": {
       "get": {
         "summary": "Get Shop Products Information",
-        "tags": ["Shop"],
+        "tags": [
+          "Shop"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -829,28 +1174,12 @@
         }
       }
     },
-    "/categories/categories": {
-      "get": {
-        "summary": "Get Shop Information",
-        "tags": ["Categories"],
-        "responses": {
-          "200": {
-            "description": "Categories information",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CategoriesInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/shops/shop_info": {
       "get": {
         "summary": "Get Shop Information",
-        "tags": ["Shop"],
+        "tags": [
+          "Shop"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -876,10 +1205,12 @@
         }
       }
     },
-    "/products/update/{product_id}":{
-      "put":{
+    "/products/update/{product_id}": {
+      "put": {
         "summary": "Update a product",
-        "tags":["Product"],
+        "tags": [
+          "Product"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -930,10 +1261,12 @@
         }
       }
     },
-    "/products/deactivate/{product_id}":{
-      "delete":{
+    "/products/deactivate/{product_id}": {
+      "delete": {
         "summary": "Deactivate a product",
-        "tags":["Product"],
+        "tags": [
+          "Product"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -973,10 +1306,12 @@
         }
       }
     },
-    "/products/product":{
-      "post":{
+    "/products/product": {
+      "post": {
         "summary": "Create a product",
-        "tags":["Product"],
+        "tags": [
+          "Product"
+        ],
         "security": [
           {
             "BearerAuth": []
@@ -1036,7 +1371,11 @@
             "minLength": 8
           }
         },
-        "required": ["email", "full_name", "password"]
+        "required": [
+          "email",
+          "full_name",
+          "password"
+        ]
       },
       "CreateUpdateShopSchema": {
         "type": "object",
@@ -1057,7 +1396,12 @@
             "type": "string"
           }
         },
-        "required": ["owner_id", "name", "description", "phone_number"]
+        "required": [
+          "owner_id",
+          "name",
+          "description",
+          "phone_number"
+        ]
       },
       "CreateUpdateDelivery": {
         "type": "object",
@@ -1087,7 +1431,10 @@
             "type": "string"
           }
         },
-        "required": ["email", "password"]
+        "required": [
+          "email",
+          "password"
+        ]
       },
       "PhoneChangeSchema": {
         "type": "object",
@@ -1096,7 +1443,9 @@
             "type": "string"
           }
         },
-        "required": ["phone_number"]
+        "required": [
+          "phone_number"
+        ]
       },
       "FullNameChangeSchema": {
         "type": "object",
@@ -1107,7 +1456,9 @@
             "maxLength": 50
           }
         },
-        "required": ["full_name"]
+        "required": [
+          "full_name"
+        ]
       },
       "ProfilePhotoUploadSchema": {
         "type": "object",
@@ -1117,7 +1468,9 @@
             "format": "binary"
           }
         },
-        "required": ["image"]
+        "required": [
+          "image"
+        ]
       },
       "ShopPhotoUploadSchema": {
         "type": "object",
@@ -1127,7 +1480,9 @@
             "format": "binary"
           }
         },
-        "required": ["image"]
+        "required": [
+          "image"
+        ]
       },
       "ShopBannerUploadSchema": {
         "type": "object",
@@ -1137,7 +1492,9 @@
             "format": "binary"
           }
         },
-        "required": ["image"]
+        "required": [
+          "image"
+        ]
       },
       "ProductPhotoSchema": {
         "type": "object",
@@ -1150,7 +1507,10 @@
             "type": "boolean"
           }
         },
-        "required": ["image", "main"]
+        "required": [
+          "image",
+          "main"
+        ]
       },
       "PasswordChangeSchema": {
         "type": "object",
@@ -1163,7 +1523,10 @@
             "minLength": 8
           }
         },
-        "required": ["current_password", "new_password"]
+        "required": [
+          "current_password",
+          "new_password"
+        ]
       },
       "User": {
         "type": "object",
@@ -1345,7 +1708,7 @@
             "format": "date-time"
           }
         }
-      },      
+      },
       "UserInfoResponse": {
         "type": "object",
         "properties": {
@@ -1445,9 +1808,15 @@
             "type": "boolean"
           }
         },
-        "required": ["category_id", "sub_category_name", "product_name", "details", "photos"]
+        "required": [
+          "category_id",
+          "sub_category_name",
+          "product_name",
+          "details",
+          "photos"
+        ]
       },
-      "ProductUpdateSchema":{
+      "ProductUpdateSchema": {
         "type": "object",
         "properties": {
           "product_name": {
@@ -1507,10 +1876,16 @@
           "is_unique": {
             "type": "boolean"
           }
-          }
-        },
-        "required": ["category_id", "sub_category_name", "product_name", "details", "photos"]
+        }
       },
+      "required": [
+        "category_id",
+        "sub_category_name",
+        "product_name",
+        "details",
+        "photos"
+      ]
+    },
     "securitySchemes": {
       "BearerAuth": {
         "type": "apiKey",
