@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  backend: 
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile-arm
+    env_file:
+      - ../.env
+    container_name: tc-backend
+    ports: 
+      - '8080:8080'
+    restart: on-failure
