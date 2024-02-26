@@ -25,13 +25,18 @@ prospector:
 
 ## Docker commmands
 up:
-	docker-compose -f docker/docker-compose.yaml up
-
-build-up:
-	docker-compose -f docker/docker-compose.yaml up --build 
+ifeq ($(uname -m),x86_64)
+	docker-compose -f docker/docker-compose.yaml up --build
+else
+	docker-compose -f docker/docker-compose-arm.yaml up --build
+endif
 
 down:
+ifeq ($(uname -m),x86_64)
 	docker-compose -f docker/docker-compose.yaml down --remove-orphans
+else
+	docker-compose -f docker/docker-compose-arm.yaml down --remove-orphans
+endif
 
 ## Docker commans on deployment server
 deploy-up:
