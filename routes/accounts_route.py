@@ -1,7 +1,6 @@
 import os
 import uuid
 
-from google_auth_oauthlib.flow import Flow
 from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import timedelta
 from models.models import User, Security, full_name_validation, phone_validation, DeliveryUserInfo
@@ -10,8 +9,7 @@ from models.schemas import (UserSchema,
                             SignupUserSchema,
                             FullNameChangeSchema,
                             PasswordChangeSchema,
-                            UserDeliveryInfoSchema,
-                            GoogleAuthSchema)
+                            UserDeliveryInfoSchema)
 from werkzeug.security import check_password_hash, generate_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
@@ -79,37 +77,41 @@ def signup() -> Response:
 
     return make_response(jsonify(response), 200)
 
+
 @accounts_route.route("/authorize", methods=["POST"])
 def authorize() -> Response:
+    request_data = request.get_json(silent=True)
+    if request_data and request_data.get("id_token"):
+        g_code = request_data.get("id_token")
+        flow = Config.FLOW
+        try:
+            flow.fetch_token(code=g_code)
+        except Exception as ex:
+            print(ex)
+            return make_response(
+                {"message": "Wrong id_token. Make sure that token is not expired"}, 400)
 
-    google_auth_data = GoogleAuthSchema().load(request.get_json(silent=True))
-    flow = Flow.from_client_secrets_file(
-        './client_secret.json',
-        scopes=['https://www.googleapis.com/auth/userinfo.email',
-                'https://www.googleapis.com/auth/userinfo.profile',
-                'openid'],
-    redirect_uri='http://localhost:8000')
-    flow.authorization_url(prompt='consent')
-    flow.fetch_token(code=google_auth_data['id_token'])
+        auth_session = flow.authorized_session()
+        profile_info = auth_session.get('https://www.googleapis.com/userinfo/v2/me').json()
 
-    session = flow.authorized_session()
-    profile_info = session.get('https://www.googleapis.com/userinfo/v2/me').json()
+        email = profile_info['email']
+        name = profile_info['name']
 
-    email = profile_info['email']
-    name = profile_info['name']
-
-    user = User.query.filter_by(email=email).first()
-    if user is None:
-        user_to_add = User(email, name)
-        db.session.add(user_to_add)
-        db.session.commit()
         user = User.query.filter_by(email=email).first()
+        if user is None:
+            user_to_add = User(email, name)
+            db.session.add(user_to_add)
+            db.session.commit()
+            user = User.query.filter_by(email=email).first()
 
-    access_token = create_access_token(identity=user.id, fresh=True)
-    refresh_token = create_refresh_token(user.id)
+        access_token = create_access_token(identity=user.id, fresh=True)
+        refresh_token = create_refresh_token(user.id)
 
-    response = {"access_token": access_token, "refresh_token": refresh_token}
-    return make_response(response, 200)
+        response = {"access_token": access_token, "refresh_token": refresh_token}
+        return make_response(response, 200)
+    return make_response({"message": "You should provide id_token"}, 400)
+
+
 
 @accounts_route.route("/signin", methods=["POST"])
 def signin() -> Response:

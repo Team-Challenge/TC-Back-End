@@ -3,7 +3,7 @@ import os
 import sys
 
 from dotenv import load_dotenv
-
+from google_auth_oauthlib.flow import Flow
 
 load_dotenv()
 basedir = os.path.abspath('.')
@@ -26,6 +26,29 @@ class Config:
         if __jwt_access_token_expires
         else None
     )
+
+    FLOW = Flow.from_client_config({'web': {
+        'client_id': os.getenv("GOOGLE_CLIENT_ID"),
+        'project_id': os.getenv("GOOGLE_PROJECT_ID"),
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        'client_secret': os.getenv("GOOGLE_CLIENT_SECRET"),
+        'javascript_origins': [
+            "http://localhost:8000",
+            "https://fe-marketplace-nvlri.ondigitalocean.app",
+            "http://localhost:8080",
+            "http://127.0.0.1:8080",
+            "https://api.dorechi.store"
+        ]}},
+        scopes=[
+                "https://www.googleapis.com/auth/userinfo.profile",
+                "https://www.googleapis.com/auth/userinfo.email",
+                "openid",
+            ],
+        redirect_uri='http://localhost:8000'
+        )
+
 
 class TestConfig:
     TESTING = True
