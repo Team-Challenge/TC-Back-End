@@ -86,7 +86,7 @@ def authorize() -> Response:
         flow = Config.FLOW
         try:
             flow.fetch_token(code=g_code)
-        except Exception as ex:
+        except Exception:
             return make_response(
                 {"message": "Wrong id_token. Make sure that token is not expired"}, 400)
 
