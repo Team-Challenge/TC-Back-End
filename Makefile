@@ -1,5 +1,7 @@
 include .env
 
+UNAME_M := $(shell uname -m)
+
 ## Local installation commands
 install:
 	pip install -r requirements/requirements.txt
@@ -25,17 +27,21 @@ prospector:
 
 ## Docker commmands
 up:
-ifeq ($(uname -m),x86_64)
+ifeq ($(UNAME_M),x86_64)
 	docker-compose -f docker/docker-compose.yaml up --build
-else
+else ifeq ($(UNAME_M),arm64)
 	docker-compose -f docker/docker-compose-arm.yaml up --build
+else
+	echo "$(UNAME_M) is not supported"
 endif
 
 down:
-ifeq ($(uname -m),x86_64)
+ifeq ($(UNAME_M),x86_64)
 	docker-compose -f docker/docker-compose.yaml down --remove-orphans
-else
+else ifeq ($(UNAME_M),arm64)
 	docker-compose -f docker/docker-compose-arm.yaml down --remove-orphans
+else
+	echo "$(UNAME_M) is not supported"
 endif
 
 ## Docker commans on deployment server
