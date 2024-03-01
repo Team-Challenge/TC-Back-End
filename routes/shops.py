@@ -3,7 +3,6 @@ from flask import (Blueprint, current_app, jsonify, make_response, request,
                    url_for)
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required
-from marshmallow.exceptions import ValidationError
 from pydantic import ValidationError
 
 from models.accounts import User
@@ -33,7 +32,7 @@ def create_shops():
             return jsonify({"error": str(e)}), 400
         return jsonify({'message': 'Shop updated successfully'}), 200
         
-    else:
+    if not existing_shop or existing_shop is None:
         try:
             create_shop_data = ShopCreateValid(owner_id=user.id, **request_data).model_dump()
             Shop.create_shop(**create_shop_data)

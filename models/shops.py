@@ -47,15 +47,15 @@ class Shop(db.Model):
         db.session.commit()
         return new_shop
 
-    def update_shop_details(self, owner_id=None, name=None, description=None, phone_number=None, link=None):
-        if name:
-            self.name = name
-        if description:
-            self.description = description
-        if phone_number:
-            self.phone_number = phone_number
-        if link:
-            self.link = link
+    def update_shop_details(self, **data):
+        if data['name']:
+            self.name = data['name']
+        if data['description']:
+            self.description = data['description']
+        if data['phone_number']:
+            self.phone_number = data['phone_number']
+        if data['link']:
+            self.link = data['link']
         db.session.commit()
 
     def add_photo(self, photo):

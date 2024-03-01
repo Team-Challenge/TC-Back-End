@@ -16,7 +16,7 @@ from config import Config
 from dependencies import cache, db, jwt
 from models.accounts import DeliveryUserInfo, Security, User
 from validation.accounts import (ChangePasswordSchema, DeliveryPostValid,
-                                 FullNameValid, GoogleAuthValid, PasswordValid,
+                                 FullNameValid, GoogleAuthValid,
                                  PhoneNumberValid, SigninValid, SignupValid,
                                  UserSchema)
 
@@ -27,20 +27,6 @@ GOOGLE_CLIENT_SECRETS_FILE = os.path.join(Config.MEDIA_PATH, 'google', 'client_s
 accounts = Blueprint("accounts", __name__, url_prefix="/accounts")
 
 CORS(accounts, supports_credentials=True)
-
-
-def handle_validation_error(ex: ValidationError):
-    errors = dict()
-    if "password" in str(ex):
-        errors["password"] = ("The password must contain at "
-                              "least one capital letter and at least 8 characters")
-    if "email" in str(ex):
-        errors["email"] = "Invalid email format"
-    if "full_name" in str(ex):
-        errors["full_name"] = "Invalid full name"
-    if not errors:
-        errors["fields"] = f"All fields should be filled. \n{str(ex)}"
-    return make_response({"validation_error": errors}, 400)
 
 
 @jwt.token_in_blocklist_loader
@@ -61,8 +47,8 @@ def signup() -> Response:
 
     try:
         user_data = SignupValid(**request_data)
-    except ValidationError as ex:
-        return handle_validation_error(ex)
+    except ValidationError as e:
+        return jsonify({"Error": str(e)}), 400
 
     user_to_add = User(user_data.email, user_data.full_name)
     security_to_add = Security(generate_password_hash(user_data.password))
@@ -130,8 +116,8 @@ def signin() -> Response:
 
     try:
         user_data = SigninValid(**request_data)
-    except ValidationError as ex:
-        return handle_validation_error(ex)
+    except ValidationError as e:
+        return jsonify({'error': str(e)}), 400
 
     user = User.query.filter_by(email=user_data.email).first()
     if user is None or not check_password_hash(

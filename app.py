@@ -7,7 +7,6 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 from config import Config
 from dependencies import cache, db, jwt, ma, migrate, registry
-from models import accounts, categories, orders, products, shops
 from routes.accounts import accounts
 from routes.categories import categories
 from routes.orders import orders

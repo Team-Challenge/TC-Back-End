@@ -2,7 +2,8 @@
 # 1.Розбити файл по моделям (по логічним блокам users.py, products.py ...)
 # 2. Переглянути роути і так само розбити/об'єднати їх по логіці використання
 # 3. Перейменувати файли в каталозі routes (прибрати дефіз)
-# 4. Очитстити файл shemas і описати заново моделі використовуючи paydantic і його можливості валідації
+# 4. Очитстити файл shemas і описати заново моделі використовуючи paydantic і його можливості 
+# валідації
 # 5. Створити каталог validation і створити файли по логічним блокам для paydantic
 
 
@@ -86,15 +87,15 @@ class DeliveryUserInfo(db.Model):
         db.session.commit()
         return new_delivery_address
 
-    def update_delivery_info(self,owner_id=None, post=None, city=None, branch_name=None, address=None):
-        if post:
-            self.post = post
-        if city:
-            self.city = city
-        if branch_name:
-            self.branch_name = branch_name
-        if address:
-            self.address = address
+    def update_delivery_info(self,**data):
+        if data['post']:
+            self.post = data['post']
+        if data['city']:
+            self.city = data['city']
+        if data['branch_name']:
+            self.branch_name = data['branch_name']
+        if data['address']:
+            self.address = data['address']
         db.session.commit()
 
     def remove_delivery_info(self):

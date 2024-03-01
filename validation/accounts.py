@@ -4,8 +4,6 @@ from typing import Optional
 
 from pydantic import BaseModel, validator
 
-from models.accounts import User
-
 
 class DeliveryPostEnum(str, Enum):
     nova_post = 'nova_post'
@@ -19,7 +17,7 @@ class PasswordValid(BaseModel):
     def password_validator(value: str) -> str:
         regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
         if not re.match(regex, value):
-            raise ValueError('The password must contain at least one capital letter and at least 8 characters')
+            raise ValueError('The password must contain at least one capital letter 8 characters')
         return value
 
 class SigninValid(PasswordValid):    
@@ -31,14 +29,6 @@ class SigninValid(PasswordValid):
         regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
         if not re.match(regex, value):
             raise ValueError('Invalid email format')
-        return value
-    
-    @validator('password')
-    @staticmethod
-    def password_validator(value: str) -> str:
-        regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
-        if not re.match(regex, value):
-            raise ValueError('The password must contain at least one capital letter and at least 8 characters')
         return value
 
 class FullNameValid(BaseModel):
@@ -90,4 +80,3 @@ class UserSchema(BaseModel):
 class ChangePasswordSchema(BaseModel):
     current_password: str
     new_password: str
-
