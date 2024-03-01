@@ -2,7 +2,7 @@ import os.path
 
 from flask import json
 
-from models.models import Categories
+from models.categories import Categories
 from tests import status
 from tests.conftest import orint, authorize, get_payload, BASE_DIR
 

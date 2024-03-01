@@ -24,6 +24,7 @@ def get_payload():
     }
     return payload
 
+
 def authorize(client, refresh=False):
     valid_signup_data = get_payload()
     client.post('/accounts/signup', data=json.dumps(valid_signup_data),

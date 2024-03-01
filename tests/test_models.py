@@ -1,4 +1,5 @@
-from models.models import User, Shop
+from models.accounts import User
+from models.shops import Shop
 
 
 def create_test_user(session):

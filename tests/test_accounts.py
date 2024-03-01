@@ -17,7 +17,7 @@ def test_empty_email_signup_error(client, session):
 
     # If email errors exists in response
     json_data = response.get_json()
-    assert json_data.get("email")
+    assert "email" in json_data.get("validation_error")
 
 
 def test_invalid_password_signup_error(client, session):
@@ -34,7 +34,7 @@ def test_invalid_password_signup_error(client, session):
 
     # If password errors exists in response
     json_data = response.get_json()
-    assert json_data.get("password")
+    assert "password" in json_data.get("validation_error")
 
 
 def test_empty_password_signup_error(client, session):
@@ -51,7 +51,7 @@ def test_empty_password_signup_error(client, session):
 
     # If password errors exists in response
     json_data = response.get_json()
-    assert json_data.get("password")
+    assert "password" in json_data.get("validation_error")
 
 
 def test_invalid_empty_full_name_signup_error(client, session):
@@ -68,7 +68,7 @@ def test_invalid_empty_full_name_signup_error(client, session):
 
     # If full_name error exists in response
     json_data = response.get_json()
-    assert json_data.get("full_name")
+    assert "full_name" in json_data.get("validation_error")
 
 
 def test_empty_payload_error(client, session):
@@ -119,7 +119,7 @@ def test_update_user_data_success(client, session):
                            content_type='application/json', headers=headers)
     assert response.status_code == status.HTTP_200_OK
 
-    response = client.get("/accounts/profile_photo", content_type='application/json', headers=headers)
+    # response = client.get("/accounts/profile_photo", content_type='application/json', headers=headers)
 
 
 def test_update_user_full_name_success(client, session):
@@ -189,6 +189,19 @@ def test_token_refresh(client, session):
     assert response.get_json().get("refresh_token")
 
 
+def test_unique_email_error(client, session):
+    """Test to ensure that user cannot create multiple accounts using the same email"""
+    valid_signup_data = get_payload()
+
+    response_1 = client.post('/accounts/signup', data=json.dumps(valid_signup_data),
+                             content_type='application/json')
+    assert response_1.status_code == status.HTTP_200_OK
+
+    response_2 = client.post('/accounts/signup', data=json.dumps(valid_signup_data),
+                             content_type='application/json')
+    assert response_2.status_code != status.HTTP_200_OK
+
+
 # # # Empty request tests
 def test_empty_request_signup(client):
     """Test sending empty request returns unauthorized"""
@@ -217,7 +230,7 @@ def test_empty_request_change_phone_number(client):
 def test_empty_requests_change_phone_number_authorized(client):
     """Test sending empty request when authorized"""
     response = client.post()
-
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 def test_empty_request_change_full_name(client):
@@ -248,4 +261,3 @@ def test_empty_request_delete_profile_photo(client):
     """Test sending empty request returns unauthorized"""
     response = client.delete("/accounts/profile_photo", data=json.dumps({}))
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-

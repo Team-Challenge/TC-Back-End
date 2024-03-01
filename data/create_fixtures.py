@@ -2,7 +2,9 @@
 
 import json
 import logging
+import os.path
 import sys
+from pathlib import Path
 
 sys.path.append('.')
 
@@ -14,6 +16,8 @@ from models.categories import Categories
 from models.patterns import SubCategoryEnumDict, get_subcategory
 from models.products import Product
 from models.shops import Shop
+
+cur_dir = Path(__file__).resolve().parent
 
 
 def create_fixtures():
@@ -35,11 +39,11 @@ def create_fixtures():
 
 def create_fixture_t(db=db):
     # Load users data from JSON file
-    with open("data/users_fixture.json") as users_f:
+    with open(os.path.join(cur_dir, "users_fixture.json")) as users_f:
         users = json.loads(users_f.read())
 
     # Load categories data from JSON file
-    with open("static/categories/categories.json", encoding="utf-8") as categories_f:
+    with open(os.path.join(cur_dir.parent, "static/categories/categories.json"), encoding="utf-8") as categories_f:
         categories = json.loads(categories_f.read())
 
     user_records = []
