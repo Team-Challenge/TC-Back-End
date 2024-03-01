@@ -28,6 +28,21 @@ accounts = Blueprint("accounts", __name__, url_prefix="/accounts")
 
 CORS(accounts, supports_credentials=True)
 
+
+def handle_validation_error(ex: ValidationError):
+    errors = dict()
+    if "password" in str(ex):
+        errors["password"] = ("The password must contain at "
+                              "least one capital letter and at least 8 characters")
+    if "email" in str(ex):
+        errors["email"] = "Invalid email format"
+    if "full_name" in str(ex):
+        errors["full_name"] = "Invalid full name"
+    if not errors:
+        errors["fields"] = f"All fields should be filled. \n{str(ex)}"
+    return make_response({"validation_error": errors}, 400)
+
+
 @jwt.token_in_blocklist_loader
 def check_if_token_is_revoked(jwt_header, jwt_payload: dict):  # pylint: disable=unused-argument
     jti = jwt_payload["jti"]
@@ -36,7 +51,7 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):  # pylint: disable
 
 @accounts.route("/signup", methods=["POST"])
 def signup() -> Response:
-    
+
     request_data = request.get_json(silent=True)
 
     if not request_data or "email" not in request_data \
@@ -46,8 +61,8 @@ def signup() -> Response:
 
     try:
         user_data = SignupValid(**request_data)
-    except ValidationError as e:
-        return jsonify({"error": str(e)}), 400
+    except ValidationError as ex:
+        return handle_validation_error(ex)
 
     user_to_add = User(user_data.email, user_data.full_name)
     security_to_add = Security(generate_password_hash(user_data.password))
@@ -113,8 +128,11 @@ def signin() -> Response:
     if not request_data or "email" not in request_data or "password" not in request_data:
         abort(400, "Incomplete data. Please provide email and password.")
 
+    try:
+        user_data = SigninValid(**request_data)
+    except ValidationError as ex:
+        return handle_validation_error(ex)
 
-    user_data = SigninValid(**request_data)
     user = User.query.filter_by(email=user_data.email).first()
     if user is None or not check_password_hash(
         Security.query.filter_by(user_id=user.id).first().password_hash,
@@ -183,7 +201,7 @@ def change_phone_number():
             return jsonify({'message': 'Phone number updated successfully'}), 200
         except ValueError as e:
             return jsonify({'error': str(e)}), 400
-    return jsonify({'error': 'User not found'}), 404 
+    return jsonify({'error': 'User not found'}), 404
 
 @accounts.route('/change_full_name', methods=['POST'])
 @jwt_required()
@@ -207,14 +225,14 @@ def change_full_name():
         user.full_name = full_name
         db.session.commit()
         return jsonify({'message': 'Full name updated successfully'}), 200
-    
+
     return jsonify({'error': 'User not found'}), 404
 
 @accounts.route("/info", methods=["GET"])
 @jwt_required()
 def user_info():
     user = User.query.filter_by(id=get_jwt_identity()).first()
-    
+
     user_info = {
         "phone_number": user.phone_number,
         "full_name": user.full_name,
@@ -278,7 +296,7 @@ def profile_photo():
 @jwt_required()
 def change_password():
     current_user_id = get_jwt_identity()
-    
+
     data = request.get_json()
     user = User.query.filter_by(id=current_user_id).first()
     security = Security.query.filter_by(user_id=current_user_id).first()
@@ -290,7 +308,7 @@ def change_password():
             return jsonify({'error': str(e)}), 400
 
         if check_password_hash(security.password_hash, schema.current_password):
-            
+
             hashed_password = generate_password_hash(schema.new_password)
             security.password_hash = hashed_password
             db.session.commit()
