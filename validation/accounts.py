@@ -1,16 +1,29 @@
 import re
 from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel, validator
+
+from models.accounts import User
 
 
 class DeliveryPostEnum(str, Enum):
     nova_post = 'nova_post'
     ukr_post = 'ukr_post'
 
-class SigninValid(BaseModel):
+class PasswordValid(BaseModel):
+    password: str
+
+    @validator('password')
+    @staticmethod
+    def password_validator(value: str) -> str:
+        regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
+        if not re.match(regex, value):
+            raise ValueError('The password must contain at least one capital letter and at least 8 characters')
+        return value
+
+class SigninValid(PasswordValid):    
     email:str
-    password:str
 
     @validator('email')
     @staticmethod
@@ -39,17 +52,8 @@ class FullNameValid(BaseModel):
             raise ValueError('Invalid characters in the field full_name')
         return value
     
-
-class SignupValid(SigninValid, FullNameValid):
-
-    @classmethod
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-
-        cls.__annotations__.update(SigninValid.__annotations__)
-        cls.__annotations__.update(FullNameValid.__annotations__)
-        cls.__validators__.update(SigninValid.__validators__)
-        cls.__validators__.update(FullNameValid.__validators__)
+class SignupValid(SigninValid, FullNameValid, PasswordValid):
+    pass
 
 class PhoneNumberValid(BaseModel):
     phone_number:str
@@ -64,8 +68,26 @@ class PhoneNumberValid(BaseModel):
     
 
 class DeliveryPostValid(BaseModel):
+    owner_id: int
     post: DeliveryPostEnum
     city: str
     branch_name: str
     address: str
+
+class GoogleAuthValid(BaseModel):
+    id_token: str
+
+class UserSchema(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    profile_picture: Optional[str] = None
+    phone_number: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class ChangePasswordSchema(BaseModel):
+    current_password: str
+    new_password: str
 

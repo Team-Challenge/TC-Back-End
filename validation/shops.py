@@ -2,9 +2,13 @@ import re
 from typing import Optional
 
 from pydantic import BaseModel, validator
+from sqlalchemy import func
+
+from models.shops import Shop
 
 
-class ShopNameValid(BaseModel):
+class ShopCreateValid(BaseModel):
+    owner_id: int
     name: str
     description: Optional[str]
     phone_number: str
@@ -26,8 +30,11 @@ class ShopNameValid(BaseModel):
             regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії0-9'.,;\- ]+$"
             if not re.match(regex, value) or len(value)>50:
                 raise ValueError('Invalid shop name format')
+            existing_shop = Shop.query.filter(func.lower(Shop.name) == value.lower()).first()
+            if existing_shop:
+                raise ValueError('Shop with this name already exists')     
         return value
-    
+
     @validator('description')
     @staticmethod
     def shop_description_validator(value: str) -> str:
@@ -36,5 +43,27 @@ class ShopNameValid(BaseModel):
             if not re.match(regex, value) or len(value)>500:
                 raise ValueError('Invalid product_detail format')
         return value
+    
 
+class ShopUpdateValid(ShopCreateValid):
+    owner_id: Optional[int] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    phone_number: Optional[str] = None
+    link: Optional[str] = None
+
+
+
+class ShopSchema(BaseModel):
+    id: int
+    owner_id: int
+    name: str
+    description: Optional[str] = None
+    photo_shop: Optional[str] = None
+    banner_shop: Optional[str] = None
+    phone_number: str
+    link: Optional[str] = None
+
+    class Config:
+        from_attributes = True
     

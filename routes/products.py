@@ -7,6 +7,9 @@ from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 
 from dependencies import db
+from models.accounts import User
+from models.products import Product, ProductDetail, ProductPhoto
+from models.shops import Shop
 from validation.products import (DetailValid,
                                  check_sub_category_belongs_to_category)
 
@@ -87,7 +90,7 @@ def add_product_photo(product_id):
         raw_value = request.form.get('main', '').lower()
         main_photo = raw_value == 'true'
         photo = request.files['image']
-        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
         if '.' in photo.filename and photo.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
             ProductPhoto.add_product_photo(product_detail.id, photo, main_photo)
             return jsonify({"message": "Photo product uploaded successfully"}), 200

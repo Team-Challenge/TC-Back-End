@@ -9,7 +9,9 @@ from sqlalchemy.exc import OperationalError
 from werkzeug.exceptions import NotFound
 
 from dependencies import db
+from models.categories import Categories
 from models.patterns import SubCategoryDict
+from models.products import Product
 
 categories = Blueprint("categories", __name__, url_prefix="/categories")
 CORS(categories, supports_credentials=True)
@@ -29,7 +31,8 @@ def get_static_categories():
         error_message = {'error': f"{ex}"}
         return make_response(jsonify(error_message), 404)
 
-
+# TODO 
+# не юзабельний -> видалити
 @categories.route('/categories_detail', methods=['GET'])
 def get_dynamic_categories():
     try:

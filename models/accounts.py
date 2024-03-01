@@ -1,4 +1,14 @@
+# TODO
+# 1.Розбити файл по моделям (по логічним блокам users.py, products.py ...)
+# 2. Переглянути роути і так само розбити/об'єднати їх по логіці використання
+# 3. Перейменувати файли в каталозі routes (прибрати дефіз)
+# 4. Очитстити файл shemas і описати заново моделі використовуючи paydantic і його можливості валідації
+# 5. Створити каталог validation і створити файли по логічним блокам для paydantic
 
+
+# 6. Пройтись по одному роуту, перглянути, що можна винести в методи моделей
+# 7. Покрити тестами нові методи моделей
+# 8. Пошукати код який повторюється і винести  в окрему функцію у файл helpers або utils
 from datetime import datetime
 from typing import List
 
@@ -7,8 +17,6 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from dependencies import db
-from models.products import ProductComment
-from models.shops import Shop
 
 
 class User(db.Model):
@@ -25,7 +33,7 @@ class User(db.Model):
     shops: Mapped["Shop"] = relationship("Shop", back_populates="owner")
     delivery_user_info: Mapped[List["DeliveryUserInfo"]] = relationship("DeliveryUserInfo",
                                                                         back_populates="owner")
-    comment: Mapped[List["ProductComment"]] = relationship("ProductComment",
+    comment: Mapped[List["ProductComment"]] = relationship("models.products.ProductComment",
                                                            back_populates="user_comment")
 
     def __init__(self, email, full_name):
@@ -78,7 +86,7 @@ class DeliveryUserInfo(db.Model):
         db.session.commit()
         return new_delivery_address
 
-    def update_delivery_info(self, post=None, city=None, branch_name=None, address=None):
+    def update_delivery_info(self,owner_id=None, post=None, city=None, branch_name=None, address=None):
         if post:
             self.post = post
         if city:

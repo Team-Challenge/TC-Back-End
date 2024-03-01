@@ -9,17 +9,22 @@ from flask_jwt_extended import (create_access_token, create_refresh_token,
                                 get_jwt, get_jwt_identity, jwt_required)
 from google_auth_oauthlib.flow import Flow
 from itsdangerous import URLSafeTimedSerializer
-from marshmallow import ValidationError
+from pydantic import ValidationError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from config import Config
 from dependencies import cache, db, jwt
+from models.accounts import DeliveryUserInfo, Security, User
+from validation.accounts import (ChangePasswordSchema, DeliveryPostValid,
+                                 FullNameValid, GoogleAuthValid, PasswordValid,
+                                 PhoneNumberValid, SigninValid, SignupValid,
+                                 UserSchema)
 
 ACCESS_EXPIRES = timedelta(hours=1)
 PROFILE_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'profile')
 PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
 GOOGLE_CLIENT_SECRETS_FILE = os.path.join(Config.MEDIA_PATH, 'google', 'client_secret_2.json')
-accounts = Blueprint("accounts_route", __name__, url_prefix="/accounts")
+accounts = Blueprint("accounts", __name__, url_prefix="/accounts")
 
 CORS(accounts, supports_credentials=True)
 
@@ -40,12 +45,12 @@ def signup() -> Response:
         abort(400, "Incomplete data. Please provide email, full_name, and password.")
 
     try:
-        user_data = SignupUserSchema().load(request.get_json(silent=True))
+        user_data = SignupValid(**request_data)
     except ValidationError as e:
-        return make_response(jsonify(e.messages), 400)
+        return jsonify({"error": str(e)}), 400
 
-    user_to_add = User(user_data["email"], user_data["full_name"])
-    security_to_add = Security(generate_password_hash(user_data["password"]))
+    user_to_add = User(user_data.email, user_data.full_name)
+    security_to_add = Security(generate_password_hash(user_data.password))
 
     db.session.add(user_to_add)
     db.session.flush()
@@ -59,18 +64,18 @@ def signup() -> Response:
 
     db.session.commit()
 
-    verification_link = url_for('accounts_route.verify_email',
+    verification_link = url_for('accounts.verify_email',
                     token=verification_token, _external=True)
-    user_schema = UserSchema(exclude=["id", "joined_at", "is_active"])
+    user_schema = UserSchema(id=user_to_add.id, **user_data.model_dump())
 
-    response = {"user": user_schema.dump(user_to_add), "link": verification_link}
+    response = {"user": user_schema.model_dump(), "link": verification_link}
 
     return make_response(jsonify(response), 200)
 
 @accounts.route("/authorize", methods=["POST"])
 def authorize() -> Response:
 
-    google_auth_data = GoogleAuthSchema().load(request.get_json(silent=True))
+    google_auth_data = GoogleAuthValid().load(request.get_json(silent=True))
     flow = Flow.from_client_secrets_file(
         GOOGLE_CLIENT_SECRETS_FILE,
         scopes=['https://www.googleapis.com/auth/userinfo.email',
@@ -109,15 +114,13 @@ def signin() -> Response:
         abort(400, "Incomplete data. Please provide email and password.")
 
 
-    user_data = SigninUserSchema().load(request.get_json(silent=True))
-
-    user = User.query.filter_by(email=user_data["email"]).first()
-
+    user_data = SigninValid(**request_data)
+    user = User.query.filter_by(email=user_data.email).first()
     if user is None or not check_password_hash(
         Security.query.filter_by(user_id=user.id).first().password_hash,
-        user_data["password"],
+        user_data.password,
     ):
-        raise APIAuthError()
+        abort(400, "Incorrect password")
 
     access_token = create_access_token(identity=user.id, fresh=True)
     refresh_token = create_refresh_token(user.id)
@@ -174,7 +177,7 @@ def change_phone_number():
 
     if user:
         try:
-            phone_validation(phone_number)
+            PhoneNumberValid(phone_number=phone_number)
             user.phone_number = phone_number
             db.session.commit()
             return jsonify({'message': 'Phone number updated successfully'}), 200
@@ -191,13 +194,12 @@ def change_full_name():
         return jsonify({'error': 'Incomplete data. Please provide full_name.'}), 400
 
     try:
-        user_data = FullNameChangeSchema().load(request_data)
-        full_name_validation(request_data["full_name"])
+        user_data = FullNameValid(**request_data)
     except ValidationError as e:
         return jsonify({"error": str(e)}), 400
 
     current_user_id = get_jwt_identity()
-    full_name = user_data['full_name']
+    full_name = user_data.full_name
 
     user = User.query.filter_by(id=current_user_id).first()
 
@@ -278,20 +280,18 @@ def change_password():
     current_user_id = get_jwt_identity()
     
     data = request.get_json()
-    current_password = data.get('current_password')
-    new_password = data.get('new_password')
     user = User.query.filter_by(id=current_user_id).first()
     security = Security.query.filter_by(user_id=current_user_id).first()
 
     if user and security:
-        schema = PasswordChangeSchema()
-        errors = schema.validate(data)
-        if errors:
-            return jsonify({'error': errors}), 400
+        try:
+            schema = ChangePasswordSchema(**data)
+        except ValidationError as e:
+            return jsonify({'error': str(e)}), 400
 
-        if check_password_hash(security.password_hash, current_password):
+        if check_password_hash(security.password_hash, schema.current_password):
             
-            hashed_password = generate_password_hash(new_password)
+            hashed_password = generate_password_hash(schema.new_password)
             security.password_hash = hashed_password
             db.session.commit()
             return jsonify({'message': 'Password updated successfully'}), 200
@@ -305,23 +305,20 @@ def manage_delivery_info():
     request_data = request.get_json(silent=True)
     user = User.get_user_id()
     existing_delivery = DeliveryUserInfo.get_delivery_info_by_owner_id(user.id)
-
     if user:
         if request.method == "POST":
+            try:
+                delivery_data = DeliveryPostValid(owner_id=user.id,**request_data).model_dump()
+            except ValidationError as e:
+                return jsonify({'error': str(e) }), 400
             if not existing_delivery:
                 try:
-                    UserDeliveryInfoSchema().load(request_data)
-                    DeliveryUserInfo.add_delivery_info(owner_id=user.id,
-                                    post=request_data.get("post"),
-                                    city=request_data.get("city"),
-                                    branch_name=request_data.get("branch_name"),
-                                    address=request_data.get("address"))
-
+                    DeliveryUserInfo.add_delivery_info(**delivery_data)
                     return jsonify({'message': 'Delivery address created successfully'}), 201
                 except ValueError as e:
                     return jsonify({'error': str(e)}), 400
             else:
-                existing_delivery.update_delivery_info(**request_data)
+                existing_delivery.update_delivery_info(**delivery_data)
                 return jsonify({'message': 'Delivery address updated successfully'}), 200
 
         elif request.method == "DELETE":

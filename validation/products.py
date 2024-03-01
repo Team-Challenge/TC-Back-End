@@ -1,8 +1,10 @@
-from pydantic import BaseModel, validator
-from typing import Optional, Dict
-from enum import Enum
 import re
+from enum import Enum
+from typing import Dict, Optional
+
 from flask import abort
+from pydantic import BaseModel, validator
+
 
 class SubCategoryEnum(str, Enum):
     zakolki = 'Заколки'
@@ -31,7 +33,7 @@ class ProductStatusEnum(str, Enum):
     in_availability = 'В наявності'
     to_order = 'Під замовлення'
     unique_instance = 'В єдиному екземплярі'
-    not_available = 'Немає в наявності'
+    not_available = 'Нема в наявності'
 
 class DeliveryPostEnum(str, Enum):
     nova_post = 'novaPost'
@@ -87,6 +89,10 @@ class UpdateProductValid(BaseModel):
     delivery_post: Optional[Dict[DeliveryPostEnum, bool]] = None  
     method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None 
     is_unique: Optional[bool] = None
+
+class PhotoProductValid(BaseModel):
+    product_photo: str
+    main: bool
 
 def check_sub_category_belongs_to_category(category_id, sub_category_name):
     for category in const_category_list:

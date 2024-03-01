@@ -5,7 +5,6 @@ from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from dependencies import db
-from models.products import Product
 
 
 class Categories(db.Model):

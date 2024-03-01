@@ -4,6 +4,11 @@ from flask import (Blueprint, current_app, jsonify, make_response, request,
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required
 from marshmallow.exceptions import ValidationError
+from pydantic import ValidationError
+
+from models.accounts import User
+from models.shops import Shop
+from validation.shops import ShopCreateValid, ShopSchema, ShopUpdateValid
 
 shops = Blueprint("shops_route", __name__, url_prefix="/shops")
 
@@ -19,46 +24,23 @@ def create_shops():
         return jsonify({'error': 'User not found'}), 404
 
     request_data = request.get_json(silent=True)
-
-    try:
-        ShopSchema().load(request_data)
-    except ValidationError as e:
-        return jsonify({"error": str(e)}), 400
-
     existing_shop = Shop.get_shop_by_owner_id(user.id)
-    if 'name' in request_data:
-        current_shop = Shop.query.filter_by(name=request_data["name"]).first()
-
     if existing_shop:
-        if 'phone_number' in request_data:
-            try:
-                phone_validation(request_data['phone_number'])
-            except ValueError as e:
-                return jsonify({'error': str(e)}), 400
-
-        if 'name' in request_data and current_shop and existing_shop.id != current_shop.id:
-            return jsonify({'error': 'Shop name must be unique.'}), 400
+        try:
+            update_shop_data = ShopUpdateValid(owner_id=user.id, **request_data).model_dump()
+            existing_shop.update_shop_details(**update_shop_data)
+        except ValidationError as e:
+            return jsonify({"error": str(e)}), 400
+        return jsonify({'message': 'Shop updated successfully'}), 200
         
-        existing_shop.update_shop_details(**request_data)
-        return jsonify({'message': 'Shop details updated successfully'}), 200
-        
-    if not request_data or "name" not in request_data or "phone_number" not in request_data:
-        return jsonify({'error': 'Incomplete or empty name or phone. Provide name and phone'}), 401
+    else:
+        try:
+            create_shop_data = ShopCreateValid(owner_id=user.id, **request_data).model_dump()
+            Shop.create_shop(**create_shop_data)
+        except ValidationError as e:
+            return jsonify({"error": str(e)}), 400
 
-    if current_shop:
-        return jsonify({'error': 'Shop name must be unique.'}), 400
-
-    try:
-        phone_validation(request_data['phone_number'])
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-
-    Shop.create_shop(owner_id=user.id, name=request_data['name'],
-                    description=request_data.get("description"),
-                    phone_number=request_data['phone_number'],
-                    link=request_data.get("link"))
-
-    return jsonify({'message': 'Shop created successfully'}), 201
+        return jsonify({'message': 'Shop created successfully'}), 201
 
 @shops.route('/shop_photo', methods=['POST', 'DELETE', 'GET'])
 @jwt_required()
@@ -122,16 +104,24 @@ def get_shop_info():
     shop = Shop.get_shop_by_owner_id(user.id)
 
     if shop:
-        shop_schema = ShopSchema()
-        shop_info = shop_schema.dump(shop)
-        if shop_info["photo_shop"] is not None:
-            shop_info["photo_shop"] = url_for('static',
-                filename=f'media/shops/{shop_info["photo_shop"]}', _external=True)
+        shop_schema = ShopSchema(
+            id=shop.id,
+            owner_id=shop.owner_id,
+            name=shop.name,
+            description=shop.description,
+            photo_shop=shop.photo_shop,
+            banner_shop=shop.banner_shop,
+            phone_number=shop.phone_number,
+            link=shop.link
+        )
+        if shop_schema.photo_shop is not None:
+            shop_schema.photo_shop = url_for('static',
+                filename=f'media/shops/{shop_schema.photo_shop}', _external=True)
 
-        if shop_info["banner_shop"] is not None:
-            shop_info["banner_shop"] = url_for('static',
-                filename=f'media/banner_shops/{shop_info["banner_shop"]}', _external=True)
+        if shop_schema.banner_shop is not None:
+            shop_schema.banner_shop = url_for('static',
+                filename=f'media/banner_shops/{shop_schema.banner_shop}', _external=True)
         
-        return jsonify(shop_info), 200
+        return jsonify(shop_schema.model_dump()), 200
 
     return make_response('There is no store by user', 404)

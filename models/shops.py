@@ -6,8 +6,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from config import Config
 from dependencies import db
-from models.accounts import User
-from models.products import Product
 
 SHOPS_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'shops')
 SHOPS_BANNER_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'banner_shops')
@@ -49,7 +47,7 @@ class Shop(db.Model):
         db.session.commit()
         return new_shop
 
-    def update_shop_details(self, name=None, description=None, phone_number=None, link=None):
+    def update_shop_details(self, owner_id=None, name=None, description=None, phone_number=None, link=None):
         if name:
             self.name = name
         if description:
