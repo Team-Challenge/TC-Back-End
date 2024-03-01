@@ -36,18 +36,13 @@ class Config:
         'client_secret': os.getenv("GOOGLE_CLIENT_SECRET"),
         'javascript_origins': [
             "http://localhost:8000",
-            "https://fe-marketplace-nvlri.ondigitalocean.app",
             "http://localhost:8080",
-            "http://127.0.0.1:8080",
-            "https://api.dorechi.store"
+            "http://127.0.0.1:8080"
         ]}},
-        scopes=[
-                "https://www.googleapis.com/auth/userinfo.profile",
+        scopes=["https://www.googleapis.com/auth/userinfo.profile",
                 "https://www.googleapis.com/auth/userinfo.email",
-                "openid",
-            ],
-        redirect_uri='http://localhost:8000'
-        )
+                "openid"],
+        redirect_uri='http://localhost:8000')
 
 
 class TestConfig:
