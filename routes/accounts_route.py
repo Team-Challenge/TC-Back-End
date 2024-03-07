@@ -1,29 +1,24 @@
 import os
 import uuid
-
-from flask import jsonify, request, Blueprint, Response, make_response, current_app, url_for, abort
 from datetime import timedelta
-from models.models import User, Security, full_name_validation, phone_validation, DeliveryUserInfo
-from models.schemas import (UserSchema,
-                            SigninUserSchema,
-                            SignupUserSchema,
-                            FullNameChangeSchema,
-                            PasswordChangeSchema,
-                            UserDeliveryInfoSchema)
-from werkzeug.security import check_password_hash, generate_password_hash
+
+from flask import (Blueprint, Response, abort, current_app, jsonify,
+                   make_response, request, url_for)
+from flask_cors import CORS
+from flask_jwt_extended import (create_access_token, create_refresh_token,
+                                get_jwt, get_jwt_identity, jwt_required)
 from itsdangerous import URLSafeTimedSerializer
 from marshmallow import ValidationError
-from flask_cors import CORS
-from routes.error_handlers import APIAuthError
-from dependencies import db, jwt, cache
+from werkzeug.security import check_password_hash, generate_password_hash
+
 from config import Config
-from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
-    get_jwt_identity,
-    get_jwt,
-    jwt_required
-)
+from dependencies import cache, db, jwt
+from models.models import (DeliveryUserInfo, Security, User,
+                           full_name_validation, phone_validation)
+from models.schemas import (FullNameChangeSchema, PasswordChangeSchema,
+                            SigninUserSchema, SignupUserSchema,
+                            UserDeliveryInfoSchema, UserSchema)
+from routes.error_handlers import APIAuthError
 
 ACCESS_EXPIRES = timedelta(hours=1)
 PROFILE_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'profile')
@@ -83,7 +78,7 @@ def authorize() -> Response:
     request_data = request.get_json(silent=True)
     if request_data and request_data.get("id_token"):
         g_code = request_data.get("id_token")
-        flow = Config.FLOW
+        flow = Config.GOOGLE_FLOW
         try:
             flow.fetch_token(code=g_code)
         except Exception:

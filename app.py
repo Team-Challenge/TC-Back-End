@@ -1,20 +1,20 @@
 
 import psutil
-
 from flask import Flask
 from flask_swagger_ui import get_swaggerui_blueprint
-from config import Config
+from prometheus_client import Gauge, make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
-from prometheus_client import make_wsgi_app
-from prometheus_client import Gauge
+
+from config import Config
+from config.config import TestConfig
+from dependencies import cache, db, jwt, ma, migrate, registry
 from routes.accounts_route import accounts_route
-from routes.orders_route import orders_route
-from routes.error_handlers import error_handlers
-from routes.users import users_route
-from routes.shops_route import shops_route
 from routes.categories_route import categories_route
+from routes.error_handlers import error_handlers
+from routes.orders_route import orders_route
 from routes.products_route import products_route
-from dependencies import db, migrate, ma, jwt, cache, registry
+from routes.shops_route import shops_route
+from routes.users import users_route
 
 
 def create_app(config_class=Config) -> Flask:
@@ -57,7 +57,7 @@ def create_app(config_class=Config) -> Flask:
 
     return app
 
-def create_testing_app(config_class=Config) -> Flask:
+def create_testing_app(config_class=TestConfig()) -> Flask:
     app = Flask(__name__, static_folder='static', static_url_path='/static')
     app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
         '/healthcheck': make_wsgi_app(registry=registry)
