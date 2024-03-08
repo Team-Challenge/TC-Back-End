@@ -4,13 +4,21 @@ from typing import Optional
 
 from pydantic import BaseModel, validator
 
+from models.accounts import User
+
 
 class DeliveryPostEnum(str, Enum):
     nova_post = 'nova_post'
     ukr_post = 'ukr_post'
 
-class PasswordValid(BaseModel):
+class SigninValid(BaseModel):    
+    email: str
     password: str
+    
+class SignupValid(BaseModel):
+    full_name:str
+    password: str
+    email:str
 
     @validator('password')
     @staticmethod
@@ -20,30 +28,24 @@ class PasswordValid(BaseModel):
             raise ValueError('The password must contain at least one capital letter 8 characters')
         return value
 
-class SigninValid(PasswordValid):    
-    email:str
-
-    @validator('email')
-    @staticmethod
-    def email_validator(value: str) -> str:
-        regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-        if not re.match(regex, value):
-            raise ValueError('Invalid email format')
-        return value
-
-class FullNameValid(BaseModel):
-    full_name:str
-
     @validator('full_name')
     @staticmethod
     def full_name_validator(value: str) -> str:
-        regex = r"^[a-zA-Zа-яА-ЯґҐєЄіІїЇ'\-]+(?:\s[a-zA-Zа-яА-ЯґҐєЄіІїЇ'\-]+)*$"
+        regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\- ]+$"
         if not re.match(regex, value):
             raise ValueError('Invalid characters in the field full_name')
         return value
     
-class SignupValid(SigninValid, FullNameValid, PasswordValid):
-    pass
+    @validator('email')
+    @staticmethod
+    def email_validator(value: str) -> str:
+        regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        if not re.match(regex, value):
+            raise ValueError('Invalid email format')
+        existing_email = User.query.filter(User.email == value).first()
+        if existing_email:
+            raise ValueError('Email is already exists')     
+        return value
 
 class PhoneNumberValid(BaseModel):
     phone_number:str
@@ -56,9 +58,18 @@ class PhoneNumberValid(BaseModel):
             raise ValueError('Invalid phone number format. Must start with +380 and have 9 digits.')
         return value
     
+class FullNameValid(BaseModel):
+    full_name:str
+
+    @validator('full_name')
+    @staticmethod
+    def full_name_validator(value: str) -> str:
+        regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\- ]+$"
+        if not re.match(regex, value):
+            raise ValueError('Invalid characters in the field full_name')
+        return value    
 
 class DeliveryPostValid(BaseModel):
-    owner_id: int
     post: DeliveryPostEnum
     city: str
     branch_name: str
@@ -80,3 +91,16 @@ class UserSchema(BaseModel):
 class ChangePasswordSchema(BaseModel):
     current_password: str
     new_password: str
+
+class UserInfoSchema(BaseModel):
+    full_name: str
+    email: str
+    profile_picture: Optional[str] = None
+    phone_number: Optional[str] = None
+    post: Optional[str] = None
+    city: Optional[str] = None
+    branch_name: Optional[str] = None
+    address: Optional[str] = None
+
+    class Config:
+        from_attributes = True

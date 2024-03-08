@@ -1,8 +1,6 @@
 
-from typing import List
-
 from sqlalchemy import Integer, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import mapped_column, relationship
 
 from dependencies import db
 
@@ -13,8 +11,7 @@ class Categories(db.Model):
     id = mapped_column(Integer, primary_key=True)
     category_name = mapped_column(String, unique=True)
 
-    products: Mapped[List["Product"]] = relationship(
-        "Product", back_populates="categories")
+    products = relationship("Product", back_populates="categories")
 
     def __init__(self, category_name):
         self.category_name = category_name

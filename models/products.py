@@ -1,13 +1,12 @@
 import os
 import uuid
 from datetime import datetime
-from typing import List
 
 from flask import abort, jsonify
 from marshmallow import ValidationError
 from sqlalchemy import (Boolean, DateTime, Float, ForeignKey, Integer, String,
                         Text)
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import mapped_column, relationship
 
 from config import Config
 from dependencies import db
@@ -38,13 +37,12 @@ class Product(db.Model):
         self.time_added = datetime.utcnow()
         self.time_modifeid = datetime.utcnow()
 
-    categories: Mapped["Categories"] = relationship("Categories",
+    categories = relationship("Categories",
                                                     back_populates="products")
-    product_to_comment: Mapped["ProductComment"] = relationship("ProductComment",
+    product_to_comment = relationship("ProductComment",
                                                                 back_populates="product_comment")
-    owner_shop: Mapped["Shop"] = relationship(
-        "Shop", back_populates="shop_to_products")
-    product_to_detail: Mapped["ProductDetail"] = relationship("ProductDetail",
+    owner_shop = relationship("Shop", back_populates="shop_to_products")
+    product_to_detail = relationship("ProductDetail",
                                                               back_populates="product_detail")
 
     @staticmethod
@@ -82,7 +80,7 @@ class ProductPhoto(db.Model):
     timestamp = mapped_column(DateTime)
     main = mapped_column(Boolean, default=False)
 
-    product_image: Mapped["ProductDetail"] = relationship("ProductDetail",
+    product_image = relationship("ProductDetail",
                                                           back_populates="product_to_photo")
 
     def __init__(self, product_detail_id, product_photo, main):
@@ -139,11 +137,8 @@ class ProductDetail(db.Model):
     method_of_payment = mapped_column(Text, default=None)
     is_unique = mapped_column(Boolean, default=False)
 
-    product_detail: Mapped["Product"] = relationship(
-        "Product", back_populates="product_to_detail")
-    product_to_photo: Mapped[List["ProductPhoto"]] = relationship(
-        "ProductPhoto",
-        back_populates="product_image",
+    product_detail = relationship("Product", back_populates="product_to_detail")
+    product_to_photo = relationship("ProductPhoto",back_populates="product_image",
         lazy="joined",
         uselist=True
     )
@@ -216,10 +211,9 @@ class ProductComment(db.Model):
     time_added = mapped_column(DateTime)
     is_confirmed_purchase = mapped_column(Boolean, default=False)
 
-    product_comment: Mapped["Product"] = relationship("Product",
+    product_comment = relationship("Product",
                                                       back_populates="product_to_comment")
-    user_comment: Mapped["User"] = relationship(
-        "User", back_populates="comment")
+    user_comment = relationship("User", back_populates="comment")
 
     def __init__(self, user_id, product_id, comment, raiting):
         self.user_id = user_id

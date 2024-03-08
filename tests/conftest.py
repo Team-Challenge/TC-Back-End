@@ -1,20 +1,31 @@
+# TODO
+
 # import json
 from pathlib import Path
 
-from flask import json
 import pytest
+from flask import json
 from sqlalchemy.orm import sessionmaker
+
 from app import create_testing_app
-from dependencies import db
 from config.config import TestConfig
-from tests import status
+# TODO
+# в тестах не використовувати сеймпли із папки data
+# можна скопіювати json файли - покласти в парку tests/data
+# в json файли додати не валідні данні(кейси)
+# створити окремі функції в поточному файлі для завантаження тих чи інших тестових сеймплів(з json файлів)
 from data.create_fixtures import create_fixture_t
+from dependencies import db
+from tests import status
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 N = 0
 
 
 def get_payload():
+# TODO
+# забрати глобальну змінну. Використовувати з функції описані вище
     global N
     N += 1
     payload = {

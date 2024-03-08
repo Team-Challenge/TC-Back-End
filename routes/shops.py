@@ -19,9 +19,6 @@ CORS(shops, supports_credentials=True)
 def create_shops():
     user = User.get_user_id()
 
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-
     request_data = request.get_json(silent=True)
     existing_shop = Shop.get_shop_by_owner_id(user.id)
     if existing_shop:
@@ -40,6 +37,7 @@ def create_shops():
             return jsonify({"error": str(e)}), 400
 
         return jsonify({'message': 'Shop created successfully'}), 201
+    return jsonify({'error': 'User not found'}), 404
 
 @shops.route('/shop_photo', methods=['POST', 'DELETE', 'GET'])
 @jwt_required()

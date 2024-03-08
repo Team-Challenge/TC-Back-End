@@ -13,8 +13,7 @@ class ShopCreateValid(BaseModel):
     description: Optional[str]
     phone_number: str
     link: Optional[str]
-    # TODO
-    # Дублювання коду (така сама перевірка здійснюється в accounts)
+    
     @validator('phone_number')
     @staticmethod
     def phone_number_validation(value: str) -> str:
@@ -45,12 +44,40 @@ class ShopCreateValid(BaseModel):
         return value
     
 
-class ShopUpdateValid(ShopCreateValid):
-    owner_id: Optional[int] = None
+class ShopUpdateValid(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     phone_number: Optional[str] = None
     link: Optional[str] = None
+
+    @validator('phone_number')
+    @staticmethod
+    def phone_number_validation(value: str) -> str:
+        regex = r'^\+380\d{9}$'
+        if not re.match(regex, value):
+            raise ValueError('Invalid phone number format. Must start with +380 and have 9 digits.')
+        return value
+    
+    @validator('name')
+    @staticmethod
+    def shop_name_validator(value: str) -> str:
+        if value is not None:
+            regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії0-9'.,;\- ]+$"
+            if not re.match(regex, value) or len(value)>50:
+                raise ValueError('Invalid shop name format')
+            existing_shop = Shop.query.filter(func.lower(Shop.name) == value.lower()).first()
+            if existing_shop:
+                raise ValueError('Shop with this name already exists')     
+        return value
+
+    @validator('description')
+    @staticmethod
+    def shop_description_validator(value: str) -> str:
+        if value is not None:
+            regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії0-9'.,;\- ]+$"
+            if not re.match(regex, value) or len(value)>500:
+                raise ValueError('Invalid product_detail format')
+        return value
 
 
 

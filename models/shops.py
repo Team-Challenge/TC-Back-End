@@ -2,7 +2,7 @@ import os
 import uuid
 
 from sqlalchemy import ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import mapped_column, relationship
 
 from config import Config
 from dependencies import db
@@ -31,9 +31,8 @@ class Shop(db.Model):
         self.phone_number = kwargs.get('phone_number')
         self.link = kwargs.get('link')
 
-    owner: Mapped["User"] = relationship("User", back_populates="shops")
-    shop_to_products: Mapped["Product"] = relationship(
-        "Product", back_populates="owner_shop")
+    owner = relationship("User", back_populates="shops")
+    shop_to_products = relationship("Product", back_populates="owner_shop")
 
     @classmethod
     def get_shop_by_owner_id(cls, owner_id):
