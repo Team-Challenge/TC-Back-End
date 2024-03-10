@@ -116,6 +116,7 @@ class User(db.Model):
             user_full_data['profile_picture'] = profile_picture_path
         user_full_info = {**user_full_data, **delivery_info_data}
         return user_full_info
+    
     @classmethod
     def user_profile_photo_get(cls):
         user = User.get_user_id()

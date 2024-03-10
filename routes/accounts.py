@@ -19,7 +19,6 @@ from validation.accounts import (ChangePasswordSchema, DeliveryPostValid,
 
 ACCESS_EXPIRES = timedelta(hours=1)
 
-PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
 GOOGLE_CLIENT_SECRETS_FILE = os.path.join(Config.MEDIA_PATH, 'google', 'client_secret_2.json')
 accounts = Blueprint("accounts", __name__, url_prefix="/accounts")
 

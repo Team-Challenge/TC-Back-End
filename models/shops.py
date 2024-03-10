@@ -1,11 +1,13 @@
 import os
 import uuid
 
+from flask import url_for
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, relationship
 
 from config import Config
 from dependencies import db
+from utils.utils import serialize
 
 SHOPS_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'shops')
 SHOPS_BANNER_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'banner_shops')
@@ -39,9 +41,8 @@ class Shop(db.Model):
         return cls.query.filter_by(owner_id=owner_id).first()
 
     @classmethod
-    def create_shop(cls, owner_id, name, phone_number, **kwargs):
-        new_shop = cls(owner_id=owner_id, name=name,
-                       phone_number=phone_number, **kwargs)
+    def create_shop(cls, **data):
+        new_shop = cls(**data)
         db.session.add(new_shop)
         db.session.commit()
         return new_shop
@@ -101,3 +102,21 @@ class Shop(db.Model):
             os.remove(file_path)
         self.banner_shop = None
         db.session.commit()
+
+    @classmethod
+    def get_shop_user_info(cls, user_id):
+        shop = Shop.get_shop_by_owner_id(user_id)
+        shop_info = serialize(shop)
+        if shop_info["banner_shop"] is not None:
+
+            banner_shop_path = url_for('static', filename=f'media/'
+                                        f'banner_shops/{shop_info["banner_shop"]}',
+                                        _external=True)
+            shop_info['banner_shop'] = banner_shop_path
+        if shop_info["photo_shop"] is not None:
+
+            photo_shop_path = url_for('static', filename=f'media/'
+                                        f'shops/{shop_info["photo_shop"]}',
+                                        _external=True)
+            shop_info['photo_shop'] = photo_shop_path
+        return shop_info

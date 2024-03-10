@@ -45,6 +45,7 @@ class ShopCreateValid(BaseModel):
     
 
 class ShopUpdateValid(BaseModel):
+    owner_id: int
     name: Optional[str] = None
     description: Optional[str] = None
     phone_number: Optional[str] = None
@@ -60,13 +61,15 @@ class ShopUpdateValid(BaseModel):
     
     @validator('name')
     @staticmethod
-    def shop_name_validator(value: str) -> str:
+    def shop_name_validator(value: str, values) -> str:
+        owner_id = values.get('owner_id')
         if value is not None:
             regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії0-9'.,;\- ]+$"
             if not re.match(regex, value) or len(value)>50:
                 raise ValueError('Invalid shop name format')
             existing_shop = Shop.query.filter(func.lower(Shop.name) == value.lower()).first()
-            if existing_shop:
+            user_shop = Shop.query.filter(Shop.owner_id == owner_id).first()
+            if existing_shop and existing_shop != user_shop:
                 raise ValueError('Shop with this name already exists')     
         return value
 
