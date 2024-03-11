@@ -1,6 +1,5 @@
 import json
 import re
-from datetime import datetime
 from enum import Enum
 from typing import Dict, Optional
 
@@ -124,6 +123,6 @@ def get_subcategory_name(category_id, subcategory_id):
     subcategory_name = subcategories.get(str(subcategory_id))
 
     if subcategory_name is None:
-        raise ValueError('The subcategory with the specified ID does not belong to the specified category')
+        raise ValueError('The subcategory with the specified ID does not belong to the category')
 
     return subcategory_name

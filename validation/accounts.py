@@ -3,7 +3,6 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, validator
-from sqlalchemy import false
 
 from models.accounts import User
 

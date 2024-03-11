@@ -27,7 +27,8 @@ def serialize(obj):
 
 def serialize_product( **data):
     if data.get('product_characteristic') is not None:
-        data['product_characteristic'] = json.dumps(data['product_characteristic'], ensure_ascii=False)
+        data['product_characteristic'] = json.dumps(data['product_characteristic'],
+                                                     ensure_ascii=False)
 
     if data.get('delivery_post') is not None:
         data['delivery_post'] = json.dumps(data['delivery_post'], ensure_ascii=False)

@@ -69,7 +69,8 @@ class Product(db.Model):
     def add_product(cls, **kwargs):
         user = User.get_user_id()
         try:
-            kwargs['sub_category_name'] = get_subcategory_name(kwargs['category_id'], kwargs['sub_category_id'])
+            kwargs['sub_category_name'] = get_subcategory_name(kwargs['category_id'],
+                                                                kwargs['sub_category_id'])
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
         shop = Shop.get_shop_by_owner_id(user.id)
@@ -99,7 +100,7 @@ class Product(db.Model):
             return jsonify({"error": "Product not found"}), 404
         try:
             if not product or product.shop_id != shop.id:
-                    return jsonify({'error': 'Product not found or does not belong to the shop'}), 404
+                return jsonify({'error': 'Product not found or does not belong to the shop'}), 404
             for key, value in kwargs.items():
                 setattr(product, key, value)
             product.time_modified = datetime.utcnow()
@@ -161,6 +162,7 @@ class ProductPhoto(db.Model):
             db.session.add(new_photo)
             db.session.commit()
             return jsonify({"message": "Photo product uploaded successfully"}), 200
+        return jsonify({'error': 'Error'}), 400
 
     @classmethod
     def get_num_photos_by_product_detail_id(cls, product_detail_id):
@@ -231,7 +233,7 @@ class ProductDetail(db.Model):
             setattr(product_detail, key, value)
     
         db.session.commit()
-
+        return product_detail
 
 
 class ProductComment(db.Model):
