@@ -126,3 +126,15 @@ def get_subcategory_name(category_id, subcategory_id):
         raise ValueError('The subcategory with the specified ID does not belong to the category')
 
     return subcategory_name
+
+def get_subcategory_id(subcategory_name):
+    with open('static/categories/categories.json', 'r', encoding='utf-8') as file:
+        data = json.load(file)
+    
+    for category_id, category_data in data.items():
+        subcategories = category_data.get('subcategories', {})
+        for subcategory_id, name in subcategories.items():
+            if name == subcategory_name:
+                return int(subcategory_id)
+
+    raise ValueError('The subcategory with the specified name does not exist')

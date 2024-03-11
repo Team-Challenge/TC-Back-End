@@ -2,6 +2,8 @@ import json
 
 from flask import url_for
 
+from validation.products import get_subcategory_id
+
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -47,7 +49,7 @@ def product_info_serialize(products):
             product_data = {
                     "id": product.id,
                     "category_id": product.category_id,
-                    "sub_category_name": product.sub_category_name,
+                    "sub_category_id": get_subcategory_id(product.sub_category_name),
                     "shop_id": product.shop_id,
                     "product_name": product.product_name,
                     "product_description": product.product_description,

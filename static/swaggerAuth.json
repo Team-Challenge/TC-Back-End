@@ -387,36 +387,6 @@
       }
     },
     "/accounts/profile_photo": {
-      "get": {
-        "summary": "Get Profile Photo",
-        "tags": [
-          "Accounts"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Profile photo retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "message": "Profile photo retrieved successfully",
-                  "profile_picture": "URL to profile_picture.jpg"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "User not found"
-          },
-          "401": {
-            "description": "Unauthorized - JWT token is missing or invalid"
-          }
-        }
-      },
       "post": {
         "summary": "Upload Profile Photo",
         "tags": [
@@ -485,36 +455,6 @@
       }
     },
     "/shops/shop_photo": {
-      "get": {
-        "summary": "Get Shop Photo",
-        "tags": [
-          "Shop"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Shop photo retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "message": "Shop photo retrieved successfully",
-                  "profile_picture": "shop_photo.jpg"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Photo shop not found"
-          },
-          "401": {
-            "description": "Unauthorized - JWT token is missing or invalid"
-          }
-        }
-      },
       "post": {
         "summary": "Upload Shop Photo",
         "tags": [
@@ -583,36 +523,6 @@
       }
     },
     "/shops/shop_banner": {
-      "get": {
-        "summary": "Get Profile Photo",
-        "tags": [
-          "Shop"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Banner shop retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "message": "Banner shop retrieved successfully",
-                  "profile_picture": "profile_picture.jpg"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Banner shop not found"
-          },
-          "401": {
-            "description": "Unauthorized - JWT token is missing or invalid"
-          }
-        }
-      },
       "post": {
         "summary": "Upload Shop Banner",
         "tags": [
@@ -1397,9 +1307,7 @@
           }
         },
         "required": [
-          "owner_id",
           "name",
-          "description",
           "phone_number"
         ]
       },
@@ -1696,8 +1604,8 @@
           "shop_id": {
             "type": "integer"
           },
-          "sub_category_name": {
-            "type": "string"
+          "sub_category_id": {
+            "type": "integer"
           },
           "time_added": {
             "type": "string",
@@ -1738,6 +1646,12 @@
           },
           "address": {
             "type": "string"
+          },
+          "shop_id": {
+            "type": "integer"
+          },
+          "have_a_shop": {
+            "type": "boolean"
           }
         }
       },
@@ -1747,8 +1661,8 @@
           "category_id": {
             "type": "integer"
           },
-          "sub_category_name": {
-            "type": "string"
+          "sub_category_id": {
+            "type": "integer"
           },
           "product_name": {
             "type": "string"
@@ -1810,10 +1724,9 @@
         },
         "required": [
           "category_id",
-          "sub_category_name",
+          "sub_category_id",
           "product_name",
-          "details",
-          "photos"
+          "details"
         ]
       },
       "ProductUpdateSchema": {
@@ -1877,14 +1790,7 @@
             "type": "boolean"
           }
         }
-      },
-      "required": [
-        "category_id",
-        "sub_category_name",
-        "product_name",
-        "details",
-        "photos"
-      ]
+      }
     },
     "securitySchemes": {
       "BearerAuth": {
