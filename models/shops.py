@@ -104,13 +104,12 @@ class Shop(db.Model):
         db.session.commit()
 
     @classmethod
-    def get_shop_user_info(cls, user_id):
-        shop = Shop.get_shop_by_owner_id(user_id)
+    def get_shop_user_info(cls, shop):
         shop_info = serialize(shop)
         if shop_info["banner_shop"] is not None:
 
             banner_shop_path = url_for('static', filename=f'media/'
-                                        f'banner_shops/{shop_info["banner_shop"]}',
+                                        f'banner_shop/{shop_info["banner_shop"]}',
                                         _external=True)
             shop_info['banner_shop'] = banner_shop_path
         if shop_info["photo_shop"] is not None:

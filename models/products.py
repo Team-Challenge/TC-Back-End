@@ -2,15 +2,17 @@ import os
 import uuid
 from datetime import datetime
 
-from flask import abort, jsonify
-from marshmallow import ValidationError
+from flask import jsonify
 from sqlalchemy import (Boolean, DateTime, Float, ForeignKey, Integer, String,
                         Text)
 from sqlalchemy.orm import mapped_column, relationship
 
 from config import Config
 from dependencies import db
-from validation.products import DetailValid, UpdateProductValid
+from models.accounts import User
+from models.shops import Shop
+from utils.utils import product_info_serialize
+from validation.products import get_subcategory_name
 
 PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
 
@@ -37,8 +39,8 @@ class Product(db.Model):
         self.time_added = datetime.utcnow()
         self.time_modifeid = datetime.utcnow()
 
-    categories = relationship("Categories",
-                                                    back_populates="products")
+    category = relationship("Categories",
+                                                    back_populates="product")
     product_to_comment = relationship("ProductComment",
                                                                 back_populates="product_comment")
     owner_shop = relationship("Shop", back_populates="shop_to_products")
@@ -47,29 +49,67 @@ class Product(db.Model):
 
     @staticmethod
     def delete_product(product_id):
-        product = Product.query.get(product_id)
-        if product:
+        user = User.get_user_id()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        shop = Shop.get_shop_by_owner_id(user.id)
+        if not shop:
+            return jsonify({'error': 'Shop not found'}), 404
+        product = Product.get_product_by_id(product_id)
+        try:
+            if not product or product.shop_id != shop.id:
+                return jsonify({'error': 'Product not found or does not belong to the shop'}), 404
             product.is_active = False
             db.session.commit()
+            return jsonify({"message": "Ok"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
 
     @classmethod
-    def add_product(cls, shop_id, **kwargs):
-        product = cls(shop_id, **kwargs)
+    def add_product(cls, **kwargs):
+        user = User.get_user_id()
+        try:
+            kwargs['sub_category_name'] = get_subcategory_name(kwargs['category_id'], kwargs['sub_category_id'])
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+        shop = Shop.get_shop_by_owner_id(user.id)
+        if not shop:
+            return jsonify({'error': 'Shop not found'}), 404
+        product = cls(shop.id, **kwargs)
         db.session.add(product)
-        db.session.commit()
+        db.session.flush()
+        ProductDetail.add_product_detail(product_id=product.id, **kwargs)
         return product
 
     @classmethod
     def get_product_by_id(cls, product_id):
         return cls.query.filter_by(id=product_id).first()
 
-    def update_product(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        self.time_modifeid = datetime.utcnow()
-        db.session.commit()
+    @staticmethod
+    def update_product(**kwargs):
+        user = User.get_user_id()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        product = Product.query.get(kwargs['product_id'])
+        shop = Shop.get_shop_by_owner_id(user.id)
+        if not shop:
+            return jsonify({'error': 'Shop not found'}), 404
+        if product is None:
+            return jsonify({"error": "Product not found"}), 404
+        try:
+            if not product or product.shop_id != shop.id:
+                    return jsonify({'error': 'Product not found or does not belong to the shop'}), 404
+            for key, value in kwargs.items():
+                setattr(product, key, value)
+            product.time_modified = datetime.utcnow()
+            ProductDetail.update_product_detail(**kwargs)
+            return jsonify({"message": "Product updated successfully"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
+        
 
-
+        
 class ProductPhoto(db.Model):
     __tablename__ = "product_photos"
 
@@ -90,32 +130,41 @@ class ProductPhoto(db.Model):
         self.main = main
 
     @classmethod
-    def add_product_photo(cls, product_detail_id, photo, main):
-        file_extension = photo.filename.split('.')[-1]
-        file_name = uuid.uuid4().hex
-        file_path = os.path.join(
-            PRODUCT_PHOTOS_PATH, f"{file_name}.{file_extension}")
+    def add_product_photo(cls, product_id, photo, main):
+        user = User.get_user_id()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
 
-        photo.save(file_path)
+        shop = Shop.get_shop_by_owner_id(user.id)
+        if not shop:
+            return jsonify({'error': 'Shop not found'}), 404
 
-        new_photo = cls(product_detail_id=product_detail_id,
+        product = Product.get_product_by_id(product_id)
+        if not product:
+            return jsonify({'error': 'Product not found'}), 404
+        product_detail = ProductDetail.get_product_detail_by_product_id(product.id)
+        if not product_detail:
+            return jsonify({'error': 'Product detail not found'}), 404
+        num_photos = ProductPhoto.get_num_photos_by_product_detail_id(product_detail.id)
+        if num_photos >= 4:
+            return jsonify({'error': 'The maximum photos for product has been 4'}), 400
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
+        if '.' in photo.filename and photo.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
+            file_extension = photo.filename.split('.')[-1]
+            file_name = uuid.uuid4().hex
+            file_path = os.path.join(
+                PRODUCT_PHOTOS_PATH, f"{file_name}.{file_extension}")
+            photo.save(file_path)
+
+            new_photo = cls(product_detail_id=product_detail.id,
                         product_photo=f"{file_name}.{file_extension}", main=main)
-        db.session.add(new_photo)
-        db.session.commit()
-
-        return new_photo
+            db.session.add(new_photo)
+            db.session.commit()
+            return jsonify({"message": "Photo product uploaded successfully"}), 200
 
     @classmethod
     def get_num_photos_by_product_detail_id(cls, product_detail_id):
         return cls.query.filter_by(product_detail_id=product_detail_id).count()
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "product_photo": self.product_photo,
-            "timestamp": self.timestamp.isoformat(),
-            "main": self.main
-        }
 
     def remove_product_photo(self):
         file_path = os.path.join(PRODUCT_PHOTOS_PATH, self.product_photo)
@@ -123,6 +172,14 @@ class ProductPhoto(db.Model):
             os.remove(file_path)
         db.session.delete(self)
         db.session.commit()
+
+    def serialize(self):
+        return {
+                "id": self.id,
+                "product_photo": self.product_photo,
+                "timestamp": self.timestamp.isoformat(),
+                "main": self.main
+                }
 
 class ProductDetail(db.Model):
     __tablename__ = "product_details"
@@ -164,40 +221,17 @@ class ProductDetail(db.Model):
     def get_product_detail_by_product_id(cls, product_id):
         return cls.query.filter_by(product_id=product_id).first()
 
-    def validate_product_data(data):
-        try:
-            validated_data = UpdateProductValid(
-                **data).model_dump(exclude_none=True)
-            if validated_data.get('product_name'):
-                DetailValid.name_validator(
-                    value=validated_data.get('product_name'))
-            if validated_data.get('product_description'):
-                DetailValid.description_validator(
-                    value=validated_data.get('product_description'))
-            return validated_data
-        except ValidationError as e:
-            abort(400, description=str(e))
-        except ValueError as e:
-            return jsonify({"error": str(e)}), 400
+    @staticmethod
+    def update_product_detail(**kwargs):
+        product_detail = ProductDetail.query.filter_by(product_id=kwargs['product_id']).first()
+        if product_detail is None:
+            return jsonify({"error": "Product detail not found"}), 404
 
-    def update_product_detail(self, **kwargs):
         for key, value in kwargs.items():
-            setattr(self, key, value)
+            setattr(product_detail, key, value)
+    
         db.session.commit()
 
-    def serialize(self):
-        return {
-            "id": self.id,
-            "product_id": self.product_id,
-            "price": self.price,
-            "product_status": self.product_status,
-            "product_characteristic": self.product_characteristic,
-            "is_return": self.is_return,
-            "delivery_post": self.delivery_post,
-            "method_of_payment": self.method_of_payment,
-            "is_unique": self.is_unique,
-            "photos": [photo.serialize() for photo in self.product_to_photo],
-        }
 
 
 class ProductComment(db.Model):
@@ -221,3 +255,44 @@ class ProductComment(db.Model):
         self.comment = comment
         self.raiting = raiting
         self.time_added = datetime.utcnow()
+
+class Categories(db.Model):
+    __tablename__ = "categories"
+
+    id = mapped_column(Integer, primary_key=True)
+    category_name = mapped_column(String, unique=True)
+
+    product = relationship("Product", back_populates="category")
+
+    def __init__(self, category_name):
+        self.category_name = category_name
+
+    @classmethod
+    def create_category(cls, category_name):
+        new_category = cls(category_name=category_name)
+        db.session.add(new_category)
+        db.session.commit()
+        return new_category
+
+    @staticmethod
+    def get_all_categories():
+        categories = Categories.query.all()
+        return categories
+    
+def get_all_shop_products():
+    user = User.get_user_id()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    shop = Shop.get_shop_by_owner_id(user.id)
+    if not shop:
+        return jsonify({'error': 'Shop not found'}), 404
+    try:
+        shop_products = db.session.query(Product, ProductDetail, ProductPhoto) \
+            .join(ProductDetail, Product.id == ProductDetail.product_id) \
+            .outerjoin(ProductPhoto, ProductDetail.id == ProductPhoto.product_detail_id) \
+            .filter(Product.shop_id == shop.id) \
+            .all()
+        response = product_info_serialize(shop_products)
+        return response
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400

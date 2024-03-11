@@ -97,6 +97,9 @@ def get_shop_info():
     if not user:
         return make_response('User not found', 404)
 
-    shop = Shop.get_shop_user_info(user.id)
-    response = ShopSchema(**shop)
+    shop = Shop.get_shop_by_owner_id(user.id)
+    if not shop:
+        return make_response('Shop not found', 404)
+    shop_info = Shop.get_shop_user_info(shop)
+    response = ShopSchema(**shop_info)
     return jsonify(response.model_dump()), 200

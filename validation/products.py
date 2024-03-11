@@ -1,8 +1,9 @@
+import json
 import re
+from datetime import datetime
 from enum import Enum
 from typing import Dict, Optional
 
-from flask import abort
 from pydantic import BaseModel, validator
 
 
@@ -44,21 +45,19 @@ class MethodOfPaymentEnum(str, Enum):
     cash_payment = "cashPayment"
     secure_payment = "securePayment"
 
-class ProductValid(BaseModel):
+class CreateProductValid(BaseModel):
     category_id: int
-    sub_category_name: SubCategoryEnum
+    sub_category_id: int
     product_name: str
     product_description: Optional[str] = None
     is_active: Optional[bool] = None
-
-class DetailValid(ProductValid):
     price: float
     product_status: Optional[ProductStatusEnum] = None
     product_characteristic: Optional[dict] = None
     is_return: Optional[bool] = None
     delivery_post: Optional[Dict[DeliveryPostEnum, bool]] = None  
     method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None 
-    is_unique: Optional[bool] = None  
+    is_unique: Optional[bool] = None
 
     @validator('product_name')
     @staticmethod
@@ -79,6 +78,7 @@ class DetailValid(ProductValid):
         return value
 
 class UpdateProductValid(BaseModel):
+    product_id: int
     product_name: Optional[str] = None
     price: Optional[float] = None
     product_description: Optional[str] = None
@@ -90,57 +90,40 @@ class UpdateProductValid(BaseModel):
     method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None 
     is_unique: Optional[bool] = None
 
+    @validator('product_name')
+    @staticmethod
+    def name_validator(value: str) -> str:
+        if value is not None:
+            regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії0-9'.,;\- ]+$"
+            if not re.match(regex, value) or len(value)>100:
+                raise ValueError('Invalid product_name format')
+        return value
+
+    @validator('product_description')
+    @staticmethod
+    def description_validator(value: str) -> str:
+        if value is not None:
+            regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії0-9'.,;\- ]+$"
+            if not re.match(regex, value) or len(value)>1000:
+                raise ValueError('Invalid product_detail format')
+        return value
+
 class PhotoProductValid(BaseModel):
     product_photo: str
     main: bool
 
-def check_sub_category_belongs_to_category(category_id, sub_category_name):
-    for category in const_category_list:
-        if category['id'] == category_id:
-            if sub_category_name in category['subcategories']:
-                return True
-    abort(400, description=f"'{sub_category_name}' not in category id '{category_id}'")
 
+def get_subcategory_name(category_id, subcategory_id):
+    with open('static/categories/categories.json', 'r', encoding='utf-8') as file:
+        data = json.load(file)
+    
+    if str(category_id) not in data:
+        raise ValueError('The category with the specified ID does not exist')
 
-const_category_list = [
-  {
-    "id": 1,
-    "label": 'На голову',
-    "subcategories": ['Заколки', 'Обручі', 'Резинки', 'Хустинки'],
-  },
-  {
-    "id": 2,
-    "label": 'На вуха',
-    "subcategories": ['Сережки', 'Моносережки'],
-  },
-  {
-    "id": 3,
-    "label": 'На шию',
-    "subcategories": [
-      'Зґарди',
-      'Шелести',
-      'Ґердани',
-      'Силянки',
-      'Кризи',
-      'Чокери',
-      'Намиста',
-      'Дукачі',
-      'Кулони та підвіски',
-    ],
-  },
-  {
-    "id": 4,
-    "label": 'На руки',
-    "subcategories": ['Браслети', 'Каблучки'],
-  },
-  {
-    "id": 5,
-    "label": 'Аксесуари',
-    "subcategories": ['Котильйони', 'Брошки', 'Сумки'],
-  },
-  {
-    "id": 6,
-    "label": 'Набори',
-    "subcategories": ['Набір']
-  },
-]
+    subcategories = data[str(category_id)]['subcategories']
+    subcategory_name = subcategories.get(str(subcategory_id))
+
+    if subcategory_name is None:
+        raise ValueError('The subcategory with the specified ID does not belong to the specified category')
+
+    return subcategory_name

@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, validator
+from sqlalchemy import false
 
 from models.accounts import User
 
@@ -101,6 +102,8 @@ class UserInfoSchema(BaseModel):
     city: Optional[str] = None
     branch_name: Optional[str] = None
     address: Optional[str] = None
+    shop_id: Optional[int] = None
+    have_a_shop: Optional[bool] = False
 
     class Config:
         from_attributes = True
