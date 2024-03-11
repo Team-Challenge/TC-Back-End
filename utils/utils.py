@@ -27,6 +27,7 @@ def serialize(obj):
         return serialized_data
     return {}
 
+# TODO: better replace in models
 def serialize_product( **data):
     if data.get('product_characteristic') is not None:
         data['product_characteristic'] = json.dumps(data['product_characteristic'],
@@ -39,6 +40,7 @@ def serialize_product( **data):
         data['method_of_payment'] = json.dumps(data['method_of_payment'], ensure_ascii=False)
     return data
 
+# TODO: better replace in models
 def product_info_serialize(products):
     result = []
     unique_product_ids = set()

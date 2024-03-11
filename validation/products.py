@@ -131,7 +131,7 @@ def get_subcategory_id(subcategory_name):
     with open('static/categories/categories.json', 'r', encoding='utf-8') as file:
         data = json.load(file)
     
-    for category_id, category_data in data.items():
+    for _, category_data in data.items():
         subcategories = category_data.get('subcategories', {})
         for subcategory_id, name in subcategories.items():
             if name == subcategory_name:

@@ -47,6 +47,8 @@ class Product(db.Model):
     product_to_detail = relationship("ProductDetail",
                                                               back_populates="product_detail")
 
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     @staticmethod
     def delete_product(product_id):
         user = User.get_user_id()
@@ -65,6 +67,8 @@ class Product(db.Model):
         except Exception as e:
             return jsonify({"error": str(e)}), 400
 
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     @classmethod
     def add_product(cls, **kwargs):
         user = User.get_user_id()
@@ -86,6 +90,8 @@ class Product(db.Model):
     def get_product_by_id(cls, product_id):
         return cls.query.filter_by(id=product_id).first()
 
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     @staticmethod
     def update_product(**kwargs):
         user = User.get_user_id()
@@ -130,6 +136,8 @@ class ProductPhoto(db.Model):
         self.product_photo = product_photo
         self.main = main
 
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     @classmethod
     def add_product_photo(cls, product_id, photo, main):
         user = User.get_user_id()
@@ -223,6 +231,8 @@ class ProductDetail(db.Model):
     def get_product_detail_by_product_id(cls, product_id):
         return cls.query.filter_by(product_id=product_id).first()
 
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     @staticmethod
     def update_product_detail(**kwargs):
         product_detail = ProductDetail.query.filter_by(product_id=kwargs['product_id']).first()
@@ -280,7 +290,9 @@ class Categories(db.Model):
     def get_all_categories():
         categories = Categories.query.all()
         return categories
-    
+
+# TODO: return success or error message. Remove all flask imports in this file
+# TODO: jsonify should be called in route
 def get_all_shop_products():
     user = User.get_user_id()
     if not user:

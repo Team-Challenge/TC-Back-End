@@ -1,6 +1,12 @@
-from sqlalchemy import Enum
 from typing import Union
 
+from sqlalchemy import Enum
+
+# TODO: make as a class
+# Example
+# class SubCategoryEnumDict(Enum):
+#   11 = 'Заколки'
+#   ...
 SubCategoryEnumDict = {
     11: 'Заколки',
     12: 'Обручі',
@@ -25,10 +31,11 @@ SubCategoryEnumDict = {
     61: 'Набір'
 }
 
+# TODO: will be removed
 SubCategoryDict = {value: key for key, value in SubCategoryEnumDict.items()}
 SubCategoryEnum = Enum(*list(SubCategoryEnumDict.items()), name='sub_category_enum')
 
-
+# TODO: make a classmethod of Enum class
 def get_subcategory(val: Union[str, int]) -> Union[int, str]:
     if isinstance(val, str):
         return SubCategoryDict[val]
@@ -37,8 +44,12 @@ def get_subcategory(val: Union[str, int]) -> Union[int, str]:
     raise TypeError("Wrong subcategory type. Should be str or int.")
 
 
+# TODO: Make as a Enum Class
 ProductStatus = Enum('В наявності', 'Під замовлення',
                     'В єдиному екземплярі', 'Немає в наявності', 
                     name='product_status')
 
+# TODO: Make as a Enum Class
 Delivery_Post = Enum('nova_post', 'ukr_post', name='delivery_post')
+
+# TODO: add constants of error messages

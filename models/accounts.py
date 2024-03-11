@@ -65,6 +65,8 @@ class User(db.Model):
         verification_link = url_for('accounts.verify_email', token=token, _external=True)
         return verification_link
     
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     @classmethod
     def sign_in(cls, email, password):
         user = cls.query.filter_by(email=email).first()
@@ -78,6 +80,9 @@ class User(db.Model):
         response = {"access_token": access_token, "refresh_token": refresh_token}
         return response
     
+    # TODO: rename: change_number
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     def user_phone_number_change(phone_number):
         user_id = get_jwt_identity()
         user = User.query.filter_by(id=user_id).first()
@@ -90,6 +95,9 @@ class User(db.Model):
                 return jsonify({'error': str(e)}), 400
         return jsonify({'error': 'User not found'}), 404
     
+    # TODO: rename: change_full_name
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     def user_full_name_change(full_name):
         user_id = get_jwt_identity()
         user = User.query.filter_by(id=user_id).first()
@@ -103,6 +111,7 @@ class User(db.Model):
                 return jsonify({"error": str(e)}), 400
         return jsonify({'error': 'User not found'}), 404
     
+    # TODO: rename: get_user_info
     @classmethod
     def user_full_info(cls):
         user = User.query.filter_by(id=get_jwt_identity()).first()
@@ -122,6 +131,9 @@ class User(db.Model):
             user_full_info['have_a_shop'] = True
         return user_full_info
     
+    # TODO: rename: get_profile_photo
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     @classmethod
     def user_profile_photo_get(cls):
         user = User.get_user_id()
@@ -130,6 +142,7 @@ class User(db.Model):
             return url_for('static', filename=f'media/profile/{filename}', _external=True)
         return make_response('Profile_photo not allowed', 404)
     
+    # TODO: rename: change_profile_photo
     @classmethod
     def user_profile_photo_update(cls, request):
         file = request.files['image']
@@ -149,7 +162,9 @@ class User(db.Model):
         filename = user.profile_picture
         return url_for('static', filename=f'media/profile/{filename}', _external=True)
     
-    
+    # TODO: combine with change_profile_photo (make 1 function)
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     @classmethod
     def user_profile_photo_delete(cls):
         user = User.get_user_id()
@@ -160,12 +175,16 @@ class User(db.Model):
         db.session.commit()
         return make_response('OK', 200)
     
+    # TODO: rename: change_password
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     @classmethod
     def user_change_password(cls, user_data):
         user = User.get_user_id()
         security = Security.query.filter_by(user_id=user.id).first()
         if user and security:
             if check_password_hash(security.password_hash, user_data.current_password):
+                # TODO: in Security class create_method to change password: change_password()
                 hashed_password = generate_password_hash(user_data.new_password)
                 security.password_hash = hashed_password
                 db.session.commit()
@@ -173,6 +192,9 @@ class User(db.Model):
         return jsonify({'error': 'Current password is incorrect'}), 400
 
     
+    # TODO: rename: verify_email
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     @classmethod
     def verify_user_email(cls, token):
         serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
@@ -225,10 +247,13 @@ class DeliveryUserInfo(db.Model):
         self.branch_name = kwargs.get('branch_name')
         self.address = kwargs.get('address')
 
+    # TODO: rename -> get_delivery_info
     @classmethod
     def get_delivery_info_by_owner_id(cls, owner_id):
         return cls.query.filter_by(owner_id=owner_id).first()
 
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     @classmethod
     def add_delivery_info(cls, **kwargs):
         user = User.get_user_id()
@@ -254,6 +279,8 @@ class DeliveryUserInfo(db.Model):
             self.address = data['address']
         db.session.commit()
 
+    # TODO: return success or error message. Remove all flask imports in this file
+    # TODO: jsonify should be called in route
     @classmethod
     def remove_delivery_info(cls):
         user = User.get_user_id()

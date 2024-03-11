@@ -51,6 +51,8 @@ def signup() -> Response:
                                 phone_number=user.phone_number,
                                 profile_picture=user.profile_picture
                             )
+    # TODO: check if model method returned error, if yes use Enum mapper (in future) 
+    # other unknown exception must be logged and as e response just 500 code
     except Exception as e:
         return jsonify({"Error": str(e)}), 400
 
