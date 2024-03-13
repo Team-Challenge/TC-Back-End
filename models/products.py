@@ -72,11 +72,9 @@ class Product(db.Model):
     @classmethod
     def add_product(cls, **kwargs):
         user = User.get_user_id()
-        try:
-            kwargs['sub_category_name'] = get_subcategory_name(kwargs['category_id'],
+        kwargs['sub_category_name'] = get_subcategory_name(kwargs['category_id'],
                                                                 kwargs['sub_category_id'])
-        except ValueError as e:
-            return jsonify({"error": str(e)}), 400
+
         shop = Shop.get_shop_by_owner_id(user.id)
         if not shop:
             return jsonify({'error': 'Shop not found'}), 404
@@ -158,9 +156,12 @@ class ProductPhoto(db.Model):
         if num_photos >= 4:
             return jsonify({'error': 'The maximum photos for product has been 4'}), 400
         allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
+
         if '.' in photo.filename and photo.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
             file_extension = photo.filename.split('.')[-1]
             file_name = uuid.uuid4().hex
+            if not os.path.isdir(PRODUCT_PHOTOS_PATH):
+                os.mkdir(PRODUCT_PHOTOS_PATH)
             file_path = os.path.join(
                 PRODUCT_PHOTOS_PATH, f"{file_name}.{file_extension}")
             photo.save(file_path)
