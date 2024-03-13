@@ -1,5 +1,5 @@
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, make_response
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
@@ -15,17 +15,20 @@ CORS(products, supports_credentials=True)
 @products.route("/product", methods=["POST"])
 @jwt_required()
 def create_product():
-    data = request.json
+    data = request.get_json(silent=True)
     try:
         validated_data = CreateProductValid(**data).model_dump()
         serialize_data = serialize_product(**validated_data)
     except ValidationError as e:
-        return jsonify({"error": str(e)}), 400
-
+        return make_response(e.json(indent=2), 400)
+    except TypeError:
+        return make_response({"detail": "Bad request"}, 400)
     try:
         product = Product.add_product(**serialize_data)
         return jsonify({"message": "Product created successfully"},
-                        {"product_id": product.id}), 201
+                            {"product_id": product.id}), 201
+    except ValueError as e:
+        return make_response({"error": str(e)}, 400)
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
@@ -35,7 +38,9 @@ def add_product_photo(product_id):
     try:      
         raw_value = request.form.get('main', '').lower()
         main_photo = raw_value == 'true'
-        photo = request.files['image']
+        photo = request.files.get('image')
+        if not photo:
+            return make_response({"detail": "Bad request"}, 400)
         response = ProductPhoto.add_product_photo(product_id, photo, main_photo) 
         return response
 
