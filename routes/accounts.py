@@ -168,10 +168,7 @@ def change_full_name():
 @jwt_required()
 def user_info():
     user_data = User.user_full_info()
-    try:
-        response = UserInfoSchema(**user_data)
-    except TypeError:
-        return make_response({"detail": "Bad Request"}, 400)
+    response = UserInfoSchema(**user_data)
     return jsonify(response.model_dump()), 200
 
 @accounts.route('/profile_photo', methods=['POST', 'DELETE','GET'])
