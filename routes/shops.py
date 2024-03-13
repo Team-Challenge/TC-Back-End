@@ -18,7 +18,8 @@ CORS(shops, supports_credentials=True)
 @jwt_required()
 def create_shops():
     data = request.get_json(silent=True)
-
+    if not data:
+        return make_response({"detail": "Bad Request"}, 400)
     user = User.get_user_id()
     existing_shop = Shop.get_shop_by_owner_id(user.id)
     data['owner_id'] = user.id
@@ -26,14 +27,19 @@ def create_shops():
         try:
             update_shop_data = ShopUpdateValid(**data).model_dump()
         except ValidationError as e:
-            return jsonify({"error": str(e)}), 400
+            return make_response(e.json(indent=2), 400)
+        except TypeError:
+            return make_response({"detail": "Bad Request"}, 400)
         existing_shop.update_shop_details(**update_shop_data)
         return jsonify({'message': 'Shop updated successfully'}), 200
     if not existing_shop or existing_shop is None:
         try:
             create_shop_data = ShopCreateValid(**data).model_dump()
         except ValidationError as e:
-            return jsonify({"error": str(e)}), 400
+            return make_response(e.json(indent=2), 400)
+        except TypeError:
+            return make_response({"detail": "Bad Request"}, 400)
+
         Shop.create_shop(**create_shop_data)
         return jsonify({'message': 'Shop created successfully'}), 201
     return jsonify({'error': 'User not found'}), 404
@@ -50,7 +56,9 @@ def shop_photo():
         return make_response('Photo shop not found', 404)
 
     if shop and request.method == 'POST':
-        file = request.files['image']
+        file = request.files.get('image')
+        if not file:
+            return make_response({"detail": "Bad request"}, 400)
         shop.add_photo(file)
         return url_for('static', filename=f'media/shops/{file}', _external=True)
 
@@ -76,7 +84,9 @@ def shop_banner():
         return make_response('Banner shop not found', 404)
 
     if shop and request.method == 'POST':
-        file = request.files['image']
+        file = request.files.get('image')
+        if not file:
+            return make_response({"detail": "Bad request"}, 400)
         shop.add_banner(file)
         return url_for('static', filename=f'media/banner_shops/{file}', _external=True)
 
