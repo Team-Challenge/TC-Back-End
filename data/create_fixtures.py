@@ -12,9 +12,8 @@ from werkzeug.security import generate_password_hash
 
 from app import create_app, db
 from models.accounts import Security, User
-from models.categories import Categories
 from models.patterns import SubCategoryEnumDict, get_subcategory
-from models.products import Product
+from models.products import Categories, Product
 from models.shops import Shop
 
 cur_dir = Path(__file__).resolve().parent
