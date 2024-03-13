@@ -41,7 +41,7 @@ def signup() -> Response:
     except ValidationError as errors:
         return make_response(errors.json(indent=2), 400)
     except TypeError:
-        return make_response({"detail": "Request body cannot be empty"}, 400)
+        return make_response({"detail": "Bad Request"}, 400)
 
     try:
         user = User.create_user(user_data.email, user_data.full_name, user_data.password)
@@ -102,9 +102,9 @@ def signin() -> Response:
     try:
         user_data = SigninValid(**request_data)
     except ValidationError as errors:
-        return jsonify(str(errors), 400)
+        return make_response(errors.json(indent=2), 400)
     except TypeError:
-        return make_response({"detail": "Request body cannot be empty"}, 400)
+        return make_response({"detail": "Bad Request"}, 400)
 
     response = User.sign_in(email=user_data.email, password=user_data.password)
 
@@ -145,7 +145,7 @@ def change_phone_number():
     except ValidationError as errors:
         return make_response(errors.json(indent=2), 400)
     except TypeError:
-        return make_response({"detail": "Request body cannot be empty"}, 400)
+        return make_response({"detail": "Bad Request"}, 400)
     response = User.user_phone_number_change(user_data.phone_number)
     return response
 
@@ -159,7 +159,7 @@ def change_full_name():
     except ValidationError as errors:
         return make_response(errors.json(indent=2), 400)
     except TypeError:
-        return make_response({"detail": "Request body cannot be empty"}, 400)
+        return make_response({"detail": "Bad Request"}, 400)
     response = User.user_full_name_change(user_data.full_name)
 
     return response
@@ -171,7 +171,7 @@ def user_info():
     try:
         response = UserInfoSchema(**user_data)
     except TypeError:
-        return make_response({"detail": "Request body cannot be empty"}, 400)
+        return make_response({"detail": "Bad Request"}, 400)
     return jsonify(response.model_dump()), 200
 
 @accounts.route('/profile_photo', methods=['POST', 'DELETE','GET'])
@@ -200,7 +200,7 @@ def change_password():
     except ValidationError as errors:
         return make_response(errors.json(indent=2), 400)
     except TypeError:
-        return make_response({"detail": "Request body cannot be empty"}, 400)
+        return make_response({"detail": "Bad Request"}, 400)
 
     response = User.user_change_password(user_data)
     return response
@@ -214,7 +214,7 @@ def manage_delivery_info():
     except ValidationError as errors:
         return make_response(errors.json(indent=2), 400)
     except TypeError:
-        return make_response({"detail": "Request body cannot be empty"}, 400)
+        return make_response({"detail": "Bad Request"}, 400)
 
     if request.method == "POST":
         response = DeliveryUserInfo.add_delivery_info(**delivery_data)
