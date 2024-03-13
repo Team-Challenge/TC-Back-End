@@ -38,8 +38,10 @@ def signup() -> Response:
 
     try:
         user_data = SignupValid(**request_data)
-    except ValidationError as e:
-        return jsonify({"Error": str(e)}), 400
+    except ValidationError as errors:
+        return make_response(errors.json(indent=2), 400)
+    except TypeError:
+        return make_response({"detail": "Request body cannot be empty"}, 400)
 
     try:
         user = User.create_user(user_data.email, user_data.full_name, user_data.password)
@@ -95,14 +97,15 @@ def authorize() -> Response:
 
 @accounts.route("/signin", methods=["POST"])
 def signin() -> Response:
-
     request_data = request.get_json(silent=True)
 
     try:
         user_data = SigninValid(**request_data)
-    except ValidationError as e:
-        return jsonify({'error': str(e)}), 400
-    
+    except ValidationError as errors:
+        return jsonify(str(errors), 400)
+    except TypeError:
+        return make_response({"detail": "Request body cannot be empty"}, 400)
+
     response = User.sign_in(email=user_data.email, password=user_data.password)
 
     return make_response(response, 200)
@@ -139,8 +142,10 @@ def change_phone_number():
     request_data = request.get_json(silent=True)
     try:
         user_data = PhoneNumberValid(**request_data)
-    except ValidationError as e:
-        return jsonify({'error': str(e)}), 400
+    except ValidationError as errors:
+        return make_response(errors.json(indent=2), 400)
+    except TypeError:
+        return make_response({"detail": "Request body cannot be empty"}, 400)
     response = User.user_phone_number_change(user_data.phone_number)
     return response
 
@@ -151,9 +156,10 @@ def change_full_name():
 
     try:
         user_data = FullNameValid(**request_data)
-    except ValidationError as e:
-        return jsonify({"error": str(e)}), 400
-
+    except ValidationError as errors:
+        return make_response(errors.json(indent=2), 400)
+    except TypeError:
+        return make_response({"detail": "Request body cannot be empty"}, 400)
     response = User.user_full_name_change(user_data.full_name)
 
     return response
@@ -162,7 +168,10 @@ def change_full_name():
 @jwt_required()
 def user_info():
     user_data = User.user_full_info()
-    response = UserInfoSchema(**user_data)
+    try:
+        response = UserInfoSchema(**user_data)
+    except TypeError:
+        return make_response({"detail": "Request body cannot be empty"}, 400)
     return jsonify(response.model_dump()), 200
 
 @accounts.route('/profile_photo', methods=['POST', 'DELETE','GET'])
@@ -188,8 +197,10 @@ def change_password():
     data = request.get_json(silent=True)
     try:
         user_data = ChangePasswordSchema(**data)
-    except ValidationError as e:
-        return jsonify({'error': str(e)}), 400
+    except ValidationError as errors:
+        return make_response(errors.json(indent=2), 400)
+    except TypeError:
+        return make_response({"detail": "Request body cannot be empty"}, 400)
 
     response = User.user_change_password(user_data)
     return response
@@ -200,9 +211,11 @@ def manage_delivery_info():
     request_data = request.get_json(silent=True)
     try:
         delivery_data = DeliveryPostValid(**request_data).model_dump()
-    except ValidationError as e:
-        return jsonify({'error': str(e) }), 400
-    
+    except ValidationError as errors:
+        return make_response(errors.json(indent=2), 400)
+    except TypeError:
+        return make_response({"detail": "Request body cannot be empty"}, 400)
+
     if request.method == "POST":
         response = DeliveryUserInfo.add_delivery_info(**delivery_data)
         return response
