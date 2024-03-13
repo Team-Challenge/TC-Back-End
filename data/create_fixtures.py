@@ -12,7 +12,7 @@ from werkzeug.security import generate_password_hash
 
 from app import create_app, db
 from models.accounts import Security, User
-from models.categories import Categories
+from models.products import Categories
 from models.patterns import SubCategoryEnumDict, get_subcategory
 from models.products import Product
 from models.shops import Shop
