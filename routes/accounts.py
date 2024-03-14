@@ -62,7 +62,7 @@ def signup() -> Response:
     # TODO: check if model method returned error, if yes use Enum mapper (in future) +++++
     # other unknown exception must be logged and as e response just 500 code ++++
     except UserError as e:
-        return jsonify({'error': e }), 400
+        return jsonify({'error': str(e) }), 400
     except Exception as e:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
@@ -113,7 +113,7 @@ def signin() -> Response:
         response = User.sign_in(email=user_data.email, password=user_data.password)
         return make_response(response, 200)
     except UserError as e:
-        return jsonify({'error': e}), 400
+        return jsonify({'error': str(e)}), 400
     except Exception as e:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
@@ -171,9 +171,9 @@ def change_phone_number():
         response = User.change_number(user_data.phone_number)
         return jsonify(response)
     except UserError as e:
-        return jsonify({'error': e}, 400)
+        return jsonify({'error': str(e)}, 400)
     except NotFoundError as e:
-        return jsonify({'error': e }), 404
+        return jsonify({'error': str(e) }), 404
     except Exception as e:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
@@ -192,9 +192,9 @@ def change_full_name():
         response = User.change_full_name(user_data.full_name)
         return jsonify(response), 200
     except UserError as e:
-        return jsonify({'error': e}, 400)
+        return jsonify({'error': str(e)}, 400)
     except NotFoundError as e:
-        return jsonify({'error': e }), 404
+        return jsonify({'error': str(e) }), 404
     except Exception as e:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
@@ -282,7 +282,7 @@ def manage_delivery_info():
             response = DeliveryUserInfo.remove_delivery_info()
             return jsonify(response), 200
     except NotFoundError as e:
-        return jsonify({'error': e }), 404
+        return jsonify({'error': str(e) }), 404
     except Exception as e:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500

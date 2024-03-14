@@ -106,14 +106,14 @@ class Shop(db.Model):
     @classmethod
     def get_shop_user_info(cls, shop):
         shop_info = serialize(shop)
-        # TODO: use object.get(attr) instead object[attr]
+        # TODO: use object.get(attr) instead object[attr]+++++
         if shop_info.get("banner_shop") is not None:
 
             banner_shop_path = url_for('static', filename=f'media/'
                                         f'banner_shop/{shop_info["banner_shop"]}',
                                         _external=True)
             shop_info['banner_shop'] = banner_shop_path
-        if shop_info["photo_shop"] is not None:
+        if shop_info.get("photo_shop") is not None:
 
             photo_shop_path = url_for('static', filename=f'media/'
                                         f'shops/{shop_info["photo_shop"]}',

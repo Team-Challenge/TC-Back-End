@@ -120,7 +120,7 @@ class User(db.Model):
                                             _external=True)
                 user_full_data['profile_picture'] = profile_picture_path
             user_full_info = {**user_full_data, **delivery_info_data}
-            shop = Shop.get_shop_by_owner_id(owner_id=user.id)
+            shop = Shop.qwery.filter(owner_id=user.id)
             if shop or shop is not None:
                 user_full_info['shop_id'] = shop.id
                 user_full_info['have_a_shop'] = True

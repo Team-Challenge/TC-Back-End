@@ -6,6 +6,7 @@ from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 
 from models.accounts import User
+from models.errors import serialize_validation_error
 from models.shops import Shop
 from validation.shops import ShopCreateValid, ShopSchema, ShopUpdateValid
 
@@ -18,7 +19,8 @@ CORS(shops, supports_credentials=True)
 @jwt_required()
 def create_shops():
     data = request.get_json(silent=True)
-
+    if data is None:
+        return jsonify({'error': 'Request data is empty'}), 400
     user = User.get_user_id()
     existing_shop = Shop.get_shop_by_owner_id(user.id)
     data['owner_id'] = user.id
@@ -26,14 +28,14 @@ def create_shops():
         try:
             update_shop_data = ShopUpdateValid(**data).model_dump()
         except ValidationError as e:
-            return jsonify({"error": str(e)}), 400
+            return jsonify(serialize_validation_error(e)), 400
         existing_shop.update_shop_details(**update_shop_data)
         return jsonify({'message': 'Shop updated successfully'}), 200
     if not existing_shop or existing_shop is None:
         try:
             create_shop_data = ShopCreateValid(**data).model_dump()
         except ValidationError as e:
-            return jsonify({"error": str(e)}), 400
+            return jsonify(serialize_validation_error(e)), 400
         Shop.create_shop(**create_shop_data)
         return jsonify({'message': 'Shop created successfully'}), 201
     return jsonify({'error': 'User not found'}), 404

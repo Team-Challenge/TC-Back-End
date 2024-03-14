@@ -2,7 +2,6 @@ import os
 import uuid
 from datetime import datetime
 
-from flask import jsonify
 from sqlalchemy import (Boolean, DateTime, Float, ForeignKey, Integer, String,
                         Text)
 from sqlalchemy.orm import mapped_column, relationship
@@ -10,6 +9,7 @@ from sqlalchemy.orm import mapped_column, relationship
 from config import Config
 from dependencies import db
 from models.accounts import User
+from models.errors import NotFoundError, UserError
 from models.shops import Shop
 from utils.utils import product_info_serialize
 from validation.products import get_subcategory_name
@@ -36,8 +36,8 @@ class Product(db.Model):
         self.product_name = kwargs.get('product_name')
         self.product_description = kwargs.get('product_description')
         self.is_active = kwargs.get('is_active', True)
-        self.time_added = datetime.utcnow()
-        self.time_modifeid = datetime.utcnow()
+        self.time_added = datetime.now()()
+        self.time_modifeid = datetime.now()
 
     category = relationship("Categories",
                                                     back_populates="product")
@@ -47,73 +47,69 @@ class Product(db.Model):
     product_to_detail = relationship("ProductDetail",
                                                               back_populates="product_detail")
 
-    # TODO: return success or error message. Remove all flask imports in this file
-    # TODO: jsonify should be called in route
+    # TODO: return success or error message. Remove all flask imports in this file++++
+    # TODO: jsonify should be called in route++++++
     @staticmethod
     def delete_product(product_id):
         user = User.get_user_id()
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
-        shop = Shop.get_shop_by_owner_id(user.id)
-        if not shop:
-            return jsonify({'error': 'Shop not found'}), 404
-        product = Product.get_product_by_id(product_id)
-        try:
-            if not product or product.shop_id != shop.id:
-                return jsonify({'error': 'Product not found or does not belong to the shop'}), 404
-            product.is_active = False
-            db.session.commit()
-            return jsonify({"message": "Ok"}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 400
+        if user is not None:
+            shop = Shop.get_shop_by_owner_id(user.id)
+            if shop is not None:
+                product = Product.get_product_by_id(product_id)
+                if product is not None and product.shop_id == shop.id:
+                    product.is_active = False
+                    db.session.commit()
+                    return {"message": "Ok"}
+                raise UserError('Product not found or permission not granted')
+            raise NotFoundError('Shop not found')
+        raise NotFoundError('User not found')
 
-    # TODO: return success or error message. Remove all flask imports in this file
-    # TODO: jsonify should be called in route
+    # TODO: return success or error message. Remove all flask imports in this file++++++
+    # TODO: jsonify should be called in route+++++++++
     @classmethod
     def add_product(cls, **kwargs):
         user = User.get_user_id()
-        try:
-            kwargs['sub_category_name'] = get_subcategory_name(kwargs['category_id'],
-                                                                kwargs['sub_category_id'])
-        except ValueError as e:
-            return jsonify({"error": str(e)}), 400
-        shop = Shop.get_shop_by_owner_id(user.id)
-        if not shop:
-            return jsonify({'error': 'Shop not found'}), 404
-        product = cls(shop.id, **kwargs)
-        db.session.add(product)
-        db.session.flush()
-        ProductDetail.add_product_detail(product_id=product.id, **kwargs)
-        return product
+        if user is not None:
+            try:
+                kwargs['sub_category_name'] = get_subcategory_name(kwargs.get('category_id'),
+                                                                kwargs.get('sub_category_id'))
+            except ValueError as e:
+                raise ValueError(e) from e
+            shop = Shop.get_shop_by_owner_id(user.id)
+            if shop is not None:
+                product = cls(shop.id, **kwargs)
+                db.session.add(product)
+                db.session.flush()
+                ProductDetail.add_product_detail(product_id=product.id, **kwargs)
+                return {'message': 'The product was created successfully'}
+            raise NotFoundError('Shop not found')
+        raise NotFoundError('User not found')
 
     @classmethod
     def get_product_by_id(cls, product_id):
         return cls.query.filter_by(id=product_id).first()
 
-    # TODO: return success or error message. Remove all flask imports in this file
-    # TODO: jsonify should be called in route
+    # TODO: return success or error message. Remove all flask imports in this file++++
+    # TODO: jsonify should be called in route++++
     @staticmethod
     def update_product(**kwargs):
         user = User.get_user_id()
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
-        
-        product = Product.query.get(kwargs['product_id'])
-        shop = Shop.get_shop_by_owner_id(user.id)
-        if not shop:
-            return jsonify({'error': 'Shop not found'}), 404
-        if product is None:
-            return jsonify({"error": "Product not found"}), 404
-        try:
-            if not product or product.shop_id != shop.id:
-                return jsonify({'error': 'Product not found or does not belong to the shop'}), 404
-            for key, value in kwargs.items():
-                setattr(product, key, value)
-            product.time_modified = datetime.utcnow()
-            ProductDetail.update_product_detail(**kwargs)
-            return jsonify({"message": "Product updated successfully"}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 400
+        if user is not None:      
+            product = Product.query.get(kwargs.get('product_id'))
+            shop = Shop.get_shop_by_owner_id(user.id)
+            if shop is not None or product is not None:
+                try:
+                    if product and product.shop_id == shop.id:
+                        for key, value in kwargs.items():
+                            setattr(product, key, value)
+                        product.time_modified = datetime.now()
+                        ProductDetail.update_product_detail(**kwargs)
+                        return {"message": "Product updated successfully"}
+                    raise UserError('Product not found or not belong to shop')
+                except UserError as e:
+                    raise UserError(e) from e
+            raise NotFoundError('Shop or product not found')
+        raise NotFoundError('User not found')
         
 
         
@@ -131,46 +127,40 @@ class ProductPhoto(db.Model):
                                                           back_populates="product_to_photo")
 
     def __init__(self, product_detail_id, product_photo, main):
-        self.timestamp = datetime.utcnow()
+        self.timestamp = datetime.now()
         self.product_detail_id = product_detail_id
         self.product_photo = product_photo
         self.main = main
 
-    # TODO: return success or error message. Remove all flask imports in this file
-    # TODO: jsonify should be called in route
+    # TODO: return success or error message. Remove all flask imports in this file+++++
+    # TODO: jsonify should be called in route++++++++
     @classmethod
     def add_product_photo(cls, product_id, photo, main):
         user = User.get_user_id()
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
+        if user is not None:
+            product = Product.get_product_by_id(product_id)
+            product_detail = ProductDetail.get_product_detail_by_product_id(product.id)
+            if product is None or product_detail is None:
+                raise NotFoundError('Product not found')
+            num_photos = ProductPhoto.get_num_photos_by_product_detail_id(product_detail.id)
+            if num_photos >= 4:
+                return {'error': 'The maximum photos for product has been 4'}
+            allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
+            if '.' in photo.filename and photo.filename.rsplit(
+                                        '.', 1)[1].lower() in allowed_extensions:
+                file_extension = photo.filename.split('.')[-1]
+                file_name = uuid.uuid4().hex
+                file_path = os.path.join(
+                    PRODUCT_PHOTOS_PATH, f"{file_name}.{file_extension}")
+                photo.save(file_path)
 
-        shop = Shop.get_shop_by_owner_id(user.id)
-        if not shop:
-            return jsonify({'error': 'Shop not found'}), 404
-
-        product = Product.get_product_by_id(product_id)
-        if not product:
-            return jsonify({'error': 'Product not found'}), 404
-        product_detail = ProductDetail.get_product_detail_by_product_id(product.id)
-        if not product_detail:
-            return jsonify({'error': 'Product detail not found'}), 404
-        num_photos = ProductPhoto.get_num_photos_by_product_detail_id(product_detail.id)
-        if num_photos >= 4:
-            return jsonify({'error': 'The maximum photos for product has been 4'}), 400
-        allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
-        if '.' in photo.filename and photo.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
-            file_extension = photo.filename.split('.')[-1]
-            file_name = uuid.uuid4().hex
-            file_path = os.path.join(
-                PRODUCT_PHOTOS_PATH, f"{file_name}.{file_extension}")
-            photo.save(file_path)
-
-            new_photo = cls(product_detail_id=product_detail.id,
-                        product_photo=f"{file_name}.{file_extension}", main=main)
-            db.session.add(new_photo)
-            db.session.commit()
-            return jsonify({"message": "Photo product uploaded successfully"}), 200
-        return jsonify({'error': 'Error'}), 400
+                new_photo = cls(product_detail_id=product_detail.id,
+                            product_photo=f"{file_name}.{file_extension}", main=main)
+                db.session.add(new_photo)
+                db.session.commit()
+                return {"message": "Photo product uploaded successfully"}
+            raise UserError('Bad request')
+        raise NotFoundError('User not found')
 
     @classmethod
     def get_num_photos_by_product_detail_id(cls, product_detail_id):
@@ -231,19 +221,19 @@ class ProductDetail(db.Model):
     def get_product_detail_by_product_id(cls, product_id):
         return cls.query.filter_by(product_id=product_id).first()
 
-    # TODO: return success or error message. Remove all flask imports in this file
-    # TODO: jsonify should be called in route
+    # TODO: return success or error message. Remove all flask imports in this file++++
+    # TODO: jsonify should be called in route++++
     @staticmethod
     def update_product_detail(**kwargs):
         product_detail = ProductDetail.query.filter_by(product_id=kwargs['product_id']).first()
         if product_detail is None:
-            return jsonify({"error": "Product detail not found"}), 404
-
+            return {"error": "Product detail not found"}
+        
         for key, value in kwargs.items():
             setattr(product_detail, key, value)
     
         db.session.commit()
-        return product_detail
+        return {"message": "Product detail updated"}
 
 
 class ProductComment(db.Model):
@@ -291,22 +281,22 @@ class Categories(db.Model):
         categories = Categories.query.all()
         return categories
 
-# TODO: return success or error message. Remove all flask imports in this file
-# TODO: jsonify should be called in route
+# TODO: return success or error message. Remove all flask imports in this file++++++++
+# TODO: jsonify should be called in route+++++++++
 def get_all_shop_products():
     user = User.get_user_id()
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-    shop = Shop.get_shop_by_owner_id(user.id)
-    if not shop:
-        return jsonify({'error': 'Shop not found'}), 404
-    try:
-        shop_products = db.session.query(Product, ProductDetail, ProductPhoto) \
-            .join(ProductDetail, Product.id == ProductDetail.product_id) \
-            .outerjoin(ProductPhoto, ProductDetail.id == ProductPhoto.product_detail_id) \
-            .filter(Product.shop_id == shop.id) \
-            .all()
-        response = product_info_serialize(shop_products)
-        return response
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    if user is not None:
+        shop = Shop.get_shop_by_owner_id(user.id)
+        if not shop:
+            return {'error': 'Shop not found'}
+        try:
+            shop_products = db.session.query(Product, ProductDetail, ProductPhoto) \
+                .join(ProductDetail, Product.id == ProductDetail.product_id) \
+                .outerjoin(ProductPhoto, ProductDetail.id == ProductPhoto.product_detail_id) \
+                .filter(Product.shop_id == shop.id) \
+                .all()
+            response = product_info_serialize(shop_products)
+            return response
+        except ValueError as e:
+            raise ValueError(e) from e
+    raise NotFoundError('User not found')
