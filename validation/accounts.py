@@ -14,11 +14,6 @@ class DeliveryPostEnum(str, Enum):
 class SigninValid(BaseModel):    
     email: str
     password: str
-    
-class SignupValid(BaseModel):
-    full_name:str
-    password: str
-    email:str
 
     @validator('password')
     @staticmethod
@@ -27,6 +22,20 @@ class SignupValid(BaseModel):
         if not re.match(regex, value):
             raise ValueError('The password must contain at least one capital letter 8 characters')
         return value
+    
+    @validator('email')
+    @staticmethod
+    def email_validator(value: str) -> str:
+        regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        if not re.match(regex, value):
+            raise ValueError('Invalid email format')
+        return value
+
+    
+class SignupValid(SigninValid):
+    full_name:str
+    email: str
+    password: str
 
     @validator('full_name')
     @staticmethod
@@ -34,6 +43,14 @@ class SignupValid(BaseModel):
         regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\- ]+$"
         if not re.match(regex, value):
             raise ValueError('Invalid characters in the field full_name')
+        return value
+    
+    @validator('password')
+    @staticmethod
+    def password_validator(value: str) -> str:
+        regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
+        if not re.match(regex, value):
+            raise ValueError('The password must contain at least one capital letter 8 characters')
         return value
     
     @validator('email')
@@ -44,8 +61,9 @@ class SignupValid(BaseModel):
             raise ValueError('Invalid email format')
         existing_email = User.query.filter(User.email == value).first()
         if existing_email:
-            raise ValueError('Email is already exists')     
+            raise ValueError('Email is already exists')
         return value
+
 
 class PhoneNumberValid(BaseModel):
     phone_number:str
