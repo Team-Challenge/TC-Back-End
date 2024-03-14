@@ -36,7 +36,7 @@ class Product(db.Model):
         self.product_name = kwargs.get('product_name')
         self.product_description = kwargs.get('product_description')
         self.is_active = kwargs.get('is_active', True)
-        self.time_added = datetime.now()()
+        self.time_added = datetime.now()
         self.time_modifeid = datetime.now()
 
     category = relationship("Categories",
