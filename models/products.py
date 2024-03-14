@@ -29,6 +29,14 @@ class Product(db.Model):
     time_modifeid = mapped_column(DateTime, default=None)
     is_active = mapped_column(Boolean, default=True)
 
+    category = relationship("Categories",
+                                                    back_populates="product")
+    product_to_comment = relationship("ProductComment",
+                                                                back_populates="product_comment")
+    owner_shop = relationship("Shop", back_populates="shop_to_products")
+    product_to_detail = relationship("ProductDetail",
+                                                              back_populates="product_detail")
+    
     def __init__(self, shop_id, **kwargs):
         self.category_id = kwargs.get('category_id')
         self.sub_category_name = kwargs.get('sub_category_name')
@@ -38,14 +46,6 @@ class Product(db.Model):
         self.is_active = kwargs.get('is_active', True)
         self.time_added = datetime.now()
         self.time_modifeid = datetime.now()
-
-    category = relationship("Categories",
-                                                    back_populates="product")
-    product_to_comment = relationship("ProductComment",
-                                                                back_populates="product_comment")
-    owner_shop = relationship("Shop", back_populates="shop_to_products")
-    product_to_detail = relationship("ProductDetail",
-                                                              back_populates="product_detail")
 
     # TODO: return success or error message. Remove all flask imports in this file++++
     # TODO: jsonify should be called in route++++++
