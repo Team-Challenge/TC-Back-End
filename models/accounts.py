@@ -10,8 +10,7 @@ import uuid
 from datetime import datetime
 
 from flask import url_for
-from flask_jwt_extended import (create_access_token, create_refresh_token,
-                                get_jwt_identity)
+from flask_jwt_extended import (create_access_token, create_refresh_token)
 from itsdangerous import BadSignature, SignatureExpired
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, relationship
@@ -113,8 +112,9 @@ class User(db.Model):
             user_full_data = serialize(user)
             delivery_info_data = serialize(delivery_info)
             if user_full_data["profile_picture"] is not None:
-                profile_picture_path = url_for('static', filename=f'media/'
-                                                                  f'profile/{user_full_data["profile_picture"]}',
+                profile_picture_path = url_for('static',
+                                               filename=f'media/profile/'
+                                                        f'{user_full_data["profile_picture"]}',
                                                _external=True)
                 user_full_data['profile_picture'] = profile_picture_path
             user_full_info = {**user_full_data, **delivery_info_data}
