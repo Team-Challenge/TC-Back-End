@@ -168,7 +168,8 @@ def change_phone_number():
     except ValidationError as e:
         return jsonify(serialize_validation_error(e)), 400
     try:
-        response = User.change_number(user_data.phone_number)
+        user_id = get_jwt_identity()
+        response = User.change_number(user_id, user_data.phone_number)
         return jsonify(response)
     except UserError as e:
         return jsonify({'error': str(e)}, 400)

@@ -1,4 +1,3 @@
-
 import os
 
 from flask import (Blueprint, current_app, jsonify, make_response,
@@ -12,7 +11,6 @@ CORS(categories, supports_credentials=True)
 
 @categories.route('/categories', methods=['GET'])
 def get_static_categories():
-
     static_dir = os.path.join(current_app.root_path, 'static')
     try:
         d = send_from_directory(static_dir, 'categories/categories.json', as_attachment=True)

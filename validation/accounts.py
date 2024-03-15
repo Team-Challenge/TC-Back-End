@@ -11,7 +11,8 @@ class DeliveryPostEnum(str, Enum):
     nova_post = 'nova_post'
     ukr_post = 'ukr_post'
 
-class SigninValid(BaseModel):    
+
+class SigninValid(BaseModel):
     email: str
     password: str
 
@@ -22,7 +23,7 @@ class SigninValid(BaseModel):
         if not re.match(regex, value):
             raise ValueError('The password must contain at least one capital letter 8 characters')
         return value
-    
+
     @validator('email')
     @staticmethod
     def email_validator(value: str) -> str:
@@ -31,9 +32,9 @@ class SigninValid(BaseModel):
             raise ValueError('Invalid email format')
         return value
 
-    
+
 class SignupValid(SigninValid):
-    full_name:str
+    full_name: str
     email: str
     password: str
 
@@ -44,7 +45,7 @@ class SignupValid(SigninValid):
         if not re.match(regex, value):
             raise ValueError('Invalid characters in the field full_name')
         return value
-    
+
     @validator('password')
     @staticmethod
     def password_validator(value: str) -> str:
@@ -52,7 +53,7 @@ class SignupValid(SigninValid):
         if not re.match(regex, value):
             raise ValueError('The password must contain at least one capital letter 8 characters')
         return value
-    
+
     @validator('email')
     @staticmethod
     def email_validator(value: str) -> str:
@@ -66,7 +67,7 @@ class SignupValid(SigninValid):
 
 
 class PhoneNumberValid(BaseModel):
-    phone_number:str
+    phone_number: str
 
     @validator('phone_number')
     @staticmethod
@@ -75,9 +76,10 @@ class PhoneNumberValid(BaseModel):
         if not re.match(regex, value):
             raise ValueError('Invalid phone number format. Must start with +380 and have 9 digits.')
         return value
-    
+
+
 class FullNameValid(BaseModel):
-    full_name:str
+    full_name: str
 
     @validator('full_name')
     @staticmethod
@@ -85,7 +87,8 @@ class FullNameValid(BaseModel):
         regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\- ]+$"
         if not re.match(regex, value):
             raise ValueError('Invalid characters in the field full_name')
-        return value    
+        return value
+
 
 class DeliveryPostValid(BaseModel):
     post: DeliveryPostEnum
@@ -93,8 +96,10 @@ class DeliveryPostValid(BaseModel):
     branch_name: str
     address: str
 
+
 class GoogleAuthValid(BaseModel):
     id_token: str
+
 
 class UserSchema(BaseModel):
     id: int
@@ -106,9 +111,11 @@ class UserSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ChangePasswordSchema(BaseModel):
     current_password: str
     new_password: str
+
 
 class UserInfoSchema(BaseModel):
     full_name: str

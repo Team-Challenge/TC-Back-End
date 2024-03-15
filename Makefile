@@ -23,6 +23,9 @@ recreate-db-local:
 prospector:
 	prospector --profile=config/prospector.yaml
 
+test:
+	pytest . --disable-warnings
+
 ## Docker commmands
 up:
 	docker-compose -f docker/docker-compose.yaml up

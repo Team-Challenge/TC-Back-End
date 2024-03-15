@@ -70,6 +70,7 @@ class Product(db.Model):
     def add_product(cls, **kwargs):
         user = User.get_user_id()
         if user is not None:
+            # TODO: Remove unnecessary exception
             try:
                 kwargs['sub_category_name'] = get_subcategory_name(kwargs.get('category_id'),
                                                                 kwargs.get('sub_category_id'))

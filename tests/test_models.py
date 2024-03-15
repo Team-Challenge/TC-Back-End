@@ -22,7 +22,6 @@ def test_create_user(session):
     assert user.email == 'john@example.com'
 
 
-
 def test_create_shop(session):
     # Example test for creating a user
     test_user = create_test_user(session)

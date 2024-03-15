@@ -25,7 +25,7 @@ def upgrade():
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('full_name', sa.String(), nullable=True),
-    sa.Column('email', sa.String(), nullable=True),
+    sa.Column('email', sa.String(), nullable=False, unique=True),
     sa.Column('joined_at', sa.DateTime(), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('profile_picture', sa.String(), nullable=True),

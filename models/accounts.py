@@ -31,7 +31,7 @@ class User(db.Model):
 
     id = mapped_column(Integer, primary_key=True)
     full_name = mapped_column(String)
-    email = mapped_column(String)
+    email = mapped_column(String, nullable=False, unique=True)
     joined_at = mapped_column(DateTime, default=datetime.utcnow())
     is_active = mapped_column(Boolean, default=False)
     profile_picture = mapped_column(String)
@@ -39,7 +39,7 @@ class User(db.Model):
 
     shops = relationship("Shop", back_populates="owner")
     delivery_user_info = relationship("DeliveryUserInfo",
-                                                                        back_populates="owner")
+                                      back_populates="owner")
     comment = relationship("ProductComment", back_populates="user_comment")
 
     def __init__(self, email, full_name):
@@ -47,10 +47,9 @@ class User(db.Model):
         self.full_name = full_name
 
     @classmethod
-    def get_user_id(cls):
-        current_user_id = get_jwt_identity()
-        return User.query.filter_by(id=current_user_id).first()
-    
+    def get_user_by_id(cls, user_id):
+        return User.query.filter_by(id=user_id).first()
+
     @classmethod
     def create_user(cls, email, full_name, password):
         user = cls(email=email, full_name=full_name)
@@ -58,7 +57,7 @@ class User(db.Model):
         db.session.flush()
         Security.create_security(user.id, password=password)
         return user
-    
+
     # TODO: return success or error message. Remove all flask imports in this file +++++
     # TODO: jsonify should be called in route ++++
     @classmethod
@@ -66,7 +65,7 @@ class User(db.Model):
         user = cls.query.filter_by(email=email).first()
         if user:
             if user is None or not check_password_hash(
-            Security.query.filter_by(user_id=user.id).first().password_hash, password):
+                    Security.query.filter_by(user_id=user.id).first().password_hash, password):
                 raise UserError("Incorrect password")
 
             access_token = create_access_token(identity=user.id, fresh=True)
@@ -74,11 +73,11 @@ class User(db.Model):
             response = {"access_token": access_token, "refresh_token": refresh_token}
             return response
         raise UserError('User not found')
-    
+
     # TODO: rename: change_number +++++
     # TODO: return success or error message. Remove all flask imports in this file +++++
     # TODO: jsonify should be called in route ++++++
-    def change_number(phone_number):
+    def change_number(user_id, phone_number):
         user = User.get_user_id()
         if user:
             try:
@@ -89,7 +88,7 @@ class User(db.Model):
             except ValueError as e:
                 raise UserError(e) from e
         raise NotFoundError('User not found')
-    
+
     # TODO: rename: change_full_name ++++
     # TODO: return success or error message. Remove all flask imports in this file+++++++
     # TODO: jsonify should be called in route+++
@@ -104,7 +103,7 @@ class User(db.Model):
             except ValueError as e:
                 raise UserError(e) from e
         raise NotFoundError('User not found')
-    
+
     # TODO: rename: get_user_info+++
     @classmethod
     def get_user_info(cls):
@@ -114,10 +113,9 @@ class User(db.Model):
             user_full_data = serialize(user)
             delivery_info_data = serialize(delivery_info)
             if user_full_data["profile_picture"] is not None:
-
                 profile_picture_path = url_for('static', filename=f'media/'
-                                            f'profile/{user_full_data["profile_picture"]}',
-                                            _external=True)
+                                                                  f'profile/{user_full_data["profile_picture"]}',
+                                               _external=True)
                 user_full_data['profile_picture'] = profile_picture_path
             user_full_info = {**user_full_data, **delivery_info_data}
             shop = Shop.qwery.filter(owner_id=user.id)
@@ -133,8 +131,8 @@ class User(db.Model):
     @classmethod
     def handle_profile_photo(cls, request, action):
         user = cls.get_user_id()
-        
-        if user is not None:        
+
+        if user is not None:
             if action == 'upload':
                 file = request.files.get('image')
                 if file is not None:
@@ -155,7 +153,7 @@ class User(db.Model):
                     filename = user.profile_picture
                     return {'message': 'Profile photo uploaded successfully', 'filename': filename}
                 raise UserError('Bed request data')
-        
+
             if action == 'delete':
                 if user.profile_picture:
                     file_path = os.path.join(PROFILE_PHOTOS_PATH, user.profile_picture)
@@ -167,7 +165,7 @@ class User(db.Model):
                 raise NotFoundError('Profile photo not found')
             raise ValueError('Invalid action specified')
         raise NotFoundError('User not found')
-    
+
     # TODO: rename: change_password+++++++
     # TODO: return success or error message. Remove all flask imports in this file++++++++
     # TODO: jsonify should be called in route++++++++
@@ -176,13 +174,12 @@ class User(db.Model):
     def change_password(cls, **user_data):
         user = User.get_user_id()
         if user:
-            response =Security.change_password(user_id=user.id,
-                                      current_password=user_data['current_password'], 
-                                      new_password=user_data['new_password'])
+            response = Security.change_password(user_id=user.id,
+                                                current_password=user_data['current_password'],
+                                                new_password=user_data['new_password'])
             return response
         raise NotFoundError('User not found')
 
-    
     # TODO: rename: verify_email+++++
     # TODO: return success or error message. Remove all flask imports in this file++++
     # TODO: jsonify should be called in route+++++
@@ -202,9 +199,7 @@ class User(db.Model):
         except BadSignature as exc:
             raise exc from exc
         except Exception as exc:
-            raise exc from exc 
-    
-
+            raise exc from exc
 
 
 class Security(db.Model):
@@ -213,17 +208,22 @@ class Security(db.Model):
     user_id = mapped_column(Integer, ForeignKey("users.id"), primary_key=True)
     password_hash = mapped_column(String(64))
 
-    def __init__(self,user_id, password):
+    def __init__(self, user_id, password):
         self.user_id = user_id
         self.password_hash = password
 
     @classmethod
-    def create_security(cls,user_id, password):
+    def get_user_password_hash(cls, user_id: int):
+        security = cls.query.filter_by(user_id=user_id).first()
+        return security.password_hash
+
+    @classmethod
+    def create_security(cls, user_id, password):
         security = cls(user_id=user_id, password=generate_password_hash(password))
         db.session.add(security)
         db.session.commit()
         return security
-    
+
     @staticmethod
     def change_password(user_id, current_password, new_password):
         security = Security.query.filter_by(user_id=user_id).first()
@@ -235,7 +235,6 @@ class Security(db.Model):
                 return {'message': 'Password updated successfully'}
             raise UserError('Invalid password')
         raise NotFoundError('Password not found')
-
 
 
 class DeliveryUserInfo(db.Model):
@@ -279,8 +278,7 @@ class DeliveryUserInfo(db.Model):
             return {'message': 'Delivery address updated successfully'}
         raise NotFoundError('User not found')
 
-    
-    def update_delivery_info(self,**data):
+    def update_delivery_info(self, **data):
         if data['post']:
             self.post = data['post']
         if data['city']:
