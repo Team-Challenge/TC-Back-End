@@ -50,7 +50,7 @@ class User(db.Model):
         return User.query.filter_by(id=user_id).first()
 
     @classmethod
-    def create_user(cls, email, full_name, password):
+    def create_user(cls, email: str, full_name: str, password: str):
         user = cls(email=email, full_name=full_name)
         db.session.add(user)
         db.session.flush()
@@ -60,7 +60,7 @@ class User(db.Model):
     # TODO: return success or error message. Remove all flask imports in this file +++++
     # TODO: jsonify should be called in route ++++
     @classmethod
-    def sign_in(cls, email, password):
+    def sign_in(cls, email: str, password: str):
         user = cls.query.filter_by(email=email).first()
         if user:
             if user is None or not check_password_hash(
@@ -76,8 +76,9 @@ class User(db.Model):
     # TODO: rename: change_number +++++
     # TODO: return success or error message. Remove all flask imports in this file +++++
     # TODO: jsonify should be called in route ++++++
-    def change_number(user_id, phone_number):
-        user = User.get_user_id()
+    @classmethod
+    def change_number(cls, user_id: int, phone_number: str):
+        user = cls.get_user_by_id(user_id)
         if user:
             try:
                 user.phone_number = phone_number
@@ -91,8 +92,9 @@ class User(db.Model):
     # TODO: rename: change_full_name ++++
     # TODO: return success or error message. Remove all flask imports in this file+++++++
     # TODO: jsonify should be called in route+++
-    def change_full_name(full_name):
-        user = User.get_user_id()
+    @classmethod
+    def change_full_name(cls, user_id: int, full_name: str):
+        user = cls.get_user_by_id(user_id)
         if user:
             try:
                 user.full_name = full_name
@@ -105,8 +107,8 @@ class User(db.Model):
 
     # TODO: rename: get_user_info+++
     @classmethod
-    def get_user_info(cls):
-        user = User.get_user_id()
+    def get_user_info(cls, user_id: int):
+        user = cls.get_user_by_id(user_id)
         if user is not None:
             delivery_info = DeliveryUserInfo.get_delivery_info_by_owner_id(user.id)
             user_full_data = serialize(user)
@@ -118,7 +120,7 @@ class User(db.Model):
                                                _external=True)
                 user_full_data['profile_picture'] = profile_picture_path
             user_full_info = {**user_full_data, **delivery_info_data}
-            shop = Shop.qwery.filter(owner_id=user.id)
+            shop = Shop.query.filter_by(owner_id=user.id).first()
             if shop or shop is not None:
                 user_full_info['shop_id'] = shop.id
                 user_full_info['have_a_shop'] = True
@@ -152,7 +154,7 @@ class User(db.Model):
                     db.session.commit()
                     filename = user.profile_picture
                     return {'message': 'Profile photo uploaded successfully', 'filename': filename}
-                raise UserError('Bed request data')
+                raise UserError('Bad request data')
 
             if action == 'delete':
                 if user.profile_picture:
@@ -171,8 +173,8 @@ class User(db.Model):
     # TODO: jsonify should be called in route++++++++
     # TODO: in Security class create_method to change password: change_password()+++++++
     @classmethod
-    def change_password(cls, **user_data):
-        user = User.get_user_id()
+    def change_password(cls, user_id: int, **user_data):
+        user = cls.get_user_by_id(user_id)
         if user:
             response = Security.change_password(user_id=user.id,
                                                 current_password=user_data['current_password'],
@@ -180,6 +182,7 @@ class User(db.Model):
             return response
         raise NotFoundError('User not found')
 
+    # todo: Add to endpoint tests
     # TODO: rename: verify_email+++++
     # TODO: return success or error message. Remove all flask imports in this file++++
     # TODO: jsonify should be called in route+++++
@@ -194,11 +197,7 @@ class User(db.Model):
             user.is_active = True
             db.session.commit()
             return "OK"
-        except SignatureExpired as exc:
-            raise exc from exc
-        except BadSignature as exc:
-            raise exc from exc
-        except Exception as exc:
+        except (SignatureExpired, BadSignature, Exception) as exc:
             raise exc from exc
 
 
@@ -215,6 +214,8 @@ class Security(db.Model):
     @classmethod
     def get_user_password_hash(cls, user_id: int):
         security = cls.query.filter_by(user_id=user_id).first()
+        if not security:
+            raise NotFoundError("Password hash for User not found")
         return security.password_hash
 
     @classmethod
@@ -264,8 +265,8 @@ class DeliveryUserInfo(db.Model):
     # TODO: return success or error message. Remove all flask imports in this file++++++
     # TODO: jsonify should be called in route+++++++
     @classmethod
-    def add_delivery_info(cls, **kwargs):
-        user = User.get_user_id()
+    def add_delivery_info(cls, user_id: int, **kwargs):
+        user = User.get_user_by_id(user_id)
         if user is not None:
             existing_delivery = DeliveryUserInfo.get_delivery_info_by_owner_id(user.id)
             if not existing_delivery:
@@ -292,13 +293,13 @@ class DeliveryUserInfo(db.Model):
     # TODO: return success or error message. Remove all flask imports in this file+++++
     # TODO: jsonify should be called in route+++++++++
     @classmethod
-    def remove_delivery_info(cls):
-        user = User.get_user_id()
+    def remove_delivery_info(cls, user_id: int):
+        user = User.get_user_by_id(user_id)
         if user is not None:
             existing_delivery = DeliveryUserInfo.get_delivery_info_by_owner_id(user.id)
             if existing_delivery:
                 db.session.delete(existing_delivery)
                 db.session.commit()
                 return {'message': 'Delivery address removed successfully'}
-            raise NotFoundError('Delivery adress not found')
+            raise NotFoundError('Delivery address not found')
         raise NotFoundError('User not found')
