@@ -1,6 +1,7 @@
 # TODO
 
-# import json
+import os.path
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -9,14 +10,17 @@ from sqlalchemy.orm import sessionmaker
 
 from app import create_testing_app
 from config.config import TestConfig
+from dependencies import db
+from tests import status
+
+# from data.create_fixtures import create_fixtures
+
 # TODO
 # в тестах не використовувати сеймпли із папки data
 # можна скопіювати json файли - покласти в парку tests/data
 # в json файли додати не валідні данні(кейси)
 # створити окремі функції в поточному файлі для завантаження тих чи інших тестових сеймплів(з json файлів)
-from data.create_fixtures import create_fixtures
-from dependencies import db
-from tests import status
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,6 +44,13 @@ def get_payload():
         "password": "Password123"
     }
     return payload
+
+
+@contextmanager
+def open_mock(filename: str):
+    mock_path = os.path.join(Path(__file__).resolve().parent, "mocks/", filename)
+    with open(mock_path) as file:
+        yield file
 
 
 def authorize(client, refresh=False):
@@ -112,6 +123,7 @@ def prepopulated_engine(app):
         db.drop_all()
 
 
+# Todo edit prepopulated session
 @pytest.fixture(scope="function")
 def prepopulated_session(prepopulated_engine):
     Session = sessionmaker(bind=prepopulated_engine.engine)
