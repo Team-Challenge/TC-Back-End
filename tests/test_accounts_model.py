@@ -11,15 +11,6 @@ from models.errors import UserError, NotFoundError
 from tests.conftest import TestValidData as Data, open_mock, create_test_user
 
 
-# todo sign_in
-# todo change_number
-# todo change_full_name
-# todo get_user_info
-# todo handle_profile_photo
-# todo change_password
-# todo verify_email
-
-
 def create_mock_users():
     users = []
     with open_mock("valid_users.csv") as data:
