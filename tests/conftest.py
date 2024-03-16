@@ -1,4 +1,3 @@
-# TODO
 import csv
 import os.path
 from contextlib import contextmanager
@@ -11,12 +10,11 @@ from sqlalchemy.orm import sessionmaker
 from app import create_testing_app
 from config.config import TestConfig
 from dependencies import db
+from models.accounts import User, Security
 from tests import status
 
-# from data.create_fixtures import create_fixtures
-
 # TODO
-# в тестах не використовувати сеймпли із папки data
+# в тестах не використовувати сеймпли із папки data +++++
 # можна скопіювати json файли - покласти в парку tests/data
 # в json файли додати не валідні данні(кейси)
 # створити окремі функції в поточному файлі для завантаження тих чи інших тестових сеймплів(з json файлів)
@@ -28,9 +26,15 @@ N = 0
 
 
 class TestValidData:
+    # Accounts
     TEST_EMAIL = "test@mail.com"
     TEST_FULL_NAME = "TestName Full"
     TEST_PASSWORD = "123467898qweW"
+    # Delivery User Info
+    TEST_POST = "nova_post"
+    TEST_CITY = "Kyiv"
+    TEST_BRANCH_NAME = "Відділення 1"
+    TEST_ADDRESS = "вул. Хрещатик, 1"
 
 
 def get_payload():
@@ -44,6 +48,13 @@ def get_payload():
         "password": "Password123"
     }
     return payload
+
+
+def create_test_user(email=TestValidData.TEST_EMAIL,
+                     full_name=TestValidData.TEST_FULL_NAME,
+                     password=TestValidData.TEST_PASSWORD) -> User:
+    u = User.create_user(email, full_name, password)
+    return u
 
 
 @contextmanager
@@ -124,12 +135,18 @@ def prepopulated_engine(app):
         db.drop_all()
 
 
-# Todo edit prepopulated session
-@pytest.fixture(scope="function")
-def prepopulated_session(prepopulated_engine):
-    Session = sessionmaker(bind=prepopulated_engine.engine)
-    session = Session()
-    create_fixture_t(prepopulated_engine)
+@pytest.fixture(scope='function')
+def prepopulated_session(engine):
+    session = sessionmaker(bind=engine)()
+    users = []
+    with open_mock("valid_users.csv") as data:
+        for row in data:
+            row: dict
+            row.pop("password")
+            user = User(**row)
+            users.append(user)
+    session.bulk_save_objects(users)
+    session.commit()
     yield session
     session.rollback()
     session.close()
