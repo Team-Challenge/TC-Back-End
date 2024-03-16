@@ -1,5 +1,5 @@
 # TODO
-
+import csv
 import os.path
 from contextlib import contextmanager
 from pathlib import Path
@@ -48,9 +48,10 @@ def get_payload():
 
 @contextmanager
 def open_mock(filename: str):
+    # Returns iterable rows as {key: value, key: value...}
     mock_path = os.path.join(Path(__file__).resolve().parent, "mocks/", filename)
     with open(mock_path) as file:
-        yield file
+        yield csv.DictReader(file)
 
 
 def authorize(client, refresh=False):
