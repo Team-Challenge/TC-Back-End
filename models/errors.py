@@ -4,8 +4,10 @@ from pydantic import ValidationError
 class UserError(Exception):
     pass
 
+
 class NotFoundError(Exception):
     pass
+
 
 def serialize_validation_error(e: ValidationError) -> dict:
     error_messages = []

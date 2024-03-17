@@ -8,6 +8,7 @@ from sqlalchemy.orm import mapped_column, relationship
 from config import Config
 from dependencies import db
 from utils.utils import serialize
+from models.errors import NotFoundError
 
 SHOPS_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'shops')
 SHOPS_BANNER_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'banner_shops')
@@ -18,11 +19,11 @@ class Shop(db.Model):
 
     id = mapped_column(Integer, primary_key=True)
     owner_id = mapped_column(Integer, ForeignKey("users.id"))
-    name = mapped_column(String)
+    name = mapped_column(String, nullable=False)
     description = mapped_column(String, default=None)
     photo_shop = mapped_column(String, default=None)
     banner_shop = mapped_column(String, default=None)
-    phone_number = mapped_column(String, default=None)
+    phone_number = mapped_column(String, nullable=False)
     link = mapped_column(String, default=None)
 
     def __init__(self, **kwargs):
@@ -49,13 +50,13 @@ class Shop(db.Model):
         return new_shop
 
     def update_shop_details(self, **data):
-        if data['name']:
+        if data.get('name'):
             self.name = data['name']
-        if data['description']:
+        if data.get('description'):
             self.description = data['description']
-        if data['phone_number']:
+        if data.get('phone_number'):
             self.phone_number = data['phone_number']
-        if data['link']:
+        if data.get('link'):
             self.link = data['link']
         db.session.commit()
 
@@ -105,17 +106,19 @@ class Shop(db.Model):
         db.session.commit()
 
     @classmethod
-    def get_shop_user_info(cls, shop):
-        shop_info = serialize(shop)
-        # TODO: use object.get(attr) instead object[attr]+++++
-        if shop_info.get("banner_shop") is not None:
-            banner_shop_path = url_for('static', filename=f'media/'
-                                                          f'banner_shop/{shop_info["banner_shop"]}',
-                                       _external=True)
-            shop_info['banner_shop'] = banner_shop_path
-        if shop_info.get("photo_shop") is not None:
-            photo_shop_path = url_for('static', filename=f'media/'
-                                                         f'shops/{shop_info["photo_shop"]}',
-                                      _external=True)
-            shop_info['photo_shop'] = photo_shop_path
-        return shop_info
+    def get_shop_user_info(cls, user_id):
+        shop = cls.get_shop_by_owner_id(owner_id=user_id)
+        if shop is not None:
+            shop_info = serialize(shop)
+            if shop_info.get("banner_shop") is not None:
+                banner_shop_path = url_for('static', filename=f'media/'
+                                                              f'banner_shop/{shop_info["banner_shop"]}',
+                                           _external=True)
+                shop_info['banner_shop'] = banner_shop_path
+            if shop_info.get("photo_shop") is not None:
+                photo_shop_path = url_for('static', filename=f'media/'
+                                                             f'shops/{shop_info["photo_shop"]}',
+                                          _external=True)
+                shop_info['photo_shop'] = photo_shop_path
+            return shop_info
+        raise NotFoundError('Shop not found')

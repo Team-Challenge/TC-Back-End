@@ -1,3 +1,4 @@
+import logging
 
 from flask import (Blueprint, current_app, jsonify, make_response, request,
                    url_for)
@@ -6,14 +7,14 @@ from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 
 from models.accounts import User
-from models.errors import serialize_validation_error
+from models.errors import serialize_validation_error, NotFoundError
 from models.shops import Shop
 from validation.shops import ShopCreateValid, ShopSchema, ShopUpdateValid
 
 shops = Blueprint("shops_route", __name__, url_prefix="/shops")
 
-
 CORS(shops, supports_credentials=True)
+
 
 @shops.route("/shop", methods=["POST"])
 @jwt_required()
@@ -40,6 +41,7 @@ def create_shops():
         return jsonify({'message': 'Shop created successfully'}), 201
     return jsonify({'error': 'User not found'}), 404
 
+
 @shops.route('/shop_photo', methods=['POST', 'DELETE', 'GET'])
 @jwt_required()
 def shop_photo():
@@ -62,7 +64,7 @@ def shop_photo():
 
     if shop:
         return make_response('Method Not Allowed', 405)
-    
+
     return jsonify({'message': 'There is no store by user'}), 404
 
 
@@ -88,20 +90,22 @@ def shop_banner():
 
     if shop:
         return make_response('Method Not Allowed', 405)
-    
+
     return jsonify({'message': 'There is no store by user'}), 404
+
 
 @shops.route('/shop_info', methods=['GET'])
 @jwt_required()
 def get_shop_info():
     user = User.get_user_id()
-
     if not user:
         return make_response('User not found', 404)
-
-    shop = Shop.get_shop_by_owner_id(user.id)
-    if not shop:
-        return make_response('Shop not found', 404)
-    shop_info = Shop.get_shop_user_info(shop)
-    response = ShopSchema(**shop_info)
-    return jsonify(response.model_dump()), 200
+    try:
+        shop_info = Shop.get_shop_user_info(user.id)
+        response = ShopSchema(**shop_info)
+        return jsonify(response.model_dump()), 200
+    except NotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        logging.error(e)
+        return jsonify({'error': 'internal server error'}), 500

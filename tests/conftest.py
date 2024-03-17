@@ -31,6 +31,11 @@ class TestValidData:
     TEST_EMAIL = "test@mail.com"
     TEST_FULL_NAME = "TestName Full"
     TEST_PASSWORD = "123467898qweW"
+    # Shop
+    TEST_SHOP_NAME = "Shop name"
+    TEST_SHOP_DESCRIPTION = "Best shop in the world"
+    TEST_SHOP_PHONE_NUMBER = "+30991122333"
+    TEST_SHOP_LINK = "instagram.tenet"
 
 
 def get_payload():
