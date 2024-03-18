@@ -125,7 +125,9 @@ def test_update_shop_info_1(session):
 
     # When
     s.update_shop_details(link="new link",
-                          phone_number="+380974455566")
+                          phone_number="+380974455566",
+                          name="new name",
+                          description="new description")
 
     # Then
     assert s.link == "new link"
