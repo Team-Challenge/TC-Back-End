@@ -2,10 +2,10 @@ import logging
 
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
 
-from models.errors import NotFoundError, UserError, serialize_validation_error
+from models.errors import NotFoundError, UserError, serialize_validation_error, BadFileTypeError
 from models.products import Product, ProductPhoto, get_all_shop_products
 from utils.utils import serialize_product
 from validation.products import CreateProductValid, UpdateProductValid
@@ -46,9 +46,9 @@ def add_product_photo(product_id):
         raw_value = request.form.get('main', '').lower()
         main_photo = raw_value == 'true'
         photo = request.files['image']
-        response = ProductPhoto.add_product_photo(product_id, photo, main_photo)
+        response = ProductPhoto.add_product_photo(get_jwt_identity(), product_id, photo, main_photo)
         return jsonify(response), 200
-    except UserError as e:
+    except (UserError, BadFileTypeError) as e:
         return jsonify({'error': str(e)}), 400
     except NotFoundError as e:
         return jsonify({'error': str(e)}), 404
@@ -61,7 +61,7 @@ def add_product_photo(product_id):
 @jwt_required()
 def get_shop_products():
     try:
-        response = get_all_shop_products()
+        response = get_all_shop_products(get_jwt_identity())
         return jsonify(response), 200
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
@@ -100,7 +100,7 @@ def update_product(product_id):
 @jwt_required()
 def deactivate_product(product_id):
     try:
-        response = Product.delete_product(product_id)
+        response = Product.delete_product(get_jwt_identity(), product_id)
         return jsonify(response), 200
     except UserError as e:
         return jsonify({'error': str(e)}, 400)

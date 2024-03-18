@@ -5,16 +5,18 @@ from datetime import datetime
 from sqlalchemy import (Boolean, DateTime, Float, ForeignKey, Integer, String,
                         Text)
 from sqlalchemy.orm import mapped_column, relationship
+from werkzeug.datastructures import FileStorage
 
 from config import Config
 from dependencies import db
 from models.accounts import User
-from models.errors import NotFoundError, UserError
+from models.errors import NotFoundError, UserError, ProductPhotoLimitError, BadFileTypeError
 from models.shops import Shop
 from utils.utils import product_info_serialize
 from validation.products import get_subcategory_name
 
 PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
+
 
 class Product(db.Model):
     __tablename__ = "products"
@@ -30,28 +32,48 @@ class Product(db.Model):
     is_active = mapped_column(Boolean, default=True)
 
     category = relationship("Categories",
-                                                    back_populates="product")
+                            back_populates="product")
     product_to_comment = relationship("ProductComment",
-                                                                back_populates="product_comment")
+                                      back_populates="product_comment")
     owner_shop = relationship("Shop", back_populates="shop_to_products")
     product_to_detail = relationship("ProductDetail",
-                                                              back_populates="product_detail")
-    
-    def __init__(self, shop_id, **kwargs):
+                                     back_populates="product_detail")
+
+    def __init__(self, **kwargs):
+        self.shop_id = kwargs.get("shop_id")
         self.category_id = kwargs.get('category_id')
+        self.sub_category_id = kwargs.get('sub_category_id')
         self.sub_category_name = kwargs.get('sub_category_name')
-        self.shop_id = shop_id
         self.product_name = kwargs.get('product_name')
         self.product_description = kwargs.get('product_description')
         self.is_active = kwargs.get('is_active', True)
         self.time_added = datetime.now()
         self.time_modifeid = datetime.now()
 
+    # TODO: return success or error message. Remove all flask imports in this file++++++
+    # TODO: jsonify should be called in route+++++++++
+    @classmethod
+    def add_product(cls, user_id: int, **kwargs):
+        user = User.get_user_by_id(user_id)
+        if user is not None:
+            kwargs['sub_category_name'] = get_subcategory_name(kwargs.get('category_id'),
+                                                               kwargs.get('sub_category_id'))
+
+            shop = Shop.get_shop_by_owner_id(user.id)
+            if shop is not None:
+                product = cls(shop_id=shop.id, **kwargs)
+                db.session.add(product)
+                db.session.flush()
+                ProductDetail.add_product_detail(product_id=product.id, **kwargs)
+                return {'message': 'The product was created successfully'}
+            raise NotFoundError('Shop not found')
+        raise NotFoundError('User not found')
+
     # TODO: return success or error message. Remove all flask imports in this file++++
     # TODO: jsonify should be called in route++++++
     @staticmethod
-    def delete_product(product_id):
-        user = User.get_user_id()
+    def delete_product(user_id: int, product_id: int):
+        user = User.get_user_by_id(user_id)
         if user is not None:
             shop = Shop.get_shop_by_owner_id(user.id)
             if shop is not None:
@@ -64,28 +86,6 @@ class Product(db.Model):
             raise NotFoundError('Shop not found')
         raise NotFoundError('User not found')
 
-    # TODO: return success or error message. Remove all flask imports in this file++++++
-    # TODO: jsonify should be called in route+++++++++
-    @classmethod
-    def add_product(cls, **kwargs):
-        user = User.get_user_id()
-        if user is not None:
-            # TODO: Remove unnecessary exception
-            try:
-                kwargs['sub_category_name'] = get_subcategory_name(kwargs.get('category_id'),
-                                                                kwargs.get('sub_category_id'))
-            except ValueError as e:
-                raise ValueError(e) from e
-            shop = Shop.get_shop_by_owner_id(user.id)
-            if shop is not None:
-                product = cls(shop.id, **kwargs)
-                db.session.add(product)
-                db.session.flush()
-                ProductDetail.add_product_detail(product_id=product.id, **kwargs)
-                return {'message': 'The product was created successfully'}
-            raise NotFoundError('Shop not found')
-        raise NotFoundError('User not found')
-
     @classmethod
     def get_product_by_id(cls, product_id):
         return cls.query.filter_by(id=product_id).first()
@@ -93,27 +93,28 @@ class Product(db.Model):
     # TODO: return success or error message. Remove all flask imports in this file++++
     # TODO: jsonify should be called in route++++
     @staticmethod
-    def update_product(**kwargs):
-        user = User.get_user_id()
-        if user is not None:      
+    def update_product(user_id: int, **kwargs):
+        user = User.get_user_by_id(user_id)
+        if user is not None:
             product = Product.query.get(kwargs.get('product_id'))
             shop = Shop.get_shop_by_owner_id(user.id)
-            if shop is not None or product is not None:
-                try:
-                    if product and product.shop_id == shop.id:
-                        for key, value in kwargs.items():
-                            setattr(product, key, value)
-                        product.time_modified = datetime.now()
-                        ProductDetail.update_product_detail(**kwargs)
-                        return {"message": "Product updated successfully"}
-                    raise UserError('Product not found or not belong to shop')
-                except UserError as e:
-                    raise UserError(e) from e
-            raise NotFoundError('Shop or product not found')
-        raise NotFoundError('User not found')
-        
+            if shop is not None and product is not None:
+                if product and product.shop_id == shop.id:
+                    kwargs.pop("category_id", None)
+                    kwargs.pop("sub_category_id", None)
+                    kwargs.pop("sub_category_name", None)
+                    for key, value in kwargs.items():
+                        setattr(product, key, value)
+                    product.time_modified = datetime.now()
+                    ProductDetail.update_product_detail(**kwargs)
+                    return {"message": "Product updated successfully"}
+                raise UserError('Product not found or not belong to shop')
 
-        
+            raise NotFoundError('Shop or product not found')
+
+        raise NotFoundError('User not found')
+
+
 class ProductPhoto(db.Model):
     __tablename__ = "product_photos"
 
@@ -125,7 +126,7 @@ class ProductPhoto(db.Model):
     main = mapped_column(Boolean, default=False)
 
     product_image = relationship("ProductDetail",
-                                                          back_populates="product_to_photo")
+                                 back_populates="product_to_photo")
 
     def __init__(self, product_detail_id, product_photo, main):
         self.timestamp = datetime.now()
@@ -136,19 +137,27 @@ class ProductPhoto(db.Model):
     # TODO: return success or error message. Remove all flask imports in this file+++++
     # TODO: jsonify should be called in route++++++++
     @classmethod
-    def add_product_photo(cls, product_id, photo, main):
-        user = User.get_user_id()
-        if user is not None:
-            product = Product.get_product_by_id(product_id)
-            product_detail = ProductDetail.get_product_detail_by_product_id(product.id)
-            if product is None or product_detail is None:
-                raise NotFoundError('Product not found')
-            num_photos = ProductPhoto.get_num_photos_by_product_detail_id(product_detail.id)
-            if num_photos >= 4:
-                return {'error': 'The maximum photos for product has been 4'}
-            allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
+    def add_product_photo(cls, user_id: int, product_id: int, photo: FileStorage, main: bool):
+        user = User.get_user_by_id(user_id)
+        if user is None:
+            raise NotFoundError('User not found')
+
+        product = Product.get_product_by_id(product_id)  # noqa
+        if product is None:
+            raise NotFoundError("Product not found")
+
+        product_detail = ProductDetail.get_product_detail_by_product_id(product.id)  # noqa
+        if product_detail is None:
+            raise NotFoundError('Product not found')
+
+        num_photos = ProductPhoto.get_num_photos_by_product_detail_id(product_detail.id)  # noqa
+        if num_photos >= 4:
+            raise ProductPhotoLimitError('The maximum photos for product has been 4')
+
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
+        try:
             if '.' in photo.filename and photo.filename.rsplit(
-                                        '.', 1)[1].lower() in allowed_extensions:
+                    '.', 1)[1].lower() in allowed_extensions:
                 file_extension = photo.filename.split('.')[-1]
                 file_name = uuid.uuid4().hex
                 file_path = os.path.join(
@@ -156,12 +165,16 @@ class ProductPhoto(db.Model):
                 photo.save(file_path)
 
                 new_photo = cls(product_detail_id=product_detail.id,
-                            product_photo=f"{file_name}.{file_extension}", main=main)
+                                product_photo=f"{file_name}.{file_extension}", main=main)
                 db.session.add(new_photo)
                 db.session.commit()
                 return {"message": "Photo product uploaded successfully"}
-            raise UserError('Bad request')
-        raise NotFoundError('User not found')
+        except AttributeError as ex:
+            if "'str' object has no attribute 'filename'" in str(ex):
+                raise BadFileTypeError("Wrong filetype. Does file have file format?") from ex
+            raise AttributeError(ex) from ex
+
+        raise BadFileTypeError('Bad request. Does file have proper file format?')
 
     @classmethod
     def get_num_photos_by_product_detail_id(cls, product_detail_id):
@@ -176,11 +189,12 @@ class ProductPhoto(db.Model):
 
     def serialize(self):
         return {
-                "id": self.id,
-                "product_photo": self.product_photo,
-                "timestamp": self.timestamp.isoformat(),
-                "main": self.main
-                }
+            "id": self.id,
+            "product_photo": self.product_photo,
+            "timestamp": self.timestamp.isoformat(),
+            "main": self.main
+        }
+
 
 class ProductDetail(db.Model):
     __tablename__ = "product_details"
@@ -196,10 +210,10 @@ class ProductDetail(db.Model):
     is_unique = mapped_column(Boolean, default=False)
 
     product_detail = relationship("Product", back_populates="product_to_detail")
-    product_to_photo = relationship("ProductPhoto",back_populates="product_image",
-        lazy="joined",
-        uselist=True
-    )
+    product_to_photo = relationship("ProductPhoto", back_populates="product_image",
+                                    lazy="joined",
+                                    uselist=True
+                                    )
 
     def __init__(self, **kwargs):
         self.product_id = kwargs.get('product_id')
@@ -228,11 +242,11 @@ class ProductDetail(db.Model):
     def update_product_detail(**kwargs):
         product_detail = ProductDetail.query.filter_by(product_id=kwargs['product_id']).first()
         if product_detail is None:
-            return {"error": "Product detail not found"}
-        
+            raise NotFoundError("Product detail not found")
+
         for key, value in kwargs.items():
             setattr(product_detail, key, value)
-    
+
         db.session.commit()
         return {"message": "Product detail updated"}
 
@@ -249,7 +263,7 @@ class ProductComment(db.Model):
     is_confirmed_purchase = mapped_column(Boolean, default=False)
 
     product_comment = relationship("Product",
-                                                      back_populates="product_to_comment")
+                                   back_populates="product_to_comment")
     user_comment = relationship("User", back_populates="comment")
 
     def __init__(self, user_id, product_id, comment, raiting):
@@ -258,6 +272,7 @@ class ProductComment(db.Model):
         self.comment = comment
         self.raiting = raiting
         self.time_added = datetime.utcnow()
+
 
 class Categories(db.Model):
     __tablename__ = "categories"
@@ -282,22 +297,20 @@ class Categories(db.Model):
         categories = Categories.query.all()
         return categories
 
+
 # TODO: return success or error message. Remove all flask imports in this file++++++++
 # TODO: jsonify should be called in route+++++++++
-def get_all_shop_products():
-    user = User.get_user_id()
+def get_all_shop_products(user_id: int):
+    user = User.get_user_by_id(user_id)
     if user is not None:
         shop = Shop.get_shop_by_owner_id(user.id)
         if not shop:
-            return {'error': 'Shop not found'}
-        try:
-            shop_products = db.session.query(Product, ProductDetail, ProductPhoto) \
-                .join(ProductDetail, Product.id == ProductDetail.product_id) \
-                .outerjoin(ProductPhoto, ProductDetail.id == ProductPhoto.product_detail_id) \
-                .filter(Product.shop_id == shop.id) \
-                .all()
-            response = product_info_serialize(shop_products)
-            return response
-        except ValueError as e:
-            raise ValueError(e) from e
+            raise NotFoundError('Shop not found')
+        shop_products = db.session.query(Product, ProductDetail, ProductPhoto) \
+            .join(ProductDetail, Product.id == ProductDetail.product_id) \
+            .outerjoin(ProductPhoto, ProductDetail.id == ProductPhoto.product_detail_id) \
+            .filter(Product.shop_id == shop.id) \
+            .all()
+        response = product_info_serialize(shop_products)
+        return response
     raise NotFoundError('User not found')
