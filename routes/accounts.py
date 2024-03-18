@@ -1,4 +1,3 @@
-
 import logging
 import os
 from datetime import timedelta
@@ -35,8 +34,9 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):  # pylint: disable
     token_in_redis = cache.get(jti)
     return token_in_redis is not None
 
+
 @accounts.route("/signup", methods=["POST"])
-def signup() -> Response: 
+def signup() -> Response:
     request_data = request.get_json(silent=True)
     if request_data is None:
         return jsonify({'error': 'Request data is empty'}), 400
@@ -51,32 +51,32 @@ def signup() -> Response:
         token = serializer.dumps(user.email, salt='email-verification')
         verification_link = url_for('accounts.verify_email', token=token, _external=True)
         user_schema = UserSchema(
-                                id=user.id,
-                                full_name=user.full_name,
-                                email=user.email,
-                                phone_number=user.phone_number,
-                                profile_picture=user.profile_picture
-                            )
+            id=user.id,
+            full_name=user.full_name,
+            email=user.email,
+            phone_number=user.phone_number,
+            profile_picture=user.profile_picture
+        )
         response = {"user": user_schema.model_dump(), "link": verification_link}
         return make_response(jsonify(response), 200)
     # TODO: check if model method returned error, if yes use Enum mapper (in future) +++++
     # other unknown exception must be logged and as e response just 500 code ++++
     except UserError as e:
-        return jsonify({'error': str(e) }), 400
+        return jsonify({'error': str(e)}), 400
     except Exception as e:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
 
+
 @accounts.route("/authorize", methods=["POST"])
 def authorize() -> Response:
-
     google_auth_data = GoogleAuthValid().load(request.get_json(silent=True))
     flow = Flow.from_client_secrets_file(
         GOOGLE_CLIENT_SECRETS_FILE,
         scopes=['https://www.googleapis.com/auth/userinfo.email',
                 'https://www.googleapis.com/auth/userinfo.profile',
                 'openid'],
-    redirect_uri='http://localhost:8000')
+        redirect_uri='http://localhost:8000')
     flow.authorization_url(prompt='consent')
     flow.fetch_token(code=google_auth_data['id_token'])
 
@@ -118,6 +118,7 @@ def signin() -> Response:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
 
+
 @accounts.route('/verify/<token>', methods=['GET'])
 def verify_email(token):
     try:
@@ -136,6 +137,7 @@ def verify_email(token):
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
 
+
 @accounts.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
 def refresh():
@@ -148,6 +150,7 @@ def refresh():
 
     return make_response(response, 200)
 
+
 @accounts.route("/logout", methods=["DELETE"])
 @jwt_required(verify_type=False)
 def logout():
@@ -156,6 +159,7 @@ def logout():
     ttype = token["type"]
     cache.set(jti, "1", timeout=86400)
     return jsonify(msg=f"{ttype.capitalize()} token successfully revoked")
+
 
 @accounts.route('/change_phone_number', methods=['POST'])
 @jwt_required()
@@ -174,10 +178,11 @@ def change_phone_number():
     except UserError as e:
         return jsonify({'error': str(e)}, 400)
     except NotFoundError as e:
-        return jsonify({'error': str(e) }), 404
+        return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
+
 
 @accounts.route('/change_full_name', methods=['POST'])
 @jwt_required()
@@ -190,28 +195,32 @@ def change_full_name():
     except ValidationError as e:
         return jsonify(serialize_validation_error(e)), 400
     try:
-        response = User.change_full_name(user_data.full_name)
+        user_id = get_jwt_identity()
+        response = User.change_full_name(user_id=user_id, full_name=user_data.full_name)
         return jsonify(response), 200
     except UserError as e:
         return jsonify({'error': str(e)}, 400)
     except NotFoundError as e:
-        return jsonify({'error': str(e) }), 404
+        return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
+
 
 @accounts.route("/info", methods=["GET"])
 @jwt_required()
 def user_info():
     try:
-        user_data = User.get_user_info()
+        user_id = get_jwt_identity()
+        user_data = User.get_user_info(user_id)
         response = UserInfoSchema(**user_data)
         return jsonify(response.model_dump()), 200
     except NotFoundError as e:
-        return jsonify({'error': e }), 404
+        return jsonify({'error': e}), 404
     except Exception as e:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
+
 
 @accounts.route('/profile_photo', methods=['POST', 'DELETE'])
 @jwt_required()
@@ -230,7 +239,7 @@ def profile_photo():
             logging.error(e)
             return jsonify({'error': 'internal server error'}), 500
 
-    if  request.method == 'DELETE':
+    if request.method == 'DELETE':
         try:
             response = User.handle_profile_photo(request, action='delete')
             return jsonify(response), 200
@@ -242,6 +251,7 @@ def profile_photo():
             logging.error(e)
             return jsonify({'error': 'internal server error'}), 500
     return make_response('Method Not Allowed', 405)
+
 
 @accounts.route('/change_password', methods=['POST'])
 @jwt_required()
@@ -263,7 +273,8 @@ def change_password():
     except Exception as e:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
-    
+
+
 @accounts.route('/delivery_info', methods=['POST', 'DELETE'])
 @jwt_required()
 def manage_delivery_info():
@@ -275,17 +286,18 @@ def manage_delivery_info():
     except ValidationError as e:
         return jsonify(serialize_validation_error(e)), 400
     try:
+        user_id = get_jwt_identity()
         if request.method == "POST":
-            response = DeliveryUserInfo.add_delivery_info(**delivery_data)
+            response = DeliveryUserInfo.add_delivery_info(user_id=user_id, **delivery_data)
             return jsonify(response), 200
 
         if request.method == "DELETE":
-            response = DeliveryUserInfo.remove_delivery_info()
+            response = DeliveryUserInfo.remove_delivery_info(user_id=user_id)
             return jsonify(response), 200
     except NotFoundError as e:
-        return jsonify({'error': str(e) }), 404
+        return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
-    
-    return jsonify({'error': "Method not alowed"}), 405
+
+    return jsonify({'error': "Method not allowed"}), 405
