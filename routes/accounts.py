@@ -58,7 +58,7 @@ def signup() -> Response:
             profile_picture=user.profile_picture
         )
         response = {"user": user_schema.model_dump(), "link": verification_link}
-        return make_response(jsonify(response), 200)
+        return make_response(jsonify(response), 201)
     # TODO: check if model method returned error, if yes use Enum mapper (in future) +++++
     # other unknown exception must be logged and as e response just 500 code ++++
     except UserError as e:

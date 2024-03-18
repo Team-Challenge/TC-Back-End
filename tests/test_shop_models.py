@@ -68,9 +68,6 @@ def test_create_shop_2(session):
                              description=description,
                              phone_number=phone_number)
 
-        # Then
-        assert s is None
-
 
 def test_create_shop_3(session):
     """Test create shop scenario negative: Invalid phone_number """
@@ -86,9 +83,6 @@ def test_create_shop_3(session):
                              name=name,
                              description=description,
                              phone_number=phone_number)
-
-        # Then
-        assert s is None
 
 
 def test_shop_by_owner_id_1(session):
