@@ -1,4 +1,3 @@
-
 import os
 
 from flask import (Blueprint, current_app, jsonify, make_response,
@@ -6,7 +5,6 @@ from flask import (Blueprint, current_app, jsonify, make_response,
 from flask_cors import CORS
 
 orders = Blueprint("orders", __name__, url_prefix="/orders")
-
 
 CORS(orders, supports_credentials=True)
 
@@ -19,6 +17,7 @@ def get_nova_post_json():
     except Exception:
         error_message = {'error': 'File not found in the specified location'}
         return make_response(jsonify(error_message), 404)
+
 
 @orders.route("/ukr_post", methods=["GET"])
 def get_ukr_post_json():
