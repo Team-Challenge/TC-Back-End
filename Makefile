@@ -26,7 +26,7 @@ prospector:
 test:
 	pytest . --disable-warnings
 
-## Docker commmands
+## Docker commands
 up:
 	docker-compose -f docker/docker-compose.yaml up
 
@@ -36,7 +36,7 @@ build-up:
 down:
 	docker-compose -f docker/docker-compose.yaml down --remove-orphans
 
-## Docker commans on deployment server
+## Docker commands on deployment server
 deploy-up:
 	docker-compose -f docker/docker-compose-deploy.yaml up -d
 
