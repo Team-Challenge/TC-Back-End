@@ -121,7 +121,7 @@ def create_test_user(email=TestValidData.TEST_EMAIL,
 
 def create_user_and_shop(session, email=TestValidData.TEST_EMAIL) -> UserShop:
     user = create_test_user(email=email)
-    shop = Shop(owner_id=user.id, **TestValidData.get_product_payload())
+    shop = Shop(owner_id=user.id, **TestValidData.get_shop_payload())
     session.add(shop)
     session.commit()
     session.refresh(shop)
