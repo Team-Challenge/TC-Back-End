@@ -74,6 +74,7 @@ class Shop(db.Model):
         self.photo_shop = f"{file_name}.{file_extension}"
         photo.save(file_path)
         db.session.commit()
+        return self.photo_shop
 
     def add_banner(self, banner):
         file_extension = banner.filename.split('.')[-1]

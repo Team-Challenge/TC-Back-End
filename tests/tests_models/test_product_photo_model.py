@@ -6,26 +6,22 @@ from werkzeug.datastructures.file_storage import FileStorage
 
 from models.errors import NotFoundError, BadFileTypeError, ProductPhotoLimitError
 from models.products import ProductPhoto
-from tests.conftest import create_user_shop_product
+from tests.conftest import create_user_shop_product, TestValidData
 
 
 def test_add_product_photo_1(session):
     """Test create product scenario success"""
     # Given
     data = create_user_shop_product(session)
-    file_storage = FileStorage(
-        stream=BytesIO(b'file_mock'),
-        filename='example.jpg',
-        content_type='image/jpeg'
-    )
+    image = TestValidData.get_image()
     photos = []  # noqa
 
     # When
     with patch("werkzeug.datastructures.file_storage.FileStorage.save") as func:
-        photos.append(ProductPhoto.add_product_photo(data.user.id, data.product.id, file_storage, True))
-        photos.append(ProductPhoto.add_product_photo(data.user.id, data.product.id, file_storage, False))
-        photos.append(ProductPhoto.add_product_photo(data.user.id, data.product.id, file_storage, False))
-        photos.append(ProductPhoto.add_product_photo(data.user.id, data.product.id, file_storage, False))
+        photos.append(ProductPhoto.add_product_photo(data.user.id, data.product.id, image, True))
+        photos.append(ProductPhoto.add_product_photo(data.user.id, data.product.id, image, False))
+        photos.append(ProductPhoto.add_product_photo(data.user.id, data.product.id, image, False))
+        photos.append(ProductPhoto.add_product_photo(data.user.id, data.product.id, image, False))
 
         # Then
         assert func.call_count == 4

@@ -138,7 +138,8 @@ def get_subcategory_name(category_id, subcategory_id):
 
 
 def get_subcategory_id(subcategory_name):
-    with open('static/categories/categories.json', 'r', encoding='utf-8') as file:
+    static_path = os.path.join(Path(__file__).parent.parent, "static/categories/categories.json")
+    with open(static_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
     for _, category_data in data.items():

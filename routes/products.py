@@ -28,7 +28,7 @@ def create_product():
         return jsonify(serialize_validation_error(e)), 400
 
     try:
-        response = Product.add_product(**serialize_data)
+        response = Product.add_product(get_jwt_identity(), **serialize_data)
         return jsonify(response), 201
     except (ValueError, UserError, NotFoundError) as e:
         return jsonify({'error': str(e)}), 400
@@ -85,7 +85,7 @@ def update_product(product_id):
     except ValidationError as e:
         return jsonify(serialize_validation_error(e)), 400
     try:
-        response = Product.update_product(**serialize_data)
+        response = Product.update_product(get_jwt_identity(), **serialize_data)
         return jsonify(response), 200
     except UserError as e:
         return jsonify({'error': str(e)}), 400

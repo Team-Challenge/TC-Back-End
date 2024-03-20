@@ -1,14 +1,15 @@
 import logging
 
-from flask import (Blueprint, current_app, jsonify, make_response, request,
+from flask import (Blueprint, jsonify, make_response, request,
                    url_for)
 from flask_cors import CORS
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
 
 from models.accounts import User
 from models.errors import serialize_validation_error, NotFoundError
 from models.shops import Shop
+from routes.responses import ServerResponse
 from validation.shops import ShopCreateValid, ShopSchema, ShopUpdateValid
 
 shops = Blueprint("shops_route", __name__, url_prefix="/shops")
@@ -20,9 +21,11 @@ CORS(shops, supports_credentials=True)
 @jwt_required()
 def create_shops():
     data = request.get_json(silent=True)
-    if data is None:
-        return jsonify({'error': 'Request data is empty'}), 400
-    user = User.get_user_id()
+    if not data:
+        return ServerResponse.BAD_REQUEST
+    user = User.get_user_by_id(get_jwt_identity())
+    if not user:
+        return ServerResponse.USER_NOT_FOUND
     existing_shop = Shop.get_shop_by_owner_id(user.id)
     data['owner_id'] = user.id
     if existing_shop:
@@ -31,75 +34,89 @@ def create_shops():
         except ValidationError as e:
             return jsonify(serialize_validation_error(e)), 400
         existing_shop.update_shop_details(**update_shop_data)
-        return jsonify({'message': 'Shop updated successfully'}), 200
+        return ServerResponse.SHOP_UPDATED
     if not existing_shop or existing_shop is None:
         try:
             create_shop_data = ShopCreateValid(**data).model_dump()
         except ValidationError as e:
             return jsonify(serialize_validation_error(e)), 400
         Shop.create_shop(**create_shop_data)
-        return jsonify({'message': 'Shop created successfully'}), 201
-    return jsonify({'error': 'User not found'}), 404
+        return ServerResponse.SHOP_CREATED
+    return ServerResponse.USER_NOT_FOUND
 
 
 @shops.route('/shop_photo', methods=['POST', 'DELETE', 'GET'])
 @jwt_required()
 def shop_photo():
-    user = User.get_user_id()
-    shop = Shop.get_shop_by_owner_id(user.id)
+    shop = Shop.get_shop_by_owner_id(get_jwt_identity())
+    if not shop:
+        return ServerResponse.SHOP_NOT_FOUND
 
-    if request.method == 'GET' and shop:
+    if request.method == 'GET':
         if shop.photo_shop is not None:
-            return current_app.send_static_file('media/shops/' + shop.photo_shop)
-        return make_response('Photo shop not found', 404)
+            return make_response({"photo_shop": url_for('static',
+                                                        filename=f'media/shops/{shop.photo_shop}',
+                                                        _external=True)}, 200)
+        return ServerResponse.PHOTO_SHOP_NOT_FOUND
 
-    if shop and request.method == 'POST':
-        file = request.files['image']
-        shop.add_photo(file)
-        return url_for('static', filename=f'media/shops/{file}', _external=True)
+    if request.method == 'POST':
+        file = request.files.get('image')
+        if not file:
+            return ServerResponse.BAD_REQUEST
+        file_path = shop.add_photo(file)
+        return make_response({"photo_shop": url_for('static',
+                                                    filename=f'media/shops/{file_path}',
+                                                    _external=True)}, 200)
+    if request.method == 'DELETE':
+        if shop.photo_shop is not None:
+            shop.remove_photo()
+            return ServerResponse.OK
+        return ServerResponse.PHOTO_SHOP_NOT_FOUND
 
-    if shop and request.method == 'DELETE' and shop.photo_shop is not None:
-        shop.remove_photo()
-        return make_response('OK', 200)
-
-    if shop:
-        return make_response('Method Not Allowed', 405)
-
-    return jsonify({'message': 'There is no store by user'}), 404
+    return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @shops.route('/shop_banner', methods=['POST', 'DELETE', 'GET'])
 @jwt_required()
 def shop_banner():
-    user = User.get_user_id()
-    shop = Shop.get_shop_by_owner_id(user.id)
+    shop = Shop.get_shop_by_owner_id(get_jwt_identity())
+    if not shop:
+        return ServerResponse.SHOP_NOT_FOUND
 
-    if request.method == 'GET' and shop:
+    if request.method == 'GET':
         if shop.banner_shop is not None:
-            return current_app.send_static_file('media/banner_shops/' + shop.banner_shop)
-        return make_response('Banner shop not found', 404)
+            return make_response({"shop_banner":
+                                      url_for('static',
+                                              filename=f'media/banner_shops/{shop.banner_shop}',
+                                              _external=True)}, 200)
 
-    if shop and request.method == 'POST':
-        file = request.files['image']
+        return ServerResponse.BANNER_NOT_FOUND
+
+    if request.method == 'POST':
+        file = request.files.get('image', None)
+        if not file:
+            return ServerResponse.BAD_REQUEST
+
         shop.add_banner(file)
-        return url_for('static', filename=f'media/banner_shops/{file}', _external=True)
+        return make_response({"shop_banner":
+                                  url_for('static',
+                                          filename=f'media/banner_shops/{shop.banner_shop}',
+                                          _external=True)}, 200)
+    if request.method == 'DELETE':
+        if shop.banner_shop is not None:
+            shop.remove_banner()
+            return ServerResponse.OK
+        return ServerResponse.BANNER_NOT_FOUND
 
-    if shop and request.method == 'DELETE' and shop.banner_shop is not None:
-        shop.remove_banner()
-        return make_response('OK', 200)
-
-    if shop:
-        return make_response('Method Not Allowed', 405)
-
-    return jsonify({'message': 'There is no store by user'}), 404
+    return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @shops.route('/shop_info', methods=['GET'])
 @jwt_required()
 def get_shop_info():
-    user = User.get_user_id()
+    user = User.get_user_by_id(get_jwt_identity())
     if not user:
-        return make_response('User not found', 404)
+        return ServerResponse.USER_NOT_FOUND
     try:
         shop_info = Shop.get_shop_user_info(user.id)
         response = ShopSchema(**shop_info)
@@ -108,4 +125,4 @@ def get_shop_info():
         return jsonify({"error": str(e)}), 404
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
