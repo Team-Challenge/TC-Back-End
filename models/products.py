@@ -67,7 +67,7 @@ class Product(db.Model):
                 ProductDetail.add_product_detail(product_id=product.id, **kwargs)
                 return {'message': 'The product was created successfully'}
             raise NotFoundError('Shop not found')
-        raise NotFoundError('User not found')
+        raise UserError('User not found')
 
     # TODO: return success or error message. Remove all flask imports in this file++++
     # TODO: jsonify should be called in route++++++

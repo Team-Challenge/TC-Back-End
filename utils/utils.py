@@ -1,7 +1,13 @@
 import json
+import os
+import uuid
+from os import SEEK_END
 
 from flask import url_for
+from werkzeug.datastructures import FileStorage
 
+from config import Config
+from models.errors import FileTooLargeError, BadFileTypeError, NoImageError
 from validation.products import get_subcategory_id
 
 
@@ -109,3 +115,50 @@ def product_info_serialize(products):
             unique_product_ids.add(product.id)
 
     return result
+
+
+def load_and_save_image(image_field, photo: FileStorage, photo_path):
+    """
+        Load and save images.
+
+        Parameters:
+            image_field: Model field for image.
+
+            photo: The werkzeug FileStorage item from [request.files] to be saved.
+
+            photo_path (str): Absolute path to save (EX: PROFILE_PHOTOS_PATH).
+
+
+        Raises:
+            FileTooLargeException: If the size of the image exceeds the maximum allowed size.
+    """
+
+    if not photo:
+        raise NoImageError("No image provided")
+
+    banner_shop_path = os.path.join(Config.MEDIA_PATH, 'banner_shops')
+    if photo_path == banner_shop_path:
+        max_file_size = 5242880
+    else:
+        max_file_size = 3145728
+    file_size = photo.seek(0, SEEK_END)
+    if file_size > max_file_size:
+        raise FileTooLargeError(
+            f"File size too large. Maximum file size is {round(max_file_size / 1048576)}MB.")
+    # Return cursor to 0. Without seek(0) file will be broken.
+    photo.seek(0)
+
+    file_type, file_extension = photo.content_type.split("/")
+    if file_type != "image" or file_extension not in ('png', 'jpg', 'jpeg', 'webp'):
+        raise BadFileTypeError("Bad request. Does file have proper file format?")
+
+    file_name = uuid.uuid4().hex
+    file_path = os.path.join(
+        photo_path, f"{file_name}.{file_extension}")
+    if image_field:
+        old_file_path = os.path.join(photo_path, image_field)
+        if os.path.isfile(old_file_path):
+            os.remove(old_file_path)
+    image_path = f"{file_name}.{file_extension}"
+    photo.save(file_path)
+    return image_path

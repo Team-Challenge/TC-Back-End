@@ -17,6 +17,14 @@ class BadFileTypeError(Exception):
     pass
 
 
+class FileTooLargeError(Exception):
+    pass
+
+
+class NoImageError(Exception):
+    pass
+
+
 def serialize_validation_error(e: ValidationError) -> dict:
     error_messages = []
     for error in e.errors():

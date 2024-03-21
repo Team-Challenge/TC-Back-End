@@ -4,6 +4,7 @@ from collections import namedtuple
 from contextlib import contextmanager
 from io import BytesIO
 from pathlib import Path
+from pprint import pprint
 
 import pytest
 from flask import json
@@ -34,6 +35,7 @@ UserShop = namedtuple('UserShop', ['user', 'shop'])
 
 class TestInvalidData:
     # todo fix server error when authorizing with token?
+    # with this token i've received 500 error with login, but it expired now
     TEST_TOKEN = (
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6dHJ1ZSwiaWF0IjoxNzEwODY0NjUxLCJqdGkiOiI5ODcwMDJhNi"
         "1mZWM2LTRlNDItYjM4MC02OTkzZWM1ZWM2NDIiLCJ0eXBlIjoiYWNjZXNzIiwic3ViIjoxLCJuYmYiOjE3MTA4NjQ2NTEsImV4cC"
@@ -62,10 +64,29 @@ class TestValidData:
     TEST_PRODUCT_NAME = "TestName Product"
     TEST_PRODUCT_DESCRIPTION = "TestDescription Product"
     # Product detail
+    TEST_PRODUCT_IS_UNIQUE = False
+    TEST_PRODUCT_IS_RETURN = True
     TEST_PRODUCT_PRICE = 25.91
-    TEST_PRODUCT_CHARACTERISTIC = "Color: Blue"
-    TEST_PRODUCT_DELIVERY_POST = '{"novaPost": true, "ukrPost": true}'
-    TEST_PRODUCT_METHOD_OF_PAYMENT = '{"cardPayment": false, "cashPayment": true, "securePayment": false}'
+    TEST_PRODUCT_CHARACTERISTIC = {
+        "size": 35,
+        "weight": 1
+    }
+    TEST_PRODUCT_DELIVERY_POST = {
+        "novaPost": True,
+        "ukrPost": False
+    }
+
+    TEST_PRODUCT_METHOD_OF_PAYMENT = {
+        "cardPayment": True,
+        "cashPayment": False,
+        "securePayment": True
+    }
+    TEST_PRODUCT_STATUS = 'В наявності'
+
+    # JSON variables
+    JSON_TEST_PRODUCT_CHARACTERISTIC = json.dumps(TEST_PRODUCT_CHARACTERISTIC)
+    JSON_TEST_PRODUCT_DELIVERY_POST = json.dumps(TEST_PRODUCT_DELIVERY_POST)
+    JSON_TEST_PRODUCT_METHOD_OF_PAYMENT = json.dumps(TEST_PRODUCT_METHOD_OF_PAYMENT)
 
     # Files
     @classmethod
@@ -75,6 +96,25 @@ class TestValidData:
             filename='example.jpg',
             content_type='image/jpeg'
         )
+
+    @classmethod
+    def get_product_payload(cls, is_json=False, **kwargs):
+        payload = {
+            "category_id": cls.TEST_CATEGORY_ID,
+            "sub_category_id": cls.TEST_SUB_CATEGORY_ID,
+            "product_name": cls.TEST_PRODUCT_NAME,
+            "product_description": cls.TEST_PRODUCT_DESCRIPTION,
+            "is_active": True,
+            "price": cls.TEST_PRODUCT_PRICE,
+            "product_status": cls.TEST_PRODUCT_STATUS,
+            "product_characteristic": cls.TEST_PRODUCT_CHARACTERISTIC if not is_json else cls.JSON_TEST_PRODUCT_CHARACTERISTIC,
+            "is_return": cls.TEST_PRODUCT_IS_RETURN,
+            "delivery_post": cls.TEST_PRODUCT_DELIVERY_POST if not is_json else cls.JSON_TEST_PRODUCT_DELIVERY_POST,
+            "method_of_payment": cls.TEST_PRODUCT_METHOD_OF_PAYMENT if not is_json else cls.JSON_TEST_PRODUCT_METHOD_OF_PAYMENT,
+            "is_unique": cls.TEST_PRODUCT_IS_UNIQUE
+        }
+        payload.update(**kwargs)
+        return payload
 
     @classmethod
     def get_user_signin_payload(cls):
@@ -89,14 +129,14 @@ class TestValidData:
         user_data.update(**kwargs)
         return user_data
 
-    @classmethod
-    def get_product_payload(cls) -> dict:
-        return {
-            "category_id": cls.TEST_CATEGORY_ID,
-            "sub_category_id": cls.TEST_SUB_CATEGORY_ID,
-            "product_name": cls.TEST_PRODUCT_NAME,
-            "product_description": cls.TEST_PRODUCT_DESCRIPTION,
-        }
+    # @classmethod
+    # def get_product_payload(cls) -> dict:
+    #     return {
+    #         "category_id": cls.TEST_CATEGORY_ID,
+    #         "sub_category_id": cls.TEST_SUB_CATEGORY_ID,
+    #         "product_name": cls.TEST_PRODUCT_NAME,
+    #         "product_description": cls.TEST_PRODUCT_DESCRIPTION,
+    #     }
 
     @classmethod
     def get_shop_payload(cls) -> dict:
@@ -112,9 +152,9 @@ class TestValidData:
         return {
             "product_id": product_id,
             "price": cls.TEST_PRODUCT_PRICE,
-            "product_characteristic": cls.TEST_PRODUCT_CHARACTERISTIC,
-            "delivery_post": cls.TEST_PRODUCT_DELIVERY_POST,
-            "method_of_payment": cls.TEST_PRODUCT_METHOD_OF_PAYMENT
+            "product_characteristic": cls.JSON_TEST_PRODUCT_CHARACTERISTIC,
+            "delivery_post": cls.JSON_TEST_PRODUCT_DELIVERY_POST,
+            "method_of_payment": cls.JSON_TEST_PRODUCT_METHOD_OF_PAYMENT
         }
 
 
@@ -193,7 +233,7 @@ def authorize(client, refresh=False, **kwargs) -> dict:
 def orint(*args):
     print("\n-------------------------------------------")
     for arg in args:
-        print(arg)
+        pprint(arg)
     print("-------------------------------------------")
 
 

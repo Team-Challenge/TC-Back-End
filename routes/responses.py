@@ -11,7 +11,7 @@ class ServerResponse:
     METHOD_NOT_ALLOWED = {"error": "Method Not Allowed"}, 405
     TOKEN_EXPIRED = {"error": "Verification token expired"}, 400
     INVALID_TOKEN = {"error": "Invalid verification token"}, 400
-
+    NO_FILE_PROVIDED = {'error': 'No file provided'}, 400
     # User responses:
     USER_NOT_FOUND = {"error": 'User not found'}, 404
 
