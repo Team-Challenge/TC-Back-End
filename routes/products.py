@@ -6,9 +6,10 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
 
 from models.errors import NotFoundError, UserError, serialize_validation_error, BadFileTypeError
-from models.products import Product, ProductPhoto, get_all_shop_products
+from models.products import Product, ProductPhoto, get_all_shop_products, get_product_info_by_id
 from utils.utils import serialize_product
 from validation.products import CreateProductValid, UpdateProductValid
+from routes.responses import ServerResponse
 
 products = Blueprint("products_route", __name__, url_prefix="/products")
 
@@ -20,7 +21,7 @@ CORS(products, supports_credentials=True)
 def create_product():
     data = request.get_json(silent=True)
     if data is None:
-        return jsonify({'error': 'Request data is empty'}), 400
+        return ServerResponse.EMPTY_DATA
     try:
         validated_data = CreateProductValid(**data).model_dump()
         serialize_data = serialize_product(**validated_data)
@@ -29,12 +30,14 @@ def create_product():
 
     try:
         response = Product.add_product(get_jwt_identity(), **serialize_data)
-        return jsonify(response), 201
-    except (ValueError, UserError, NotFoundError) as e:
+        return jsonify({'message': "Product created successfull", "product_id": response}), 201
+    except (ValueError, UserError) as e:
         return jsonify({'error': str(e)}), 400
+    except NotFoundError as e:
+        return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @products.route("/product_photo/<int:product_id>", methods=["POST"])
@@ -109,3 +112,15 @@ def deactivate_product(product_id):
     except Exception as e:
         logging.error(e)
         return jsonify({'error': 'internal server error'}), 500
+
+
+@products.route("/product_info/<int:product_id>", methods=["GET"])
+def get_product_info(product_id):
+    try:
+        response = get_product_info_by_id(product_id)
+        return jsonify(response), 200
+    except NotFoundError as e:
+        return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        logging.error(e)
+        return ServerResponse.INTERNAL_SERVER_ERROR

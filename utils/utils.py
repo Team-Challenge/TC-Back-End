@@ -109,3 +109,62 @@ def product_info_serialize(products):
             unique_product_ids.add(product.id)
 
     return result
+
+
+def product_info_serialize_by_id(product, product_detail, _product_photo):
+    photos = [photo.serialize() for photo in product_detail.product_to_photo]
+
+    try:
+        product_characteristics = json.loads(
+            product_detail.product_characteristic) if (
+                product_detail.product_characteristic is not None) else None
+    except ValueError as ex:
+        raise ValueError("product_characteristics", ex) from ex
+
+    try:
+        method_of_payment = json.loads(
+            product_detail.method_of_payment) if (
+                product_detail.method_of_payment is not None) else None
+    except ValueError as ex:
+        raise ValueError("method_of_payment", ex) from ex
+
+    try:
+        delivery_post = json.loads(product_detail.delivery_post) \
+            if product_detail.delivery_post is not None else None
+    except ValueError as ex:
+        raise ValueError("delivery_post", ex) from ex
+
+    product_data = {
+        "id": product.id,
+        "category_id": product.category_id,
+        "sub_category_id": get_subcategory_id(product.sub_category_name),
+        "shop_id": product.shop_id,
+        "product_name": product.product_name,
+        "product_description": product.product_description,
+        "time_added": product.time_added,
+        "time_modifeid": product.time_modifeid,
+        "is_active": product.is_active,
+        "price": product_detail.price,
+        "product_status": product_detail.product_status,
+
+        "product_characteristic": product_characteristics,
+
+        "is_return": product_detail.is_return,
+
+        "delivery_post": delivery_post,
+
+        "method_of_payment": method_of_payment,
+
+        "is_unique": product_detail.is_unique,
+        "photos": [{
+            "id": photo.get('id'),
+            "product_photo": url_for(
+                'static',
+                filename=f'media/products/{photo.get("product_photo")}',
+                _external=True),
+            "timestamp": photo.get('timestamp'),
+            "main": photo.get('main')
+        } for photo in photos]
+    }
+
+    return product_data

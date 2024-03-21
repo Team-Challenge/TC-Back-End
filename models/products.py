@@ -12,7 +12,7 @@ from dependencies import db
 from models.accounts import User
 from models.errors import NotFoundError, UserError, ProductPhotoLimitError, BadFileTypeError
 from models.shops import Shop
-from utils.utils import product_info_serialize
+from utils.utils import product_info_serialize, serialize, product_info_serialize_by_id
 from validation.products import get_subcategory_name
 
 PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
@@ -65,7 +65,7 @@ class Product(db.Model):
                 db.session.add(product)
                 db.session.flush()
                 ProductDetail.add_product_detail(product_id=product.id, **kwargs)
-                return {'message': 'The product was created successfully'}
+                return product.id
             raise NotFoundError('Shop not found')
         raise NotFoundError('User not found')
 
@@ -314,3 +314,15 @@ def get_all_shop_products(user_id: int):
         response = product_info_serialize(shop_products)
         return response
     raise NotFoundError('User not found')
+
+
+def get_product_info_by_id(product_id: int):
+    product = Product.query.filter_by(id=product_id).first()
+    if product is not None:
+        product_info = db.session.query(Product, ProductDetail, ProductPhoto) \
+            .join(ProductDetail, Product.id == ProductDetail.product_id) \
+            .outerjoin(ProductPhoto, ProductDetail.id == ProductPhoto.product_detail_id) \
+            .filter(Product.id == product_id) \
+            .first()
+        return product_info_serialize_by_id(*product_info)
+    raise NotFoundError('Product not found')
