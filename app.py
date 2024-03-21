@@ -1,4 +1,3 @@
-
 import psutil
 from flask import Flask
 from flask_swagger_ui import get_swaggerui_blueprint
@@ -6,6 +5,7 @@ from prometheus_client import Gauge, make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 from config import Config
+from config.config import TestConfig
 from dependencies import cache, db, jwt, ma, migrate, registry
 from routes.accounts import accounts
 from routes.categories import categories
@@ -15,7 +15,7 @@ from routes.shops import shops
 
 
 def create_app(config_class=Config) -> Flask:
-    app = Flask(__name__,static_folder='static',static_url_path='/static')
+    app = Flask(__name__, static_folder='static', static_url_path='/static')
 
     ram_metric = Gauge("memory_usage_percent", "Memory usage in percent.",
                        registry=registry)
@@ -27,7 +27,7 @@ def create_app(config_class=Config) -> Flask:
 
     app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
         '/healthcheck': make_wsgi_app(registry=registry)
-        })
+    })
 
     app.config.from_object(config_class)
 
@@ -52,11 +52,12 @@ def create_app(config_class=Config) -> Flask:
 
     return app
 
-def create_testing_app(config_class=Config) -> Flask:
+
+def create_testing_app(config_class=TestConfig) -> Flask:
     app = Flask(__name__, static_folder='static', static_url_path='/static')
     app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
         '/healthcheck': make_wsgi_app(registry=registry)
-        })
+    })
 
     app.config.from_object(config_class)
 
@@ -78,5 +79,6 @@ def create_testing_app(config_class=Config) -> Flask:
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
     app.register_blueprint(shops)
     app.register_blueprint(categories)
+    app.register_blueprint(products)
 
     return app

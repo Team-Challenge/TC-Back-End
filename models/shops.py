@@ -74,6 +74,7 @@ class Shop(db.Model):
         self.photo_shop = f"{file_name}.{file_extension}"
         photo.save(file_path)
         db.session.commit()
+        return self.photo_shop
 
     def add_banner(self, banner):
         file_extension = banner.filename.split('.')[-1]
@@ -111,13 +112,15 @@ class Shop(db.Model):
         if shop is not None:
             shop_info = serialize(shop)
             if shop_info.get("banner_shop") is not None:
-                banner_shop_path = url_for('static', filename=f'media/'
-                                                              f'banner_shop/{shop_info["banner_shop"]}',
+                banner_shop_path = url_for('static',
+                                           filename=f'media/'
+                                                    f'banner_shop/{shop_info["banner_shop"]}',
                                            _external=True)
                 shop_info['banner_shop'] = banner_shop_path
             if shop_info.get("photo_shop") is not None:
-                photo_shop_path = url_for('static', filename=f'media/'
-                                                             f'shops/{shop_info["photo_shop"]}',
+                photo_shop_path = url_for('static',
+                                          filename=f'media/'
+                                                   f'shops/{shop_info["photo_shop"]}',
                                           _external=True)
                 shop_info['photo_shop'] = photo_shop_path
             return shop_info

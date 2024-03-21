@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime
 
 from flask import url_for
-from flask_jwt_extended import (create_access_token, create_refresh_token)
+from flask_jwt_extended import (create_access_token, create_refresh_token, get_jwt_identity)
 from itsdangerous import BadSignature, SignatureExpired
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, relationship
@@ -132,7 +132,7 @@ class User(db.Model):
     # TODO: jsonify should be called in route++++++++
     @classmethod
     def handle_profile_photo(cls, request, action):
-        user = cls.get_user_id()
+        user = cls.get_user_by_id(user_id=get_jwt_identity())
 
         if user is not None:
             if action == 'upload':
@@ -154,7 +154,7 @@ class User(db.Model):
                     db.session.commit()
                     filename = user.profile_picture
                     return {'message': 'Profile photo uploaded successfully', 'filename': filename}
-                raise UserError('Bad request data')
+                raise UserError('Invalid request data')
 
             if action == 'delete':
                 if user.profile_picture:

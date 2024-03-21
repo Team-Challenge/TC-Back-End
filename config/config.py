@@ -4,7 +4,6 @@ import sys
 
 from dotenv import load_dotenv
 
-
 load_dotenv()
 basedir = os.path.abspath('.')
 
@@ -17,7 +16,7 @@ class Config:
         sys.exit(1)
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'data', __db_name)
     SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get('SQLALCHEMY_TRACK_MODIFICATIONS',
-                                                    'False') == "True" 
+                                                    'False') == "True"
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'Secret')
     MEDIA_PATH = os.path.join(basedir, 'static', 'media')
     __jwt_access_token_expires = os.environ.get('JWT_ACCESS_TOKEN_EXPIRES')
@@ -26,6 +25,7 @@ class Config:
         if __jwt_access_token_expires
         else None
     )
+
 
 class TestConfig:
     TESTING = True

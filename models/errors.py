@@ -9,6 +9,14 @@ class NotFoundError(Exception):
     pass
 
 
+class ProductPhotoLimitError(Exception):
+    pass
+
+
+class BadFileTypeError(Exception):
+    pass
+
+
 def serialize_validation_error(e: ValidationError) -> dict:
     error_messages = []
     for error in e.errors():

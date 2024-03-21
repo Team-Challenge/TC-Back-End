@@ -1,6 +1,8 @@
 import json
+import os.path
 import re
 from enum import Enum
+from pathlib import Path
 from typing import Dict, Optional
 
 from pydantic import BaseModel, validator
@@ -13,7 +15,7 @@ class SubCategoryEnum(str, Enum):
     khustinky = 'Хустинки'
     serezhki = 'Сережки'
     monoserezhki = 'Моносережки'
-    zghardy= 'Зґарди'
+    zghardy = 'Зґарди'
     shelesti = 'Шелести'
     herdany = 'Ґердани'
     sylianky = 'Силянки'
@@ -29,20 +31,24 @@ class SubCategoryEnum(str, Enum):
     sumky = 'Сумки'
     set_cub_category = 'Набір'
 
+
 class ProductStatusEnum(str, Enum):
     in_availability = 'В наявності'
     to_order = 'Під замовлення'
     unique_instance = 'В єдиному екземплярі'
     not_available = 'Нема в наявності'
 
+
 class DeliveryPostEnum(str, Enum):
     nova_post = 'novaPost'
     ukr_post = 'ukrPost'
+
 
 class MethodOfPaymentEnum(str, Enum):
     card_payment = "cardPayment"
     cash_payment = "cashPayment"
     secure_payment = "securePayment"
+
 
 class CreateProductValid(BaseModel):
     category_id: int
@@ -54,8 +60,8 @@ class CreateProductValid(BaseModel):
     product_status: Optional[ProductStatusEnum] = None
     product_characteristic: Optional[dict] = None
     is_return: Optional[bool] = None
-    delivery_post: Optional[Dict[DeliveryPostEnum, bool]] = None  
-    method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None 
+    delivery_post: Optional[Dict[DeliveryPostEnum, bool]] = None
+    method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None
     is_unique: Optional[bool] = None
 
     @validator('product_name')
@@ -63,7 +69,7 @@ class CreateProductValid(BaseModel):
     def name_validator(value: str) -> str:
         if value is not None:
             regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії0-9'.,;\- ]+$"
-            if not re.match(regex, value) or len(value)>100:
+            if not re.match(regex, value) or len(value) > 100:
                 raise ValueError('Invalid product_name format')
         return value
 
@@ -72,9 +78,10 @@ class CreateProductValid(BaseModel):
     def description_validator(value: str) -> str:
         if value is not None:
             regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії0-9'.,;\- ]+$"
-            if not re.match(regex, value) or len(value)>1000:
+            if not re.match(regex, value) or len(value) > 1000:
                 raise ValueError('Invalid product_detail format')
         return value
+
 
 class UpdateProductValid(BaseModel):
     product_id: int
@@ -85,8 +92,8 @@ class UpdateProductValid(BaseModel):
     product_status: Optional[ProductStatusEnum] = None
     product_characteristic: Optional[dict] = None
     is_return: Optional[bool] = None
-    delivery_post: Optional[Dict[DeliveryPostEnum, bool]] = None  
-    method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None 
+    delivery_post: Optional[Dict[DeliveryPostEnum, bool]] = None
+    method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None
     is_unique: Optional[bool] = None
 
     @validator('product_name')
@@ -94,7 +101,7 @@ class UpdateProductValid(BaseModel):
     def name_validator(value: str) -> str:
         if value is not None:
             regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії0-9'.,;\- ]+$"
-            if not re.match(regex, value) or len(value)>100:
+            if not re.match(regex, value) or len(value) > 100:
                 raise ValueError('Invalid product_name format')
         return value
 
@@ -103,9 +110,10 @@ class UpdateProductValid(BaseModel):
     def description_validator(value: str) -> str:
         if value is not None:
             regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії0-9'.,;\- ]+$"
-            if not re.match(regex, value) or len(value)>1000:
+            if not re.match(regex, value) or len(value) > 1000:
                 raise ValueError('Invalid product_detail format')
         return value
+
 
 class PhotoProductValid(BaseModel):
     product_photo: str
@@ -113,9 +121,10 @@ class PhotoProductValid(BaseModel):
 
 
 def get_subcategory_name(category_id, subcategory_id):
-    with open('static/categories/categories.json', 'r', encoding='utf-8') as file:
+    static_path = os.path.join(Path(__file__).parent.parent, "static/categories/categories.json")
+    with open(static_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
-    
+
     if str(category_id) not in data:
         raise ValueError('The category with the specified ID does not exist')
 
@@ -127,10 +136,12 @@ def get_subcategory_name(category_id, subcategory_id):
 
     return subcategory_name
 
+
 def get_subcategory_id(subcategory_name):
-    with open('static/categories/categories.json', 'r', encoding='utf-8') as file:
+    static_path = os.path.join(Path(__file__).parent.parent, "static/categories/categories.json")
+    with open(static_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
-    
+
     for _, category_data in data.items():
         subcategories = category_data.get('subcategories', {})
         for subcategory_id, name in subcategories.items():
