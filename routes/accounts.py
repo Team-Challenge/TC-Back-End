@@ -174,7 +174,7 @@ def change_phone_number():
     try:
         user_id = get_jwt_identity()
         response = User.change_number(user_id, user_data.phone_number)
-        return jsonify(response)
+        return jsonify(response), 200
     except UserError as e:
         return jsonify({'error': str(e)}, 400)
     except NotFoundError as e:
@@ -264,7 +264,8 @@ def change_password():
     except ValidationError as e:
         return jsonify(serialize_validation_error(e)), 400
     try:
-        response = User.change_password(**user_data)
+        user_id = get_jwt_identity()
+        response = User.change_password(user_id, **user_data)
         return jsonify(response), 200
     except UserError as e:
         return jsonify({'error': str(e)}), 400
@@ -278,16 +279,16 @@ def change_password():
 @accounts.route('/delivery_info', methods=['POST', 'DELETE'])
 @jwt_required()
 def manage_delivery_info():
-    request_data = request.get_json(silent=True)
-    if request_data is None:
-        return jsonify({'error': 'Request data is empty'}), 400
-    try:
-        delivery_data = DeliveryPostValid(**request_data).model_dump()
-    except ValidationError as e:
-        return jsonify(serialize_validation_error(e)), 400
     try:
         user_id = get_jwt_identity()
         if request.method == "POST":
+            request_data = request.get_json(silent=True)
+            if request_data is None:
+                return jsonify({'error': 'Request data is empty'}), 400
+            try:
+                delivery_data = DeliveryPostValid(**request_data).model_dump()
+            except ValidationError as e:
+                return jsonify(serialize_validation_error(e)), 400
             response = DeliveryUserInfo.add_delivery_info(user_id=user_id, **delivery_data)
             return jsonify(response), 200
 

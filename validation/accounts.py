@@ -41,7 +41,7 @@ class SignupValid(SigninValid):
     @validator('full_name')
     @staticmethod
     def full_name_validator(value: str) -> str:
-        regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\- ]+$"
+        regex = r"^(?=.{2,50}$)[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\-]+( [A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\-]+)*$"
         if not re.match(regex, value):
             raise ValueError('Invalid characters in the field full_name')
         return value
@@ -84,7 +84,7 @@ class FullNameValid(BaseModel):
     @validator('full_name')
     @staticmethod
     def full_name_validator(value: str) -> str:
-        regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\- ]+$"
+        regex = r"^(?=.{2,50}$)[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\-]+( [A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\-]+)*$"
         if not re.match(regex, value):
             raise ValueError('Invalid characters in the field full_name')
         return value
@@ -115,6 +115,14 @@ class UserSchema(BaseModel):
 class ChangePasswordSchema(BaseModel):
     current_password: str
     new_password: str
+
+    @validator('new_password')
+    @staticmethod
+    def password_validator(value: str) -> str:
+        regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
+        if not re.match(regex, value):
+            raise ValueError('The password must contain at least one capital letter 8 characters')
+        return value
 
 
 class UserInfoSchema(BaseModel):
