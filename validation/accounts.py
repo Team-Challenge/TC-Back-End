@@ -41,7 +41,10 @@ class SignupValid(SigninValid):
     @validator('full_name')
     @staticmethod
     def full_name_validator(value: str) -> str:
-        regex = r"^(?=.{2,50}$)[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\-]+( [A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\-]+)*$"
+        regex = (
+            r"^(?=.{2,50}$)[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\-]+"
+            r"( [A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\-]+)*$"
+        )
         if not re.match(regex, value):
             raise ValueError('Invalid characters in the field full_name')
         return value
@@ -84,7 +87,10 @@ class FullNameValid(BaseModel):
     @validator('full_name')
     @staticmethod
     def full_name_validator(value: str) -> str:
-        regex = r"^(?=.{2,50}$)[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\-]+( [A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\-]+)*$"
+        regex = (
+            r"^(?=.{2,50}$)[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\-]+"
+            r"( [A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії''`ʼ\-]+)*$"
+        )
         if not re.match(regex, value):
             raise ValueError('Invalid characters in the field full_name')
         return value

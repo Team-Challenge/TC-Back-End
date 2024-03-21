@@ -19,6 +19,7 @@ from validation.accounts import (ChangePasswordSchema, DeliveryPostValid,
                                  FullNameValid, GoogleAuthValid,
                                  PhoneNumberValid, SigninValid, SignupValid,
                                  UserInfoSchema, UserSchema)
+from routes.responses import ServerResponse
 
 ACCESS_EXPIRES = timedelta(hours=1)
 
@@ -39,7 +40,7 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):  # pylint: disable
 def signup() -> Response:
     request_data = request.get_json(silent=True)
     if request_data is None:
-        return jsonify({'error': 'Request data is empty'}), 400
+        return ServerResponse.EMPTY_DATA
     try:
         user_data = SignupValid(**request_data)
     except ValidationError as e:
@@ -59,13 +60,11 @@ def signup() -> Response:
         )
         response = {"user": user_schema.model_dump(), "link": verification_link}
         return make_response(jsonify(response), 201)
-    # TODO: check if model method returned error, if yes use Enum mapper (in future) +++++
-    # other unknown exception must be logged and as e response just 500 code ++++
     except UserError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @accounts.route("/authorize", methods=["POST"])
@@ -104,7 +103,7 @@ def authorize() -> Response:
 def signin() -> Response:
     request_data = request.get_json(silent=True)
     if request_data is None:
-        return jsonify({'error': 'Request data is empty'}), 400
+        return ServerResponse.EMPTY_DATA
     try:
         user_data = SigninValid(**request_data)
     except ValidationError as e:
@@ -113,10 +112,10 @@ def signin() -> Response:
         response = User.sign_in(email=user_data.email, password=user_data.password)
         return make_response(response, 200)
     except UserError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @accounts.route('/verify/<token>', methods=['GET'])
@@ -128,14 +127,14 @@ def verify_email(token):
             return redirect("http://dorechi.store", code=302)
         raise UserError('Bad request')
     except UserError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({"error": str(e)}), 400
     except SignatureExpired:
-        return jsonify({'error': 'Verification token expired'}), 400
+        return ServerResponse.TOKEN_EXPIRED
     except BadSignature:
-        return jsonify({'error': 'Invalid verification token'}), 400
+        return ServerResponse.INVALID_TOKEN
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @accounts.route("/refresh", methods=["POST"])
@@ -166,22 +165,22 @@ def logout():
 def change_phone_number():
     request_data = request.get_json(silent=True)
     if request_data is None:
-        return jsonify({'error': 'Request data is empty'}), 400
+        return ServerResponse.EMPTY_DATA
     try:
         user_data = PhoneNumberValid(**request_data)
     except ValidationError as e:
         return jsonify(serialize_validation_error(e)), 400
     try:
         user_id = get_jwt_identity()
-        response = User.change_number(user_id, user_data.phone_number)
-        return jsonify(response), 200
+        User.change_number(user_id, user_data.phone_number)
+        return ServerResponse.OK
     except UserError as e:
-        return jsonify({'error': str(e)}, 400)
+        return jsonify({"error": str(e)}), 400
     except NotFoundError as e:
-        return jsonify({'error': str(e)}), 404
+        return jsonify({"error": str(e)}), 404
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @accounts.route('/change_full_name', methods=['POST'])
@@ -189,22 +188,22 @@ def change_phone_number():
 def change_full_name():
     request_data = request.get_json(silent=True)
     if request_data is None:
-        return jsonify({'error': 'Request data is empty'}), 400
+        return ServerResponse.EMPTY_DATA
     try:
         user_data = FullNameValid(**request_data)
     except ValidationError as e:
         return jsonify(serialize_validation_error(e)), 400
     try:
         user_id = get_jwt_identity()
-        response = User.change_full_name(user_id=user_id, full_name=user_data.full_name)
-        return jsonify(response), 200
+        User.change_full_name(user_id=user_id, full_name=user_data.full_name)
+        return ServerResponse.OK
     except UserError as e:
-        return jsonify({'error': str(e)}, 400)
+        return jsonify({"error": str(e)}), 400
     except NotFoundError as e:
-        return jsonify({'error': str(e)}), 404
+        return jsonify({"error": str(e)}), 404
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @accounts.route("/info", methods=["GET"])
@@ -216,10 +215,10 @@ def user_info():
         response = UserInfoSchema(**user_data)
         return jsonify(response.model_dump()), 200
     except NotFoundError as e:
-        return jsonify({'error': e}), 404
+        return jsonify({"error": str(e)}), 404
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @accounts.route('/profile_photo', methods=['POST', 'DELETE'])
@@ -229,28 +228,28 @@ def profile_photo():
         if 'image' not in request.files:
             return jsonify({'error': 'No file provided'}), 400
         try:
-            response = User.handle_profile_photo(request, action='upload')
-            return jsonify(response), 200
+            User.handle_profile_photo(request, action='upload')
+            return ServerResponse.OK
         except UserError as e:
-            return jsonify({'error': str(e)}), 400
+            return jsonify({"error": str(e)}), 400
         except NotFoundError as e:
-            return jsonify({'error': str(e)}), 404
+            return jsonify({"error": str(e)}), 404
         except Exception as e:
             logging.error(e)
-            return jsonify({'error': 'internal server error'}), 500
+            return ServerResponse.INTERNAL_SERVER_ERROR
 
     if request.method == 'DELETE':
         try:
-            response = User.handle_profile_photo(request, action='delete')
-            return jsonify(response), 200
+            User.handle_profile_photo(request, action='delete')
+            return ServerResponse.OK
         except UserError as e:
-            return jsonify({'error': str(e)}), 400
+            return jsonify({"error": str(e)}), 400
         except NotFoundError as e:
-            return jsonify({'error': str(e)}), 404
+            return jsonify({"error": str(e)}), 404
         except Exception as e:
             logging.error(e)
-            return jsonify({'error': 'internal server error'}), 500
-    return make_response('Method Not Allowed', 405)
+            return ServerResponse.INTERNAL_SERVER_ERROR
+    return ServerResponse.METHOD_NOT_ALLOWED
 
 
 @accounts.route('/change_password', methods=['POST'])
@@ -258,22 +257,22 @@ def profile_photo():
 def change_password():
     request_data = request.get_json(silent=True)
     if request_data is None:
-        return jsonify({'error': 'Request data is empty'}), 400
+        return ServerResponse.EMPTY_DATA
     try:
         user_data = ChangePasswordSchema(**request_data).model_dump()
     except ValidationError as e:
         return jsonify(serialize_validation_error(e)), 400
     try:
         user_id = get_jwt_identity()
-        response = User.change_password(user_id, **user_data)
-        return jsonify(response), 200
+        User.change_password(user_id, **user_data)
+        return ServerResponse.OK
     except UserError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({"error": str(e)}), 400
     except NotFoundError as e:
-        return jsonify({'error': str(e)}), 404
+        return jsonify({"error": str(e)}), 404
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @accounts.route('/delivery_info', methods=['POST', 'DELETE'])
@@ -284,21 +283,21 @@ def manage_delivery_info():
         if request.method == "POST":
             request_data = request.get_json(silent=True)
             if request_data is None:
-                return jsonify({'error': 'Request data is empty'}), 400
+                return ServerResponse.EMPTY_DATA
             try:
                 delivery_data = DeliveryPostValid(**request_data).model_dump()
             except ValidationError as e:
                 return jsonify(serialize_validation_error(e)), 400
-            response = DeliveryUserInfo.add_delivery_info(user_id=user_id, **delivery_data)
-            return jsonify(response), 200
+            DeliveryUserInfo.add_delivery_info(user_id=user_id, **delivery_data)
+            return ServerResponse.OK
 
         if request.method == "DELETE":
-            response = DeliveryUserInfo.remove_delivery_info(user_id=user_id)
-            return jsonify(response), 200
+            DeliveryUserInfo.remove_delivery_info(user_id=user_id)
+            return ServerResponse.OK
     except NotFoundError as e:
-        return jsonify({'error': str(e)}), 404
+        return jsonify({"error": str(e)}), 404
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
 
-    return jsonify({'error': "Method not allowed"}), 405
+    return ServerResponse.METHOD_NOT_ALLOWED

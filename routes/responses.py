@@ -7,6 +7,10 @@ class ServerResponse:
     """
     OK = {"message": 'OK'}, 200
     BAD_REQUEST = {"error": "Invalid request data"}, 400
+    EMPTY_DATA = {"error": "Empty request data"}, 400
+    METHOD_NOT_ALLOWED = {"error": "Method Not Allowed"}, 405
+    TOKEN_EXPIRED = {"error": "Verification token expired"}, 400
+    INVALID_TOKEN = {"error": "Invalid verification token"}, 400
 
     # User responses:
     USER_NOT_FOUND = {"error": 'User not found'}, 404

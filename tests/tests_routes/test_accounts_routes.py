@@ -1,5 +1,10 @@
+from unittest.mock import patch
+
 import pytest
 from flask import json
+from flask_jwt_extended import get_jwt_identity
+
+from models.accounts import User
 from tests import status
 
 from tests.conftest import create_test_user, TestValidData, authorize, get_payload
@@ -276,7 +281,7 @@ def test_verification_email_fail(client, session):
 def test_refresh_token(client, session):
     """Test refresh token successful"""
     # Given
-    headers, _valid_signup_data = authorize(client, refresh=True)
+    headers = authorize(client, refresh=True)
 
     # When
     response = client.post("/accounts/refresh", data=json.dumps({}),
@@ -292,7 +297,7 @@ def test_refresh_token(client, session):
 def test_logout_successful(client, session):
     """Test logout successful"""
     # Given
-    headers, _valid_signup_data = authorize(client)
+    headers = authorize(client)
 
     # When
     response = client.delete("/accounts/logout", headers=headers)
@@ -314,7 +319,7 @@ def test_logout_fail(client, session):
 def test_change_phone_number_successful(client, session):
     """Test change phone number successful"""
     # Given
-    headers, _valid_signup_data = authorize(client)
+    headers = authorize(client)
     phone = {
         "phone_number": "+380991122333"
     }
@@ -325,7 +330,7 @@ def test_change_phone_number_successful(client, session):
 
     # Then
     assert response.status_code == status.HTTP_200_OK
-    assert response.get_json().get('message') == "Phone number updated successfully"
+    assert response.get_json().get('message') == "OK"
 
 
 def test_change_phone_number_fail_1(client, session):
@@ -340,7 +345,7 @@ def test_change_phone_number_fail_1(client, session):
 def test_change_phone_number_fail_2(client, session):
     """Test change phone number fail (empty data)"""
     # Given
-    headers, _valid_signup_data = authorize(client)
+    headers = authorize(client)
     phone = None
 
     # When
@@ -355,7 +360,7 @@ def test_change_phone_number_fail_2(client, session):
 def test_change_phone_number_fail_3(payload, client, session):
     """Negative response"""
     # Given
-    headers, _valid_signup_data = authorize(client)
+    headers = authorize(client)
 
     # When
     response = client.post('/accounts/change_phone_number', data=json.dumps(payload),
@@ -368,7 +373,7 @@ def test_change_phone_number_fail_3(payload, client, session):
 def test_change_full_name_successful(client, session):
     """Test change full name successful"""
     # Given
-    headers, _valid_signup_data = authorize(client)
+    headers = authorize(client)
     full_name = {
         "full_name": "Test full name new"
     }
@@ -379,7 +384,7 @@ def test_change_full_name_successful(client, session):
 
     # Then
     assert response.status_code == status.HTTP_200_OK
-    assert response.get_json().get('message') == "Full name updated successfully"
+    assert response.get_json().get('message') == "OK"
 
 
 def test_change_full_name_fail_1(client, session):
@@ -394,7 +399,7 @@ def test_change_full_name_fail_1(client, session):
 def test_change_full_name_fail_2(client, session):
     """Test change full name fail (empty data)"""
     # Given
-    headers, _valid_signup_data = authorize(client)
+    headers = authorize(client)
     full_name = None
 
     # When
@@ -409,7 +414,7 @@ def test_change_full_name_fail_2(client, session):
 def test_change_full_name_fail_3(payload, client, session):
     """Negative response change full name"""
     # Given
-    headers, _valid_signup_data = authorize(client)
+    headers = authorize(client)
 
     # When
     response = client.post('/accounts/change_full_name', data=json.dumps(payload),
@@ -422,7 +427,7 @@ def test_change_full_name_fail_3(payload, client, session):
 def test_get_info_success(client, session):
     """Test to ensure that user can get info"""
     # Given
-    headers, _valid_signup_data = authorize(client)
+    headers = authorize(client)
 
     # When
     response = client.get("/accounts/info", headers=headers)
@@ -443,9 +448,9 @@ def test_get_info_success(client, session):
 def test_change_password_successful(client, session):
     """Test change password successful"""
     # Given
-    headers, valid_signup_data = authorize(client)
+    headers = authorize(client)
     password = {
-        "current_password": valid_signup_data.get("password"),
+        "current_password": "123467898qweW",
         "new_password": "neWpassword1"
     }
 
@@ -455,7 +460,7 @@ def test_change_password_successful(client, session):
 
     # Then
     assert response.status_code == status.HTTP_200_OK
-    assert response.get_json().get('message') == "Password updated successfully"
+    assert response.get_json().get('message') == "OK"
 
 
 def test_change_password_fail_1(client, session):
@@ -470,7 +475,7 @@ def test_change_password_fail_1(client, session):
 def test_change_password_fail_2(client, session):
     """Test change password fail (empty data)"""
     # Given
-    headers, _valid_signup_data = authorize(client)
+    headers = authorize(client)
     password = None
 
     # When
@@ -485,7 +490,7 @@ def test_change_password_fail_2(client, session):
 def test_change_password_fail_3(payload, client, session):
     """Negative response change_password"""
     # Given
-    headers, _valid_signup_data = authorize(client)
+    headers = authorize(client)
 
     # When
     response = client.post('/accounts/change_password', data=json.dumps(payload),
@@ -498,7 +503,7 @@ def test_change_password_fail_3(payload, client, session):
 def test_manage_delivery_info_success(client, session):
     """Test manage delivery info success"""
     # Given
-    headers, _valid_signup_data = authorize(client)
+    headers = authorize(client)
     delivery_request = {
         "post": "nova_post",
         "city": "Kiev",
@@ -541,7 +546,7 @@ def test_manage_delivery_info_fail_1(client, session):
 def test_manage_delivery_info_fail_2(client, session):
     """Test change password fail (empty data)"""
     # Given
-    headers, _valid_signup_data = authorize(client)
+    headers = authorize(client)
     delivery_request = None
 
     # When
@@ -550,3 +555,27 @@ def test_manage_delivery_info_fail_2(client, session):
 
     # Then
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_upload_profile_photo_success(client, session):
+    """Test upload image profile scenario success"""
+    # Given
+    headers = authorize(client)
+
+    # When
+    with patch("werkzeug.datastructures.file_storage.FileStorage.save"):
+        response = client.post('/accounts/profile_photo', data={"image": TestValidData.get_image()},
+                               content_type='multipart/form-data', headers=headers)
+
+        # Then post
+        assert response.status_code == status.HTTP_200_OK
+        user_id = get_jwt_identity()
+        user_data = User.get_user_by_id(user_id)
+        assert user_data.profile_picture is not None
+
+        # Then delete
+        response = client.delete('/accounts/profile_photo', headers=headers)
+
+        assert response.status_code == status.HTTP_200_OK
+        user_data = User.get_user_by_id(user_id)
+        assert user_data.profile_picture is None
