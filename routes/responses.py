@@ -18,9 +18,9 @@ class ServerResponse:
     # Shop responses:
     SHOP_CREATED = {'message': 'Shop created successfully'}, 201
     SHOP_UPDATED = {'message': 'Shop updated successfully'}, 200
+    PRODUCT_DEACTIVATED = {"message": "Product deactivated"}, 200
     BANNER_NOT_FOUND = {"error": "Banner shop not found"}, 404
     SHOP_NOT_FOUND = {'error': 'Shop not found'}, 404
     PHOTO_SHOP_NOT_FOUND = {"error": 'Photo shop not found'}, 404
-
     # Other responses:
     INTERNAL_SERVER_ERROR = {'error': 'Internal Server Error. Please, contact administrator'}, 500

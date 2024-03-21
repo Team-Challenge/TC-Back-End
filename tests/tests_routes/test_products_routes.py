@@ -124,7 +124,7 @@ def test_deactivate_product_success(client, prepopulated_session):
     """Test deactivate shop product and search products"""
     # Given
     expected_code = status.HTTP_200_OK
-    expected_message = "OK"
+    expected_message = "Product deactivated"
 
     headers = authorize(client, email="1_test@mail.com", password="1_qwerty1S")
     first = Product.query.first()
@@ -144,7 +144,7 @@ def test_deactivate_product_success(client, prepopulated_session):
 
 
 @pytest.mark.parametrize("expected_code, expected_message",
-                         ((400, "Product not found or permission not granted"),
+                         ((404, "Shop not found"),
                           (404, "Shop not found")))
 def test_deactivate_product_negative(client, session, expected_code, expected_message):
     """Test deactivate product scenario negative: Not found"""

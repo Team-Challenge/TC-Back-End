@@ -105,10 +105,8 @@ def update_product(product_id):
 def deactivate_product(product_id):
     try:
         Product.delete_product(get_jwt_identity(), product_id)
-        return ServerResponse.OK
-    except UserError as e:
-        return jsonify({'error': str(e)}), 400
-    except NotFoundError as e:
+        return ServerResponse.PRODUCT_DEACTIVATED
+    except (NotFoundError, UserError) as e:
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
