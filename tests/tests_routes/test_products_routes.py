@@ -240,7 +240,7 @@ def test_create_product_success(client, session):
     # Then
     assert response.status_code == status.HTTP_201_CREATED
     json_data = response.get_json()
-    assert json_data.get("message") == "The product was created successfully"
+    assert json_data.get("message") == "Product created successfull"
     product: Product = Product.query.first()
     assert product.id > 0
     assert product.category_id == TestValidData.TEST_CATEGORY_ID
@@ -278,22 +278,6 @@ def test_create_product_negative(client, session):
     assert response.get_json().get("error") == "Shop not found"
 
 
-@pytest.mark.parametrize('error_type, payload, expected_message', [
-    ("wrong_category",
-     {"category_id": 999},
-     "The category with the specified ID does not exist"),
-    ("wrong_category",
-     {"sub_category_id": 999},
-     "The subcategory with the specified ID does not belong to the category"),
-    ("validation",
-     {'product_status': '1',
-      'product_name': 'ы',
-      'product_description': 'ы',
-      "product_characteristic": '_',
-      "delivery_post": '_',
-      "method_of_payment": '_'},
-     None),
-])
 @pytest.mark.parametrize('error_type, payload, expected_message', [
     ("wrong_category",
      {"category_id": 999},

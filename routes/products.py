@@ -6,15 +6,13 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
 
 from models.errors import NotFoundError, UserError, serialize_validation_error, BadFileTypeError
-<<<<<<< HEAD
-from models.products import Product, ProductPhoto, get_all_shop_products, get_product_info_by_id
-=======
+
+from models.products import get_product_info_by_id
 from models.products import Product, ProductPhoto, get_all_shop_products
 from routes.responses import ServerResponse
->>>>>>> UM-197
+
 from utils.utils import serialize_product
 from validation.products import CreateProductValid, UpdateProductValid
-from routes.responses import ServerResponse
 
 products = Blueprint("products_route", __name__, url_prefix="/products")
 
@@ -26,11 +24,7 @@ CORS(products, supports_credentials=True)
 def create_product():
     data = request.get_json(silent=True)
     if data is None:
-<<<<<<< HEAD
         return ServerResponse.EMPTY_DATA
-=======
-        return ServerResponse.BAD_REQUEST
->>>>>>> UM-197
     try:
         validated_data = CreateProductValid(**data).model_dump()
         serialize_data = serialize_product(**validated_data)
@@ -39,20 +33,12 @@ def create_product():
 
     try:
         response = Product.add_product(get_jwt_identity(), **serialize_data)
-<<<<<<< HEAD
+
         return jsonify({'message': "Product created successfull", "product_id": response}), 201
     except (ValueError, UserError) as e:
         return jsonify({'error': str(e)}), 400
     except NotFoundError as e:
         return jsonify({'error': str(e)}), 404
-=======
-        return jsonify(response), 201
-    except (UserError, NotFoundError) as e:
-        return jsonify({'error': str(e)}), 404
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-
->>>>>>> UM-197
     except Exception as e:
         logging.error(e)
         return ServerResponse.INTERNAL_SERVER_ERROR
@@ -127,7 +113,6 @@ def deactivate_product(product_id):
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
-<<<<<<< HEAD
         return jsonify({'error': 'internal server error'}), 500
 
 
@@ -140,6 +125,4 @@ def get_product_info(product_id):
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
-=======
->>>>>>> UM-197
         return ServerResponse.INTERNAL_SERVER_ERROR

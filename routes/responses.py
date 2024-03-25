@@ -22,11 +22,9 @@ class ServerResponse:
     BANNER_NOT_FOUND = {"error": "Banner shop not found"}, 404
     SHOP_NOT_FOUND = {'error': 'Shop not found'}, 404
     PHOTO_SHOP_NOT_FOUND = {"error": 'Photo shop not found'}, 404
-<<<<<<< HEAD
 
     # Products responses
     PRODUCT_CREATED = {'message': 'Product created successfully'}, 201
-=======
->>>>>>> UM-197
+
     # Other responses:
     INTERNAL_SERVER_ERROR = {'error': 'Internal Server Error. Please, contact administrator'}, 500

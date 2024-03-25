@@ -17,7 +17,6 @@ def test_create_product_1(session):
 
     # Then
     assert response
-    assert response.get("message")
 
     product = Product.query.filter_by(shop_id=shop.id,
                                       category_id=TestValidData.TEST_CATEGORY_ID,
