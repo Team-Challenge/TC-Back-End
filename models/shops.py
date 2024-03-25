@@ -1,5 +1,4 @@
 import os
-import uuid
 
 from flask import url_for
 from sqlalchemy import ForeignKey, Integer, String
@@ -7,8 +6,8 @@ from sqlalchemy.orm import mapped_column, relationship
 
 from config import Config
 from dependencies import db
-from utils.utils import serialize
 from models.errors import NotFoundError
+from utils.utils import serialize, load_and_save_image
 
 SHOPS_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'shops')
 SHOPS_BANNER_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'banner_shops')
@@ -61,36 +60,16 @@ class Shop(db.Model):
         db.session.commit()
 
     def add_photo(self, photo):
-        file_extension = photo.filename.split('.')[-1]
-        file_name = uuid.uuid4().hex
-        file_path = os.path.join(
-            SHOPS_PHOTOS_PATH, f"{file_name}.{file_extension}")
-
-        if self.photo_shop:
-            old_file_path = os.path.join(SHOPS_PHOTOS_PATH, self.photo_shop)
-            if os.path.isfile(old_file_path):
-                os.remove(old_file_path)
-
-        self.photo_shop = f"{file_name}.{file_extension}"
-        photo.save(file_path)
+        image_path = load_and_save_image(self.photo_shop, photo, SHOPS_PHOTOS_PATH)
+        self.photo_shop = image_path
         db.session.commit()
-        return self.photo_shop
+        return image_path
 
     def add_banner(self, banner):
-        file_extension = banner.filename.split('.')[-1]
-        file_name = uuid.uuid4().hex
-        file_path = os.path.join(
-            SHOPS_BANNER_PHOTOS_PATH, f"{file_name}.{file_extension}")
-
-        if self.banner_shop:
-            old_file_path = os.path.join(
-                SHOPS_BANNER_PHOTOS_PATH, self.banner_shop)
-            if os.path.isfile(old_file_path):
-                os.remove(old_file_path)
-
-        self.banner_shop = f"{file_name}.{file_extension}"
-        banner.save(file_path)
+        image_path = load_and_save_image(self.banner_shop, banner, SHOPS_BANNER_PHOTOS_PATH)
+        self.banner_shop = image_path
         db.session.commit()
+        return image_path
 
     def remove_photo(self):
         file_path = os.path.join(SHOPS_PHOTOS_PATH, self.photo_shop)

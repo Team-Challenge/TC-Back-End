@@ -14,7 +14,8 @@ from pydantic import ValidationError
 from config import Config
 from dependencies import cache, db, jwt
 from models.accounts import DeliveryUserInfo, User
-from models.errors import NotFoundError, UserError, serialize_validation_error
+from models.errors import NotFoundError, UserError, serialize_validation_error, \
+    FileTooLargeError, BadFileTypeError
 from validation.accounts import (ChangePasswordSchema, DeliveryPostValid,
                                  FullNameValid, GoogleAuthValid,
                                  PhoneNumberValid, SigninValid, SignupValid,
@@ -226,10 +227,18 @@ def user_info():
 def profile_photo():
     if request.method == 'POST':
         if 'image' not in request.files:
-            return jsonify({'error': 'No file provided'}), 400
+            return ServerResponse.NO_FILE_PROVIDED
         try:
-            User.handle_profile_photo(request, action='upload')
-            return ServerResponse.OK
+            filename = User.handle_profile_photo(request, action='upload')
+
+            return make_response({"profile_picture":
+                                      url_for('static',
+                                              filename=f'media/profile/{filename}',
+                                              _external=True)}, 200)
+        except FileTooLargeError as ex:
+            return make_response({"error": str(ex)}, 413)
+        except BadFileTypeError as ex:
+            return make_response({"error": str(ex)}, 422)
         except UserError as e:
             return jsonify({"error": str(e)}), 400
         except NotFoundError as e:

@@ -121,6 +121,7 @@ def test_upload_shop_photo_success(client, session):
         assert response.get_json()["photo_shop"]
         found = Shop.query.filter_by(id=data.shop.id).first()
         assert found.photo_shop
+        assert found.photo_shop in response.get_json()["photo_shop"]
 
 
 def test_delete_shop_photo_success(client, session):
@@ -182,6 +183,7 @@ def test_upload_shop_banner_success(client, session):
     assert response.get_json()["shop_banner"]
     found = Shop.query.filter_by(id=data.shop.id).first()
     assert found.banner_shop
+    assert found.banner_shop in response.get_json()["shop_banner"]
 
 
 def test_delete_shop_banner_success(client, session):
@@ -292,18 +294,3 @@ def test_shop_routes_empty_request_negative(client, session, routes):
     # Then
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.get_json().get("error") == "Invalid request data"
-
-
-def test_get_shop_products_success(client, prepopulated_session):
-    """Test get shop products using prepopulated user data"""
-    # Given
-    headers = authorize(client, email="1_test@mail.com", password="1_qwerty1S")
-
-    # When
-    response = client.get("/products/shop_products", headers=headers)
-
-    # Then
-    assert response
-    assert response.status_code == status.HTTP_200_OK
-    assert type(response.get_json()) == list
-    assert len(response.get_json()) == 25

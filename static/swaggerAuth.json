@@ -417,7 +417,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "profile_picture": "http://127.0.0.1:5000/static/media/profile/53db1121852641378ef533b9d4603db7.jpg"
+                  "profile_picture": "http://127.0.0.1:5000/static/media/profile/file_name.jpg"
                 }
               }
             }
@@ -427,6 +427,9 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/EntityTooLarge3"
           }
         }
       },
@@ -495,6 +498,9 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/EntityTooLarge3"
           }
         }
       },
@@ -589,6 +595,9 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/EntityTooLarge5"
           }
         }
       },
@@ -1159,7 +1168,14 @@
             }
           },
           "404": {
-            "description": "Not found"
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product not found or permission not granted"
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -1198,7 +1214,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Product created successfully"
+                  "message": "The product was created successfully"
                 }
               }
             }
@@ -1218,6 +1234,38 @@
   },
   "components": {
     "responses": {
+      "EntityTooLarge3": {
+        "description": "Request entity too large",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "File size too large. Maximum file size is 3MB."
+                }
+              }
+            }
+          }
+        }
+      },
+      "EntityTooLarge5": {
+        "description": "Request entity too large",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "File size too large. Maximum file size is 5MB."
+                }
+              }
+            }
+          }
+        }
+      },
       "UnauthorizedError": {
         "description": "Unauthorized error response",
         "content": {
@@ -1721,10 +1769,12 @@
         "type": "object",
         "properties": {
           "category_id": {
-            "type": "integer"
+            "type": "integer",
+            "example": 1
           },
           "sub_category_id": {
-            "type": "integer"
+            "type": "integer",
+            "example": 11
           },
           "product_name": {
             "type": "string"
@@ -1739,7 +1789,8 @@
             "type": "number"
           },
           "product_status": {
-            "type": "string"
+            "type": "string",
+            "example": "В наявності"
           },
           "product_characteristic": {
             "type": "object",

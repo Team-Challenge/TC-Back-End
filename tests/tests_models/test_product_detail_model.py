@@ -18,9 +18,9 @@ def test_create_product_detail_1(session):
     assert response.id
     assert response.price == Data.TEST_PRODUCT_PRICE
     assert response.product_status is None
-    assert response.product_characteristic == Data.TEST_PRODUCT_CHARACTERISTIC
-    assert response.delivery_post == Data.TEST_PRODUCT_DELIVERY_POST
-    assert response.method_of_payment == Data.TEST_PRODUCT_METHOD_OF_PAYMENT
+    assert response.product_characteristic == Data.JSON_TEST_PRODUCT_CHARACTERISTIC
+    assert response.delivery_post == Data.JSON_TEST_PRODUCT_DELIVERY_POST
+    assert response.method_of_payment == Data.JSON_TEST_PRODUCT_METHOD_OF_PAYMENT
 
 
 # def test_create_product_detail_2(session):

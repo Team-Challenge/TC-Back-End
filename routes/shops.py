@@ -7,7 +7,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
 
 from models.accounts import User
-from models.errors import serialize_validation_error, NotFoundError
+from models.errors import (serialize_validation_error, NotFoundError, FileTooLargeError,
+                           BadFileTypeError)
 from models.shops import Shop
 from routes.responses import ServerResponse
 from validation.shops import ShopCreateValid, ShopSchema, ShopUpdateValid
@@ -63,9 +64,14 @@ def shop_photo():
         file = request.files.get('image')
         if not file:
             return ServerResponse.BAD_REQUEST
-        file_path = shop.add_photo(file)
+        try:
+            shop.add_photo(file)
+        except FileTooLargeError as ex:
+            return make_response({"error": str(ex)}, 413)
+        except BadFileTypeError as ex:
+            return make_response({"error": str(ex)}, 422)
         return make_response({"photo_shop": url_for('static',
-                                                    filename=f'media/shops/{file_path}',
+                                                    filename=f'media/shops/{shop.photo_shop}',
                                                     _external=True)}, 200)
     if request.method == 'DELETE':
         if shop.photo_shop is not None:
@@ -97,7 +103,13 @@ def shop_banner():
         if not file:
             return ServerResponse.BAD_REQUEST
 
-        shop.add_banner(file)
+        try:
+            shop.add_banner(file)
+        except FileTooLargeError as ex:
+            return make_response({"error": str(ex)}, 413)
+        except BadFileTypeError as ex:
+            return make_response({"error": str(ex)}, 422)
+
         return make_response({"shop_banner":
                                   url_for('static',
                                           filename=f'media/banner_shops/{shop.banner_shop}',

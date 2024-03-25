@@ -6,7 +6,6 @@
 # 8. Пошукати код який повторюється і винести  в окрему функцію у файл helpers або utils
 
 import os
-import uuid
 from datetime import datetime
 
 from flask import url_for
@@ -20,7 +19,7 @@ from config import Config
 from dependencies import db
 from models.errors import NotFoundError, UserError
 from models.shops import Shop
-from utils.utils import serialize
+from utils.utils import serialize, load_and_save_image
 
 PROFILE_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'profile')
 
@@ -138,22 +137,11 @@ class User(db.Model):
             if action == 'upload':
                 file = request.files.get('image')
                 if file is not None:
-                    _, file_extension = os.path.splitext(file.filename)
-                    allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
-                    if file_extension.lower()[1:] not in allowed_extensions:
-                        raise UserError('Invalid file format')
-                    file_name = uuid.uuid4().hex
-
-                    if user.profile_picture:
-                        prev_photo = os.path.join(PROFILE_PHOTOS_PATH, user.profile_picture)
-                        if os.path.isfile(prev_photo):
-                            os.remove(prev_photo)
-
-                    user.profile_picture = file_name + file_extension
-                    file.save(os.path.join(PROFILE_PHOTOS_PATH, file_name + file_extension))
+                    file_path = load_and_save_image(user.profile_picture, file, PROFILE_PHOTOS_PATH)
+                    user.profile_picture = file_path
                     db.session.commit()
                     filename = user.profile_picture
-                    return {'message': 'Profile photo uploaded successfully', 'filename': filename}
+                    return filename
                 raise UserError('Invalid request data')
 
             if action == 'delete':

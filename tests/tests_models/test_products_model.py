@@ -2,8 +2,8 @@ import pytest
 
 from models.errors import NotFoundError, UserError
 from models.products import Product, get_all_shop_products
-from tests.conftest import TestValidData as Data
-from tests.conftest import create_test_user, create_user_and_shop, create_user_shop_product
+from tests.conftest import (create_test_user, create_user_and_shop, create_user_shop_product,
+                            TestValidData)
 
 
 def test_create_product_1(session):
@@ -12,22 +12,23 @@ def test_create_product_1(session):
     user, shop = create_user_and_shop(session)
 
     # When
-    response = Product.add_product(user_id=user.id, **Data.get_product_payload())
+    response = Product.add_product(user_id=user.id,
+                                   **TestValidData.get_product_payload(is_json=True))
 
     # Then
     assert response
     assert response.get("message")
 
     product = Product.query.filter_by(shop_id=shop.id,
-                                      category_id=Data.TEST_CATEGORY_ID,
-                                      product_name=Data.TEST_PRODUCT_NAME,
-                                      product_description=Data.TEST_PRODUCT_DESCRIPTION).first()
+                                      category_id=TestValidData.TEST_CATEGORY_ID,
+                                      product_name=TestValidData.TEST_PRODUCT_NAME,
+                                      product_description=TestValidData.TEST_PRODUCT_DESCRIPTION).first()
     assert product.id > 0
     assert product.shop_id == shop.id
-    assert product.category_id == Data.TEST_CATEGORY_ID
-    assert product.sub_category_name == Data.TEST_SUB_CATEGORY_NAME
-    assert product.product_name == Data.TEST_PRODUCT_NAME
-    assert product.product_description == Data.TEST_PRODUCT_DESCRIPTION
+    assert product.category_id == TestValidData.TEST_CATEGORY_ID
+    assert product.sub_category_name == TestValidData.TEST_SUB_CATEGORY_NAME
+    assert product.product_name == TestValidData.TEST_PRODUCT_NAME
+    assert product.product_description == TestValidData.TEST_PRODUCT_DESCRIPTION
     assert product.product_to_detail
 
 
@@ -38,7 +39,7 @@ def test_create_product_2(session):
 
     # When
     with pytest.raises(NotFoundError, match="Shop not found"):
-        response = Product.add_product(user_id=user.id, **Data.get_product_payload())
+        response = Product.add_product(user_id=user.id, **TestValidData.get_product_payload())
 
     # Then
     with pytest.raises(UnboundLocalError):
@@ -51,8 +52,9 @@ def test_create_product_3(session):
     create_user_and_shop(session)
     invalid_user_id = 999
     # When
-    with pytest.raises(NotFoundError, match="User not found"):
-        response = Product.add_product(user_id=invalid_user_id, **Data.get_product_payload())
+    with pytest.raises(UserError, match="User not found"):
+        response = Product.add_product(user_id=invalid_user_id,
+                                       **TestValidData.get_product_payload())
 
     # Then
     with pytest.raises(UnboundLocalError):
@@ -69,7 +71,7 @@ def test_delete_product_1(session):
 
     # Then
     assert response
-    assert response.get("message")
+    assert response.get("message") == "Ok"
 
     product = Product.query.filter_by(id=product.id).first()
     assert not product.is_active
@@ -273,7 +275,7 @@ def test_get_all_shop_products_1(session):
     user, shop = create_user_and_shop(session)
     products = []
     for i in range(0, 15):
-        products.append(Product(shop_id=shop.id, **Data.get_product_payload()))
+        products.append(Product(shop_id=shop.id, **TestValidData.get_product_payload()))
     session.add_all(products)
     session.commit()
     # When

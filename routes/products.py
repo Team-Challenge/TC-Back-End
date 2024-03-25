@@ -6,7 +6,12 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
 
 from models.errors import NotFoundError, UserError, serialize_validation_error, BadFileTypeError
+<<<<<<< HEAD
 from models.products import Product, ProductPhoto, get_all_shop_products, get_product_info_by_id
+=======
+from models.products import Product, ProductPhoto, get_all_shop_products
+from routes.responses import ServerResponse
+>>>>>>> UM-197
 from utils.utils import serialize_product
 from validation.products import CreateProductValid, UpdateProductValid
 from routes.responses import ServerResponse
@@ -21,7 +26,11 @@ CORS(products, supports_credentials=True)
 def create_product():
     data = request.get_json(silent=True)
     if data is None:
+<<<<<<< HEAD
         return ServerResponse.EMPTY_DATA
+=======
+        return ServerResponse.BAD_REQUEST
+>>>>>>> UM-197
     try:
         validated_data = CreateProductValid(**data).model_dump()
         serialize_data = serialize_product(**validated_data)
@@ -30,11 +39,20 @@ def create_product():
 
     try:
         response = Product.add_product(get_jwt_identity(), **serialize_data)
+<<<<<<< HEAD
         return jsonify({'message': "Product created successfull", "product_id": response}), 201
     except (ValueError, UserError) as e:
         return jsonify({'error': str(e)}), 400
     except NotFoundError as e:
         return jsonify({'error': str(e)}), 404
+=======
+        return jsonify(response), 201
+    except (UserError, NotFoundError) as e:
+        return jsonify({'error': str(e)}), 404
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+
+>>>>>>> UM-197
     except Exception as e:
         logging.error(e)
         return ServerResponse.INTERNAL_SERVER_ERROR
@@ -57,7 +75,7 @@ def add_product_photo(product_id):
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @products.route("/shop_products", methods=["GET"])
@@ -72,7 +90,7 @@ def get_shop_products():
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @products.route("/update/<int:product_id>", methods=["PUT"])
@@ -80,7 +98,7 @@ def get_shop_products():
 def update_product(product_id):
     data = request.get_json(silent=True)
     if data is None:
-        return jsonify({'error': 'Request data is empty'}), 400
+        return ServerResponse.BAD_REQUEST
     data['product_id'] = product_id
     try:
         validated_data = UpdateProductValid(**data).model_dump()
@@ -96,21 +114,20 @@ def update_product(product_id):
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
-        return jsonify({'error': 'internal server error'}), 500
+        return ServerResponse.INTERNAL_SERVER_ERROR
 
 
 @products.route("/deactivate/<int:product_id>", methods=["DELETE"])
 @jwt_required()
 def deactivate_product(product_id):
     try:
-        response = Product.delete_product(get_jwt_identity(), product_id)
-        return jsonify(response), 200
-    except UserError as e:
-        return jsonify({'error': str(e)}, 400)
-    except NotFoundError as e:
+        Product.delete_product(get_jwt_identity(), product_id)
+        return ServerResponse.PRODUCT_DEACTIVATED
+    except (NotFoundError, UserError) as e:
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
+<<<<<<< HEAD
         return jsonify({'error': 'internal server error'}), 500
 
 
@@ -123,4 +140,6 @@ def get_product_info(product_id):
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
+=======
+>>>>>>> UM-197
         return ServerResponse.INTERNAL_SERVER_ERROR
