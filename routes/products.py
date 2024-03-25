@@ -1,18 +1,16 @@
 import logging
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, Response
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
 
 from models.errors import NotFoundError, UserError, serialize_validation_error, BadFileTypeError
-
-from models.products import get_product_info_by_id
-from models.products import Product, ProductPhoto, get_all_shop_products
+from models.products import Product, ProductPhoto, get_all_shop_products, get_product_info_by_id
 from routes.responses import ServerResponse
-
 from utils.utils import serialize_product
-from validation.products import CreateProductValid, UpdateProductValid
+from validation.products import (CreateProductValid, UpdateProductValid, DetailProductInfoSchema,
+                                 DetailProductsInfoSchema)
 
 products = Blueprint("products_route", __name__, url_prefix="/products")
 
@@ -34,7 +32,7 @@ def create_product():
     try:
         response = Product.add_product(get_jwt_identity(), **serialize_data)
 
-        return jsonify({'message': "Product created successfull", "product_id": response}), 201
+        return jsonify({'message': "Product created successfully", "product_id": response}), 201
     except (ValueError, UserError) as e:
         return jsonify({'error': str(e)}), 400
     except NotFoundError as e:
@@ -68,8 +66,9 @@ def add_product_photo(product_id):
 @jwt_required()
 def get_shop_products():
     try:
-        response = get_all_shop_products(get_jwt_identity())
-        return jsonify(response), 200
+        shop_products = get_all_shop_products(get_jwt_identity())
+        response = DetailProductsInfoSchema(data=shop_products).model_dump_json(indent=4)
+        return Response(response, mimetype="application/json", status=200)
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except NotFoundError as e:
@@ -120,7 +119,8 @@ def deactivate_product(product_id):
 def get_product_info(product_id):
     try:
         response = get_product_info_by_id(product_id)
-        return jsonify(response), 200
+        response = DetailProductInfoSchema(**response).model_dump_json(indent=4)
+        return Response(response, mimetype="application/json", status=200)
     except NotFoundError as e:
         return jsonify({'error': str(e)}), 404
     except Exception as e:

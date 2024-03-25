@@ -29,6 +29,7 @@
             "content": {
               "application/json": {
                 "example": {
+                  "link": "http://api.example.com/accounts/verify/...",
                   "user": {
                     "id": 1,
                     "email": "user@example.com",
@@ -929,7 +930,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Password changed successfully"
+                  "message": "OK"
                 }
               }
             }
@@ -1594,12 +1595,14 @@
           "photo_shop": {
             "type": "string",
             "format": "uri",
-            "description": "URL to the shop"
+            "description": "URL to the shop",
+            "example": "https://api.example.com/...png"
           },
           "banner_shop": {
             "type": "string",
             "format": "uri",
-            "description": "URL to the shop"
+            "description": "URL to the shop",
+            "example": "https://api.example.com/...png"
           },
           "phone_number": {
             "type": "string"
@@ -1629,6 +1632,56 @@
           "category_id": {
             "type": "integer"
           },
+          "sub_category_id": {
+            "type": "integer"
+          },
+          "shop_id": {
+            "type": "integer"
+          },
+          "product_name": {
+            "type": "string"
+          },
+          "product_description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "time_added": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "time_modifeid": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "is_return": {
+            "type": "boolean"
+          },
+          "is_unique": {
+            "type": "boolean"
+          },
+          "product_status": {
+            "type": "string",
+            "example": "В наявності"
+          },
+          "product_characteristic": {
+            "type": "object",
+            "properties": {
+              "виготовлений": {
+                "type": "string"
+              },
+              "матеріал": {
+                "type": "string"
+              },
+              "розмір": {
+                "type": "string"
+              }
+            }
+          },
           "delivery_post": {
             "type": "object",
             "properties": {
@@ -1639,15 +1692,6 @@
                 "type": "boolean"
               }
             }
-          },
-          "is_active": {
-            "type": "boolean"
-          },
-          "is_return": {
-            "type": "boolean"
-          },
-          "is_unique": {
-            "type": "boolean"
           },
           "method_of_payment": {
             "type": "object",
@@ -1684,66 +1728,29 @@
                 }
               }
             }
-          },
-          "price": {
-            "type": "number"
-          },
-          "product_characteristic": {
-            "type": "object",
-            "properties": {
-              "виготовлений": {
-                "type": "string"
-              },
-              "матеріал": {
-                "type": "string"
-              },
-              "розмір": {
-                "type": "string"
-              }
-            }
-          },
-          "product_description": {
-            "type": "string"
-          },
-          "product_name": {
-            "type": "string"
-          },
-          "product_status": {
-            "type": "string"
-          },
-          "shop_id": {
-            "type": "integer"
-          },
-          "sub_category_id": {
-            "type": "integer"
-          },
-          "time_added": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "time_modifeid": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
       "UserInfoResponse": {
         "type": "object",
         "properties": {
-          "phone_number": {
-            "type": "string"
-          },
           "full_name": {
-            "type": "string"
+            "type": "string",
+            "example": "John Doe"
           },
           "email": {
             "type": "string",
             "format": "email"
           },
-          "profile_photo": {
+          "profile_picture": {
             "type": "string",
             "format": "uri",
-            "description": "URL to the user's profile photo"
+            "description": "URL to the user's profile photo",
+            "example": "https://api.example.com/...png"
+          },
+          "phone_number": {
+            "type": "string",
+            "example": "+380000000000"
           },
           "post": {
             "type": "string"

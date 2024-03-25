@@ -1,3 +1,4 @@
+import datetime
 import json
 import os.path
 import re
@@ -5,7 +6,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, Optional
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, ConfigDict
 
 
 class SubCategoryEnum(str, Enum):
@@ -118,6 +119,66 @@ class UpdateProductValid(BaseModel):
 class PhotoProductValid(BaseModel):
     product_photo: str
     main: bool
+
+
+class ProductPhotoSchema(BaseModel):
+    id: int
+    product_photo: str
+    timestamp: datetime.datetime
+    main: bool
+
+
+class ProductInfoSchema(BaseModel):
+    id: int
+    product_name: str
+    price: float
+    product_status: Optional[ProductStatusEnum] = None
+    is_unique: Optional[bool]
+    photo: ProductPhotoSchema
+
+
+class DetailProductInfoSchema(BaseModel):
+    id: int
+    category_id: int
+    sub_category_id: int
+    shop_id: int
+    product_name: str
+    product_description: Optional[str]
+    price: float
+    time_added: datetime.datetime
+    time_modifeid: datetime.datetime
+    is_active: bool
+    is_return: Optional[bool]
+    is_unique: Optional[bool]
+    product_status: Optional[ProductStatusEnum] = None
+    product_characteristic: Optional[dict]
+    delivery_post: Optional[dict]
+    method_of_payment: Optional[dict]
+    photos: list[ProductPhotoSchema]
+
+
+class DetailProductsInfoSchema(BaseModel):
+    has_previous: bool = False
+    has_next: bool = False
+    total_pages: int = 0
+    data: list[DetailProductInfoSchema]
+
+
+class ShopSchema(BaseModel):
+    id: int
+    owner_id: int
+    name: str
+    description: Optional[str] = None
+    photo_shop: Optional[str] = None
+    banner_shop: Optional[str] = None
+    phone_number: str
+    link: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ShopWithProductsSchema(ShopSchema):
+    products: ProductInfoSchema
 
 
 def get_subcategory_name(category_id, subcategory_id):

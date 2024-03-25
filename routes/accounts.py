@@ -19,7 +19,7 @@ from models.errors import NotFoundError, UserError, serialize_validation_error, 
 from validation.accounts import (ChangePasswordSchema, DeliveryPostValid,
                                  FullNameValid, GoogleAuthValid,
                                  PhoneNumberValid, SigninValid, SignupValid,
-                                 UserInfoSchema, UserSchema)
+                                 UserInfoSchema, UserSchema, UserSignupReturnSchema)
 from routes.responses import ServerResponse
 
 ACCESS_EXPIRES = timedelta(hours=1)
@@ -59,8 +59,8 @@ def signup() -> Response:
             phone_number=user.phone_number,
             profile_picture=user.profile_picture
         )
-        response = {"user": user_schema.model_dump(), "link": verification_link}
-        return make_response(jsonify(response), 201)
+        response = UserSignupReturnSchema(link=verification_link, user=user_schema)
+        return Response(response.model_dump_json(indent=4), mimetype="application/json", status=201)
     except UserError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
@@ -214,7 +214,7 @@ def user_info():
         user_id = get_jwt_identity()
         user_data = User.get_user_info(user_id)
         response = UserInfoSchema(**user_data)
-        return jsonify(response.model_dump()), 200
+        return Response(response.model_dump_json(indent=4), mimetype="application/json", status=200)
     except NotFoundError as e:
         return jsonify({"error": str(e)}), 404
     except Exception as e:

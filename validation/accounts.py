@@ -2,7 +2,7 @@ import re
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, ConfigDict
 
 from models.accounts import User
 
@@ -21,7 +21,9 @@ class SigninValid(BaseModel):
     def password_validator(value: str) -> str:
         regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
         if not re.match(regex, value):
-            raise ValueError('The password must contain at least one capital letter 8 characters')
+            raise ValueError(
+                'The password must contain at least one capital letter, '
+                'any one number and total 8 characters')
         return value
 
     @validator('email')
@@ -54,7 +56,9 @@ class SignupValid(SigninValid):
     def password_validator(value: str) -> str:
         regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
         if not re.match(regex, value):
-            raise ValueError('The password must contain at least one capital letter 8 characters')
+            raise ValueError(
+                'The password must contain at least one capital letter, '
+                'any one number and total 8 characters')
         return value
 
     @validator('email')
@@ -114,8 +118,12 @@ class UserSchema(BaseModel):
     profile_picture: Optional[str] = None
     phone_number: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserSignupReturnSchema(BaseModel):
+    link: Optional[str]
+    user: UserSchema
 
 
 class ChangePasswordSchema(BaseModel):
@@ -127,7 +135,9 @@ class ChangePasswordSchema(BaseModel):
     def password_validator(value: str) -> str:
         regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
         if not re.match(regex, value):
-            raise ValueError('The password must contain at least one capital letter 8 characters')
+            raise ValueError(
+                'The password must contain at least one capital letter, '
+                'any one number and total 8 characters')
         return value
 
 
@@ -143,5 +153,4 @@ class UserInfoSchema(BaseModel):
     shop_id: Optional[int] = None
     have_a_shop: Optional[bool] = False
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

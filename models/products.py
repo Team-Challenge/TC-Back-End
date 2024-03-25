@@ -12,7 +12,7 @@ from dependencies import db
 from models.accounts import User
 from models.errors import NotFoundError, UserError, ProductPhotoLimitError, BadFileTypeError
 from models.shops import Shop
-from utils.utils import product_info_serialize, serialize, product_info_serialize_by_id
+from utils.utils import product_info_serialize, product_info_serialize_by_id
 from validation.products import get_subcategory_name
 
 PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
@@ -300,7 +300,7 @@ class Categories(db.Model):
 
 # TODO: return success or error message. Remove all flask imports in this file++++++++
 # TODO: jsonify should be called in route+++++++++
-def get_all_shop_products(user_id: int):
+def get_all_shop_products(user_id: int) -> list[dict] | list[Product]:
     user = User.get_user_by_id(user_id)
     if user is not None:
         shop = Shop.get_shop_by_owner_id(user.id)

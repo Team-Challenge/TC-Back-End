@@ -1,7 +1,7 @@
 import logging
 
 from flask import (Blueprint, jsonify, make_response, request,
-                   url_for)
+                   url_for, Response)
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
@@ -131,10 +131,12 @@ def get_shop_info():
         return ServerResponse.USER_NOT_FOUND
     try:
         shop_info = Shop.get_shop_user_info(user.id)
-        response = ShopSchema(**shop_info)
-        return jsonify(response.model_dump()), 200
+        response = ShopSchema(**shop_info).model_dump_json(indent=4)
+        return Response(response, mimetype="application/json", status=200)
+
     except NotFoundError as e:
         return jsonify({"error": str(e)}), 404
+
     except Exception as e:
         logging.error(e)
         return ServerResponse.INTERNAL_SERVER_ERROR

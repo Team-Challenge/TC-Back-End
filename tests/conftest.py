@@ -209,7 +209,7 @@ def open_mock(filename: str):
         yield csv.DictReader(file)
 
 
-def authorize(client, refresh=False, **kwargs) -> dict:
+def authorize(client, refresh=False, inject=True, **kwargs) -> dict:
     """Registers user and returns authorization header after successful signin"""
     valid_signup_data = TestValidData.get_user_signup_payload(**kwargs)
     client.post('/accounts/signup', data=json.dumps(valid_signup_data),
@@ -227,6 +227,8 @@ def authorize(client, refresh=False, **kwargs) -> dict:
     else:
         access_token = response.get_json().get("access_token")
     headers = {'Authorization': f'Bearer {access_token}'}
+    if inject:
+        client.environ_base.setdefault("HTTP_AUTHORIZATION", headers["Authorization"])
     return headers
 
 
