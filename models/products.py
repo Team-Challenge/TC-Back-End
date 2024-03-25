@@ -1,5 +1,4 @@
 import os
-import uuid
 from datetime import datetime
 
 from sqlalchemy import (Boolean, DateTime, Float, ForeignKey, Integer, String,
@@ -12,8 +11,9 @@ from dependencies import db
 from models.accounts import User
 from models.errors import NotFoundError, UserError, ProductPhotoLimitError, BadFileTypeError
 from models.shops import Shop
-from utils.utils import product_info_serialize, product_info_serialize_by_id
+from utils.utils import product_info_serialize, product_info_serialize_by_id, load_and_save_image
 from validation.products import get_subcategory_name
+from validation.shops import ShopWithProductsSchema
 
 PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')
 
@@ -136,6 +136,7 @@ class ProductPhoto(db.Model):
 
     # TODO: return success or error message. Remove all flask imports in this file+++++
     # TODO: jsonify should be called in route++++++++
+
     @classmethod
     def add_product_photo(cls, user_id: int, product_id: int, photo: FileStorage, main: bool):
         user = User.get_user_by_id(user_id)
@@ -152,29 +153,49 @@ class ProductPhoto(db.Model):
 
         num_photos = ProductPhoto.get_num_photos_by_product_detail_id(product_detail.id)  # noqa
         if num_photos >= 4:
-            raise ProductPhotoLimitError('The maximum photos for product has been 4')
+            raise ProductPhotoLimitError('The maximum number of photos for a product is 4')
 
-        allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
         try:
-            if '.' in photo.filename and photo.filename.rsplit(
-                    '.', 1)[1].lower() in allowed_extensions:
-                file_extension = photo.filename.split('.')[-1]
-                file_name = uuid.uuid4().hex
-                file_path = os.path.join(
-                    PRODUCT_PHOTOS_PATH, f"{file_name}.{file_extension}")
-                photo.save(file_path)
+            filename = load_and_save_image(None, photo,
+                                           photo_path=PRODUCT_PHOTOS_PATH)
+            if main:
+                old_photos = cls.query.filter_by(
+                    product_detail_id=product_detail.id).all()
+                for ph in old_photos:
+                    if ph.main is True:
+                        ph.main = False
 
-                new_photo = cls(product_detail_id=product_detail.id,
-                                product_photo=f"{file_name}.{file_extension}", main=main)
-                db.session.add(new_photo)
-                db.session.commit()
-                return {"message": "Photo product uploaded successfully"}
+            new_photo = cls(product_detail_id=product_detail.id, product_photo=filename, main=main)
+            db.session.add(new_photo)
+            db.session.commit()
+            return {"message": "Photo product uploaded successfully"}
         except AttributeError as ex:
             if "'str' object has no attribute 'filename'" in str(ex):
                 raise BadFileTypeError("Wrong filetype. Does file have file format?") from ex
             raise AttributeError(ex) from ex
 
         raise BadFileTypeError('Bad request. Does file have proper file format?')
+
+    @classmethod
+    def get_product_photo_by_id(cls, product_photo_id: int):
+        return cls.query.get(product_photo_id)
+
+    @classmethod
+    def remove_product_photo_by_product_id(cls, product_id: int, product_photo_id: int,
+                                           user_id: int):
+        photo: ProductPhoto = db.session.query(ProductPhoto) \
+            .join(Product, ProductPhoto.product_detail_id == Product.id) \
+            .join(Shop, Product.shop_id == Shop.id) \
+            .filter(ProductPhoto.id == product_photo_id,
+                    Product.id == product_id,
+                    Shop.owner_id == user_id) \
+            .first()
+
+        if photo:
+            photo.remove_product_photo()
+            return
+
+        raise NotFoundError("Product photo is not found")
 
     @classmethod
     def get_num_photos_by_product_detail_id(cls, product_detail_id):
@@ -314,6 +335,38 @@ def get_all_shop_products(user_id: int) -> list[dict] | list[Product]:
         response = product_info_serialize(shop_products)
         return response
     raise NotFoundError('User not found')
+
+
+def get_all_shop_products_by_shop_id(shop_id: int) -> ShopWithProductsSchema:
+    """Returns shop data as ShopWithProductsSchema using shop_id"""
+    shop = Shop.get_shop_by_id(shop_id)
+    if not shop:
+        raise NotFoundError('Shop not found')
+    shop_products = db.session.query(
+        Product.id,
+        Product.product_name,
+        ProductDetail.price,
+        ProductDetail.product_status,
+        ProductDetail.is_unique,
+        ProductPhoto
+    ).join(
+        ProductDetail, Product.id == ProductDetail.product_id
+    ).outerjoin(
+        ProductPhoto, ProductDetail.id == ProductPhoto.product_detail_id
+    ).filter(
+        Product.shop_id == shop.id
+    ).filter(
+        ProductPhoto.main == True  # noqa
+    ).with_entities(
+        Product.id,
+        Product.product_name,
+        ProductDetail.price,
+        ProductDetail.product_status,
+        ProductDetail.is_unique,
+        ProductPhoto
+    ).all()
+    products = ShopWithProductsSchema.load_list(shop=shop, item_list=shop_products)
+    return products
 
 
 def get_product_info_by_id(product_id: int):

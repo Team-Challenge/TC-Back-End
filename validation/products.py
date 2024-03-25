@@ -6,7 +6,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, Optional
 
-from pydantic import BaseModel, validator
+from flask import url_for
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class SubCategoryEnum(str, Enum):
@@ -65,7 +66,7 @@ class CreateProductValid(BaseModel):
     method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None
     is_unique: Optional[bool] = None
 
-    @validator('product_name')
+    @field_validator('product_name')
     @staticmethod
     def name_validator(value: str) -> str:
         if value is not None:
@@ -74,7 +75,7 @@ class CreateProductValid(BaseModel):
                 raise ValueError('Invalid product_name format')
         return value
 
-    @validator('product_description')
+    @field_validator('product_description')
     @staticmethod
     def description_validator(value: str) -> str:
         if value is not None:
@@ -97,7 +98,7 @@ class UpdateProductValid(BaseModel):
     method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None
     is_unique: Optional[bool] = None
 
-    @validator('product_name')
+    @field_validator('product_name')
     @staticmethod
     def name_validator(value: str) -> str:
         if value is not None:
@@ -106,7 +107,7 @@ class UpdateProductValid(BaseModel):
                 raise ValueError('Invalid product_name format')
         return value
 
-    @validator('product_description')
+    @field_validator('product_description')
     @staticmethod
     def description_validator(value: str) -> str:
         if value is not None:
@@ -127,6 +128,15 @@ class ProductPhotoSchema(BaseModel):
     timestamp: datetime.datetime
     main: bool
 
+    model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("product_photo", mode="after")
+    @classmethod
+    def set_product_photo(cls, v):
+        image = url_for('static', filename=f'media/products/{v}',
+                        _external=True)
+        return image
+
 
 class ProductInfoSchema(BaseModel):
     id: int
@@ -134,7 +144,9 @@ class ProductInfoSchema(BaseModel):
     price: float
     product_status: Optional[ProductStatusEnum] = None
     is_unique: Optional[bool]
-    photo: ProductPhotoSchema
+    photo: Optional[ProductPhotoSchema] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DetailProductInfoSchema(BaseModel):

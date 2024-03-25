@@ -418,7 +418,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "profile_picture": "http://127.0.0.1:5000/static/media/profile/file_name.jpg"
+                  "profile_picture": "https://api.dorechi.store/static/media/profile/file_name.jpg"
                 }
               }
             }
@@ -701,6 +701,66 @@
           },
           "404": {
             "description": "Product not found"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Remove product photo",
+        "tags": [
+          "Product"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "description": "ID of the product to update",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Remove product photo",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "example": {
+                  "product_photo_id": 0
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Photo successfully removed",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Photo successfully removed"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product photo not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product photo not found"
+                }
+              }
+            }
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -990,6 +1050,43 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProductInfoResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ShopNotFound"
+          }
+        }
+      }
+    },
+    "/shops/shop_info/{shop_id}": {
+      "get": {
+        "summary": "Get Shop Products Information By Shop ID",
+        "tags": [
+          "Shop"
+        ],
+        "parameters": [
+          {
+            "name": "shop_id",
+            "in": "path",
+            "description": "ID of the shop to get",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop products information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopInfoResponse"
                 }
               }
             }
@@ -1620,6 +1717,119 @@
           },
           "category_name": {
             "type": "string"
+          }
+        }
+      },
+      "ShopInfoResponse": {
+        "type": "object",
+        "properties": {
+          "shop": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 1
+              },
+              "owner_id": {
+                "type": "integer",
+                "example": 1
+              },
+              "name": {
+                "type": "string",
+                "example": "string"
+              },
+              "description": {
+                "type": "string",
+                "example": "string"
+              },
+              "photo_shop": {
+                "type": "string",
+                "format": "uri",
+                "example": "https://api.dorechi.store/static/media/shops/filename.png"
+              },
+              "banner_shop": {
+                "type": "string",
+                "format": "uri",
+                "example": "https://api.dorechi.store/static/media/banner_shops/filename.png"
+              },
+              "phone_number": {
+                "type": "string",
+                "example": "+380002090000"
+              },
+              "link": {
+                "type": "string",
+                "example": "string"
+              }
+            }
+          },
+          "products": {
+            "type": "object",
+            "properties": {
+              "has_previous": {
+                "type": "boolean",
+                "example": false
+              },
+              "has_next": {
+                "type": "boolean",
+                "example": false
+              },
+              "total_pages": {
+                "type": "integer",
+                "example": 0
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "product_name": {
+                      "type": "string",
+                      "example": "string"
+                    },
+                    "price": {
+                      "type": "number",
+                      "format": "double",
+                      "example": 0.0
+                    },
+                    "product_status": {
+                      "type": "string",
+                      "example": "В наявності"
+                    },
+                    "is_unique": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "photo": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "product_photo": {
+                          "type": "string",
+                          "format": "uri",
+                          "example": "https://api.dorechi.store/static/media/products/filename.png"
+                        },
+                        "timestamp": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2024-03-25T23:41:45.947225"
+                        },
+                        "main": {
+                          "type": "boolean",
+                          "example": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       },

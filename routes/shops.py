@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from models.accounts import User
 from models.errors import (serialize_validation_error, NotFoundError, FileTooLargeError,
                            BadFileTypeError)
+from models.products import get_all_shop_products_by_shop_id
 from models.shops import Shop
 from routes.responses import ServerResponse
 from validation.shops import ShopCreateValid, ShopSchema, ShopUpdateValid
@@ -137,6 +138,18 @@ def get_shop_info():
     except NotFoundError as e:
         return jsonify({"error": str(e)}), 404
 
+    except Exception as e:
+        logging.error(e)
+        return ServerResponse.INTERNAL_SERVER_ERROR
+
+
+@shops.route("/shop_info/<int:shop_id>", methods=["GET"])
+def get_specific_shop_products(shop_id):
+    try:
+        products = get_all_shop_products_by_shop_id(shop_id)
+        return Response(products.model_dump_json(indent=4), mimetype="application/json", status=200)
+    except NotFoundError:
+        return ServerResponse.SHOP_NOT_FOUND
     except Exception as e:
         logging.error(e)
         return ServerResponse.INTERNAL_SERVER_ERROR

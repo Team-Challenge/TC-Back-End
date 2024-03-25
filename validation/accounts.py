@@ -2,7 +2,7 @@ import re
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, validator, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from models.accounts import User
 
@@ -16,7 +16,7 @@ class SigninValid(BaseModel):
     email: str
     password: str
 
-    @validator('password')
+    @field_validator('password')
     @staticmethod
     def password_validator(value: str) -> str:
         regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
@@ -26,7 +26,7 @@ class SigninValid(BaseModel):
                 'any one number and total 8 characters')
         return value
 
-    @validator('email')
+    @field_validator('email')
     @staticmethod
     def email_validator(value: str) -> str:
         regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
@@ -40,7 +40,7 @@ class SignupValid(SigninValid):
     email: str
     password: str
 
-    @validator('full_name')
+    @field_validator('full_name')
     @staticmethod
     def full_name_validator(value: str) -> str:
         regex = (
@@ -51,7 +51,7 @@ class SignupValid(SigninValid):
             raise ValueError('Invalid characters in the field full_name')
         return value
 
-    @validator('password')
+    @field_validator('password')
     @staticmethod
     def password_validator(value: str) -> str:
         regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
@@ -61,7 +61,7 @@ class SignupValid(SigninValid):
                 'any one number and total 8 characters')
         return value
 
-    @validator('email')
+    @field_validator('email')
     @staticmethod
     def email_validator(value: str) -> str:
         regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
@@ -76,7 +76,7 @@ class SignupValid(SigninValid):
 class PhoneNumberValid(BaseModel):
     phone_number: str
 
-    @validator('phone_number')
+    @field_validator('phone_number')
     @staticmethod
     def phone_number_validation(value: str) -> str:
         regex = r'^\+380\d{9}$'
@@ -88,7 +88,7 @@ class PhoneNumberValid(BaseModel):
 class FullNameValid(BaseModel):
     full_name: str
 
-    @validator('full_name')
+    @field_validator('full_name')
     @staticmethod
     def full_name_validator(value: str) -> str:
         regex = (
@@ -130,7 +130,7 @@ class ChangePasswordSchema(BaseModel):
     current_password: str
     new_password: str
 
-    @validator('new_password')
+    @field_validator('new_password')
     @staticmethod
     def password_validator(value: str) -> str:
         regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"

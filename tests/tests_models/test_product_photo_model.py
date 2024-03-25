@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 from werkzeug.datastructures.file_storage import FileStorage
 
-from models.errors import NotFoundError, BadFileTypeError, ProductPhotoLimitError
+from models.errors import NotFoundError, BadFileTypeError, ProductPhotoLimitError, NoImageError
 from models.products import ProductPhoto
 from tests.conftest import create_user_shop_product, TestValidData
 
@@ -74,13 +74,16 @@ def test_add_product_photo_3(session):
     "user_id, product_id, photo, main, expected_exception, expected_message",
     [
         (9999, 1,
-         FileStorage(stream=BytesIO(b'file_mock'), filename='example.jpg', content_type='image/jpeg'), True,
+         FileStorage(stream=BytesIO(b'file_mock'), filename='example.jpg',
+                     content_type='image/jpeg'), True,
          NotFoundError, "User not found"),
         (1, 9999,
-         FileStorage(stream=BytesIO(b'file_mock'), filename='example.jpg', content_type='image/jpeg'), True,
+         FileStorage(stream=BytesIO(b'file_mock'), filename='example.jpg',
+                     content_type='image/jpeg'), True,
          NotFoundError, "Product not found"),
-        (1, 1, '', True, BadFileTypeError, "Wrong filetype. Does file have file format?"),
-        (1, 1, FileStorage(stream=BytesIO(b'file_mock'), filename='example.bmp', content_type='image/jpeg'), True,
+        (1, 1, '', True, NoImageError, "No image provided"),
+        (1, 1, FileStorage(stream=BytesIO(b'file_mock'), filename='example.bmp',
+                           content_type='image/bmp'), True,
          BadFileTypeError, "Bad request. Does file have proper file format?")
     ]
 )

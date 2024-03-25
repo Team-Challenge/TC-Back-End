@@ -5,7 +5,8 @@ from flask_cors import CORS
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
 
-from models.errors import NotFoundError, UserError, serialize_validation_error, BadFileTypeError
+from models.errors import NotFoundError, UserError, serialize_validation_error, BadFileTypeError, \
+    ProductPhotoLimitError, FileTooLargeError
 from models.products import Product, ProductPhoto, get_all_shop_products, get_product_info_by_id
 from routes.responses import ServerResponse
 from utils.utils import serialize_product
@@ -53,13 +54,28 @@ def add_product_photo(product_id):
         photo = request.files['image']
         response = ProductPhoto.add_product_photo(get_jwt_identity(), product_id, photo, main_photo)
         return jsonify(response), 200
-    except (UserError, BadFileTypeError) as e:
+    except (UserError, BadFileTypeError, ProductPhotoLimitError, FileTooLargeError) as e:
         return jsonify({'error': str(e)}), 400
     except NotFoundError as e:
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
         return ServerResponse.INTERNAL_SERVER_ERROR
+
+
+@products.route("/product_photo/<int:product_id>", methods=["patch"])
+@jwt_required()
+def remove_product_photo(product_id):
+    product_photo_id = request.get_json(silent=True).get("product_photo_id")
+    if not product_photo_id:
+        return ServerResponse.BAD_REQUEST
+    try:
+        ProductPhoto.remove_product_photo_by_product_id(product_id=product_id,
+                                                        product_photo_id=product_photo_id,
+                                                        user_id=get_jwt_identity())
+    except NotFoundError as ex:
+        return jsonify({"error": str(ex)}), 404
+    return jsonify({"message": "Photo successfully removed"})
 
 
 @products.route("/shop_products", methods=["GET"])
