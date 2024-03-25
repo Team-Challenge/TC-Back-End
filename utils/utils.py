@@ -117,7 +117,6 @@ def product_info_serialize(products):
     return result
 
 
-<<<<<<< HEAD
 def product_info_serialize_by_id(product, product_detail, _product_photo):
     photos = [photo.serialize() for photo in product_detail.product_to_photo]
 
@@ -175,7 +174,8 @@ def product_info_serialize_by_id(product, product_detail, _product_photo):
     }
 
     return product_data
-=======
+
+
 def load_and_save_image(image_field, photo: FileStorage, photo_path):
     """
         Load and save images.
@@ -221,4 +221,3 @@ def load_and_save_image(image_field, photo: FileStorage, photo_path):
     image_path = f"{file_name}.{file_extension}"
     photo.save(file_path)
     return image_path
->>>>>>> UM-197
