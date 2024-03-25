@@ -6,7 +6,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, Optional
 
-from pydantic import BaseModel, validator, ConfigDict
+from pydantic import BaseModel, validator
 
 
 class SubCategoryEnum(str, Enum):
@@ -157,28 +157,18 @@ class DetailProductInfoSchema(BaseModel):
     photos: list[ProductPhotoSchema]
 
 
-class DetailProductsInfoSchema(BaseModel):
+class PaginatedDetailProductSchema(BaseModel):
     has_previous: bool = False
     has_next: bool = False
     total_pages: int = 0
     data: list[DetailProductInfoSchema]
 
 
-class ShopSchema(BaseModel):
-    id: int
-    owner_id: int
-    name: str
-    description: Optional[str] = None
-    photo_shop: Optional[str] = None
-    banner_shop: Optional[str] = None
-    phone_number: str
-    link: Optional[str] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class ShopWithProductsSchema(ShopSchema):
-    products: ProductInfoSchema
+class PaginatedProductSchema(BaseModel):
+    has_previous: bool = False
+    has_next: bool = False
+    total_pages: int = 0
+    data: list[ProductInfoSchema]
 
 
 def get_subcategory_name(category_id, subcategory_id):

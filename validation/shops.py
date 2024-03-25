@@ -1,11 +1,11 @@
 import re
 from typing import Optional
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, ConfigDict
 from sqlalchemy import func
 
 from models.shops import Shop
-from validation.products import ProductInfoSchema
+from validation.products import PaginatedProductSchema
 
 
 class ShopCreateValid(BaseModel):
@@ -94,21 +94,8 @@ class ShopSchema(BaseModel):
     phone_number: str
     link: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ShopWithProductsSchema(ShopSchema):
-    id: int
-    owner_id: int
-    name: str
-    description: Optional[str] = None
-    photo_shop: Optional[str] = None
-    banner_shop: Optional[str] = None
-    phone_number: str
-    link: Optional[str] = None
-
-    products: ProductInfoSchema
-
-    class Config:
-        from_attributes = True
+    products: PaginatedProductSchema

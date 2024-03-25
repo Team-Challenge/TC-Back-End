@@ -10,7 +10,7 @@ from models.products import Product, ProductPhoto, get_all_shop_products, get_pr
 from routes.responses import ServerResponse
 from utils.utils import serialize_product
 from validation.products import (CreateProductValid, UpdateProductValid, DetailProductInfoSchema,
-                                 DetailProductsInfoSchema)
+                                 PaginatedDetailProductSchema)
 
 products = Blueprint("products_route", __name__, url_prefix="/products")
 
@@ -67,7 +67,7 @@ def add_product_photo(product_id):
 def get_shop_products():
     try:
         shop_products = get_all_shop_products(get_jwt_identity())
-        response = DetailProductsInfoSchema(data=shop_products).model_dump_json(indent=4)
+        response = PaginatedDetailProductSchema(data=shop_products).model_dump_json(indent=4)
         return Response(response, mimetype="application/json", status=200)
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
