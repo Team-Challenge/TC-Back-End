@@ -28,7 +28,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 N = 0
 
-UserShopProductDetail = namedtuple('UserShopProductDetail', ['user', 'shop', 'product', 'detail'])
+UserShopProductDetail = namedtuple('UserShopProductDetail', [
+                                   'user', 'shop', 'product', 'detail'])
 
 UserShop = namedtuple('UserShop', ['user', 'shop'])
 
@@ -86,7 +87,8 @@ class TestValidData:
     # JSON variables
     JSON_TEST_PRODUCT_CHARACTERISTIC = json.dumps(TEST_PRODUCT_CHARACTERISTIC)
     JSON_TEST_PRODUCT_DELIVERY_POST = json.dumps(TEST_PRODUCT_DELIVERY_POST)
-    JSON_TEST_PRODUCT_METHOD_OF_PAYMENT = json.dumps(TEST_PRODUCT_METHOD_OF_PAYMENT)
+    JSON_TEST_PRODUCT_METHOD_OF_PAYMENT = json.dumps(
+        TEST_PRODUCT_METHOD_OF_PAYMENT)
 
     # Files
     @classmethod
@@ -192,7 +194,8 @@ def create_user_shop_product(session) -> UserShopProductDetail:
     product = Product(shop_id=shop.id, **TestValidData.get_product_payload())
     session.add(product)
     session.commit()
-    detail = ProductDetail(**TestValidData.get_product_detail_payload(product.id))
+    detail = ProductDetail(
+        **TestValidData.get_product_detail_payload(product.id))
     session.add(detail)
     session.commit()
     session.refresh(product)
@@ -204,12 +207,13 @@ def create_user_shop_product(session) -> UserShopProductDetail:
 @contextmanager
 def open_mock(filename: str):
     # Returns iterable rows as {key: value, key: value...}
-    mock_path = os.path.join(Path(__file__).resolve().parent, "mocks/", filename)
+    mock_path = os.path.join(
+        Path(__file__).resolve().parent, "mocks/", filename)
     with open(mock_path) as file:
         yield csv.DictReader(file)
 
 
-def authorize(client, refresh=False, **kwargs) -> dict:
+def authorize(client, refresh=False, inject=True, **kwargs) -> dict:
     """Registers user and returns authorization header after successful signin"""
     valid_signup_data = TestValidData.get_user_signup_payload(**kwargs)
     client.post('/accounts/signup', data=json.dumps(valid_signup_data),
@@ -227,6 +231,9 @@ def authorize(client, refresh=False, **kwargs) -> dict:
     else:
         access_token = response.get_json().get("access_token")
     headers = {'Authorization': f'Bearer {access_token}'}
+    if inject:
+        client.environ_base.setdefault(
+            "HTTP_AUTHORIZATION", headers["Authorization"])
     return headers
 
 
@@ -306,12 +313,14 @@ def prepopulated_session(engine):
             product = Product(**row)
             session.add(product)
             session.flush()
-            product_detail = ProductDetail(**TestValidData.get_product_detail_payload(product.id))
+            product_detail = ProductDetail(
+                **TestValidData.get_product_detail_payload(product.id))
             product.sub_category_name = get_subcategory_name(row["category_id"],
                                                              row["sub_category_id"])
             product_detail.product_status = "В наявності"
             product_detail.delivery_post = TestValidData.TEST_POST
-            product_detail.product_characteristic = row["product_characteristic"].replace("'", "\"")
+            product_detail.product_characteristic = row["product_characteristic"].replace(
+                "'", "\"")
             product.shop_id = 1
 
             session.add(product_detail)

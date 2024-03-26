@@ -79,7 +79,7 @@ update_product_negative_payload = [
 ]
 
 
-def test_create_product_success(client, prepopulated_session):
+def test_create_product_success_1(client, prepopulated_session):
     """Test create new product products using prepopulated user data"""
     # Given
     headers = authorize(client, email="1_test@mail.com", password="1_qwerty1S")
@@ -127,16 +127,23 @@ def test_create_product_success(client, prepopulated_session):
 
         # Check each field of the product
         assert response.get_json().get('category_id') == payload["category_id"]
-        assert response.get_json().get("sub_category_id") == payload["sub_category_id"]
-        assert response.get_json().get("product_name") == payload["product_name"]
-        assert response.get_json().get("product_description") == payload["product_description"]
+        assert response.get_json().get(
+            "sub_category_id") == payload["sub_category_id"]
+        assert response.get_json().get(
+            "product_name") == payload["product_name"]
+        assert response.get_json().get(
+            "product_description") == payload["product_description"]
         assert response.get_json().get("is_active") == payload["is_active"]
         assert response.get_json().get("price") == payload["price"]
-        assert response.get_json().get("product_status") == payload["product_status"]
-        assert response.get_json().get("product_characteristic") == payload["product_characteristic"]
+        assert response.get_json().get(
+            "product_status") == payload["product_status"]
+        assert response.get_json().get("product_characteristic") == payload[
+            "product_characteristic"]
         assert response.get_json().get("is_return") == payload["is_return"]
-        assert response.get_json().get("delivery_post") == payload["delivery_post"]
-        assert response.get_json().get("method_of_payment") == payload["method_of_payment"]
+        assert response.get_json().get(
+            "delivery_post") == payload["delivery_post"]
+        assert response.get_json().get(
+            "method_of_payment") == payload["method_of_payment"]
         assert response.get_json().get("is_unique") == payload["is_unique"]
         assert response.get_json().get("shop_id") is not None
         assert response.get_json().get("id") is not None
@@ -204,11 +211,14 @@ def test_create_product_fail_2(payload, client, prepopulated_session):
 def test_create_product_fail_3(client, prepopulated_session):
     """Test create product fail (empty data)"""
     # Given
-    headers = authorize(client, email="1_test@mail.com", password="1_qwerty1S")
-    payload = None
+    authorize(client, email="1_test@mail.com", password="1_qwerty1S")
+    payload = {}
 
     # When
     response = client.post("/products/product", data=json.dumps(payload))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.get_json().get("error") == "Empty request data"
 
 
 def test_get_shop_products_success(client, prepopulated_session):
@@ -222,11 +232,12 @@ def test_get_shop_products_success(client, prepopulated_session):
     # Then
     assert response
     assert response.status_code == expected_code
-    assert type(response.get_json()) == list
-    assert len(response.get_json()) == 25
+    json_data = response.get_json()
+    assert type(json_data) is dict
+    assert len(json_data.get("data")) == 25
 
 
-def test_create_product_success(client, session):
+def test_create_product_success_2(client, session):
     """Test create product scenario success"""
     # Given
     create_user_and_shop(session)
@@ -240,7 +251,7 @@ def test_create_product_success(client, session):
     # Then
     assert response.status_code == status.HTTP_201_CREATED
     json_data = response.get_json()
-    assert json_data.get("message") == "Product created successfull"
+    assert json_data.get("message") == "Product created successfully"
     product: Product = Product.query.first()
     assert product.id > 0
     assert product.category_id == TestValidData.TEST_CATEGORY_ID
@@ -351,11 +362,14 @@ def test_update_product_success(client, prepopulated_session):
         assert response.status_code == status.HTTP_200_OK
 
         # Check each field of the product
-        assert response.get_json().get("product_name") == payload["product_name"]
-        assert response.get_json().get("product_description") == payload["product_description"]
+        assert response.get_json().get(
+            "product_name") == payload["product_name"]
+        assert response.get_json().get(
+            "product_description") == payload["product_description"]
         assert response.get_json().get("is_active") == payload["is_active"]
         assert response.get_json().get("price") == payload["price"]
-        assert response.get_json().get("product_status") == payload["product_status"]
+        assert response.get_json().get(
+            "product_status") == payload["product_status"]
 
 
 def test_update_product_fail_1(client, prepopulated_session):
@@ -396,7 +410,8 @@ def test_add_product_photo_fail(client, prepopulated_session):
     # When
     with patch("werkzeug.datastructures.file_storage.FileStorage.save"):
         response = client.post('/products/product_photo/150000',
-                               data={"image": TestValidData.get_image(), "main": True},
+                               data={"image": TestValidData.get_image(),
+                                     "main": True},
                                content_type='multipart/form-data', headers=headers)
 
         # Then
@@ -424,8 +439,9 @@ def test_add_product_photo_success(client, prepopulated_session):
 
     # When
     with patch("werkzeug.datastructures.file_storage.FileStorage.save"):
-        response = client.post('/products/product_photo/1', data={"image": TestValidData.get_image(),
-                                                                  "main": True},
+        response = client.post('/products/product_photo/1',
+                               data={"image": TestValidData.get_image(),
+                                     "main": True},
                                content_type='multipart/form-data', headers=headers)
 
         # Then
@@ -442,7 +458,8 @@ def test_deactivate_product_success(client, prepopulated_session):
     first = Product.query.first()
 
     # When
-    response = client.delete(f"/products/deactivate/{first.id}", headers=headers)
+    response = client.delete(
+        f"/products/deactivate/{first.id}", headers=headers)
 
     # Then
     assert response
@@ -452,7 +469,7 @@ def test_deactivate_product_success(client, prepopulated_session):
 
     response = client.get("/products/shop_products", headers=headers)
     # Deactivated should be visible in view
-    assert len(response.get_json()) == 25
+    assert len(response.get_json().get("data")) == 25
 
 
 @pytest.mark.parametrize("expected_code, expected_message",
@@ -466,7 +483,8 @@ def test_deactivate_product_negative(client, session, expected_code, expected_me
         headers = authorize(client)
     else:
         create_user_shop_product(session)
-        headers = authorize(client, email="1_test@mail.com", password="1_qwerty1S")
+        headers = authorize(client, email="1_test@mail.com",
+                            password="1_qwerty1S")
     # When
     response = client.delete("/products/deactivate/1", headers=headers)
 
@@ -475,8 +493,8 @@ def test_deactivate_product_negative(client, session, expected_code, expected_me
 
 
 @pytest.mark.parametrize("endpoint, method", (
-        ("/products/deactivate/1", "delete"),
-        ("/products/product", "post")
+    ("/products/deactivate/1", "delete"),
+    ("/products/product", "post")
 ))
 def test_unauthorized_endpoints(client, session, endpoint, method):
     """Test deactivate product scenario negative: Unauthorized"""

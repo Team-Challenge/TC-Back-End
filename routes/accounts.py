@@ -19,12 +19,13 @@ from models.errors import NotFoundError, UserError, serialize_validation_error, 
 from validation.accounts import (ChangePasswordSchema, DeliveryPostValid,
                                  FullNameValid, GoogleAuthValid,
                                  PhoneNumberValid, SigninValid, SignupValid,
-                                 UserInfoSchema, UserSchema)
+                                 UserInfoSchema, UserSchema, UserSignupReturnSchema)
 from routes.responses import ServerResponse
 
 ACCESS_EXPIRES = timedelta(hours=1)
 
-GOOGLE_CLIENT_SECRETS_FILE = os.path.join(Config.MEDIA_PATH, 'google', 'client_secret_2.json')
+GOOGLE_CLIENT_SECRETS_FILE = os.path.join(
+    Config.MEDIA_PATH, 'google', 'client_secret_2.json')
 accounts = Blueprint("accounts", __name__, url_prefix="/accounts")
 
 CORS(accounts, supports_credentials=True)
@@ -59,8 +60,8 @@ def signup() -> Response:
             phone_number=user.phone_number,
             profile_picture=user.profile_picture
         )
-        response = {"user": user_schema.model_dump(), "link": verification_link}
-        return make_response(jsonify(response), 201)
+        response = UserSignupReturnSchema(link=verification_link, user=user_schema)
+        return Response(response.model_dump_json(indent=4), mimetype="application/json", status=201)
     except UserError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
@@ -81,7 +82,8 @@ def authorize() -> Response:
     flow.fetch_token(code=google_auth_data['id_token'])
 
     session = flow.authorized_session()
-    profile_info = session.get('https://www.googleapis.com/userinfo/v2/me').json()
+    profile_info = session.get(
+        'https://www.googleapis.com/userinfo/v2/me').json()
 
     email = profile_info['email']
     name = profile_info['name']
@@ -110,7 +112,8 @@ def signin() -> Response:
     except ValidationError as e:
         return jsonify(serialize_validation_error(e)), 400
     try:
-        response = User.sign_in(email=user_data.email, password=user_data.password)
+        response = User.sign_in(email=user_data.email,
+                                password=user_data.password)
         return make_response(response, 200)
     except UserError as e:
         return jsonify({"error": str(e)}), 400
@@ -214,7 +217,7 @@ def user_info():
         user_id = get_jwt_identity()
         user_data = User.get_user_info(user_id)
         response = UserInfoSchema(**user_data)
-        return jsonify(response.model_dump()), 200
+        return Response(response.model_dump_json(indent=4), mimetype="application/json", status=200)
     except NotFoundError as e:
         return jsonify({"error": str(e)}), 404
     except Exception as e:
@@ -297,7 +300,8 @@ def manage_delivery_info():
                 delivery_data = DeliveryPostValid(**request_data).model_dump()
             except ValidationError as e:
                 return jsonify(serialize_validation_error(e)), 400
-            DeliveryUserInfo.add_delivery_info(user_id=user_id, **delivery_data)
+            DeliveryUserInfo.add_delivery_info(
+                user_id=user_id, **delivery_data)
             return ServerResponse.OK
 
         if request.method == "DELETE":

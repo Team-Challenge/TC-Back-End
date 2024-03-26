@@ -1,3 +1,4 @@
+import datetime
 import json
 import os.path
 import re
@@ -5,7 +6,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, Optional
 
-from pydantic import BaseModel, validator
+from flask import url_for
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class SubCategoryEnum(str, Enum):
@@ -64,7 +66,7 @@ class CreateProductValid(BaseModel):
     method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None
     is_unique: Optional[bool] = None
 
-    @validator('product_name')
+    @field_validator('product_name')
     @staticmethod
     def name_validator(value: str) -> str:
         if value is not None:
@@ -73,7 +75,7 @@ class CreateProductValid(BaseModel):
                 raise ValueError('Invalid product_name format')
         return value
 
-    @validator('product_description')
+    @field_validator('product_description')
     @staticmethod
     def description_validator(value: str) -> str:
         if value is not None:
@@ -96,7 +98,7 @@ class UpdateProductValid(BaseModel):
     method_of_payment: Optional[Dict[MethodOfPaymentEnum, bool]] = None
     is_unique: Optional[bool] = None
 
-    @validator('product_name')
+    @field_validator('product_name')
     @staticmethod
     def name_validator(value: str) -> str:
         if value is not None:
@@ -105,7 +107,7 @@ class UpdateProductValid(BaseModel):
                 raise ValueError('Invalid product_name format')
         return value
 
-    @validator('product_description')
+    @field_validator('product_description')
     @staticmethod
     def description_validator(value: str) -> str:
         if value is not None:
@@ -120,8 +122,70 @@ class PhotoProductValid(BaseModel):
     main: bool
 
 
+class ProductPhotoSchema(BaseModel):
+    id: int
+    product_photo: str
+    timestamp: datetime.datetime
+    main: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("product_photo", mode="after")
+    @classmethod
+    def set_product_photo(cls, v):
+        image = url_for('static', filename=f'media/products/{v}',
+                        _external=True)
+        return image
+
+
+class ProductInfoSchema(BaseModel):
+    id: int
+    product_name: str
+    price: float
+    product_status: Optional[ProductStatusEnum] = None
+    is_unique: Optional[bool]
+    photo: Optional[ProductPhotoSchema] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DetailProductInfoSchema(BaseModel):
+    id: int
+    category_id: int
+    sub_category_id: int
+    shop_id: int
+    product_name: str
+    product_description: Optional[str]
+    price: float
+    time_added: datetime.datetime
+    time_modifeid: datetime.datetime
+    is_active: bool
+    is_return: Optional[bool]
+    is_unique: Optional[bool]
+    product_status: Optional[ProductStatusEnum] = None
+    product_characteristic: Optional[dict]
+    delivery_post: Optional[dict]
+    method_of_payment: Optional[dict]
+    photos: list[ProductPhotoSchema]
+
+
+class PaginatedDetailProductSchema(BaseModel):
+    has_previous: bool = False
+    has_next: bool = False
+    total_pages: int = 0
+    data: list[DetailProductInfoSchema]
+
+
+class PaginatedProductSchema(BaseModel):
+    has_previous: bool = False
+    has_next: bool = False
+    total_pages: int = 0
+    data: list[ProductInfoSchema]
+
+
 def get_subcategory_name(category_id, subcategory_id):
-    static_path = os.path.join(Path(__file__).parent.parent, "static/categories/categories.json")
+    static_path = os.path.join(
+        Path(__file__).parent.parent, "static/categories/categories.json")
     with open(static_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
@@ -132,13 +196,15 @@ def get_subcategory_name(category_id, subcategory_id):
     subcategory_name = subcategories.get(str(subcategory_id))
 
     if subcategory_name is None:
-        raise ValueError('The subcategory with the specified ID does not belong to the category')
+        raise ValueError(
+            'The subcategory with the specified ID does not belong to the category')
 
     return subcategory_name
 
 
 def get_subcategory_id(subcategory_name):
-    static_path = os.path.join(Path(__file__).parent.parent, "static/categories/categories.json")
+    static_path = os.path.join(
+        Path(__file__).parent.parent, "static/categories/categories.json")
     with open(static_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
