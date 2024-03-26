@@ -7,7 +7,7 @@ from sqlalchemy.orm import mapped_column, relationship
 from config import Config
 from dependencies import db
 from models.errors import NotFoundError
-from utils.utils import serialize, load_and_save_image
+from utils.utils import load_and_save_image, serialize_pydantic_response_error
 
 SHOPS_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'shops')
 SHOPS_BANNER_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'banner_shops')
@@ -89,7 +89,7 @@ class Shop(db.Model):
     def get_shop_user_info(cls, user_id):
         shop = cls.get_shop_by_owner_id(owner_id=user_id)
         if shop is not None:
-            shop_info = serialize(shop)
+            shop_info = serialize_pydantic_response_error(shop)
             if shop_info.get("banner_shop") is not None:
                 banner_shop_path = url_for('static',
                                            filename=f'media/'

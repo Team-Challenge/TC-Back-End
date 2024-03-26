@@ -7,7 +7,7 @@ from flask import url_for
 from werkzeug.datastructures import FileStorage
 
 from config import Config
-from models.errors import FileTooLargeError, BadFileTypeError, NoImageError
+from models.errors import BadFileTypeError, FileTooLargeError, NoImageError
 from validation.products import get_subcategory_id
 
 
@@ -16,7 +16,7 @@ def allowed_file(filename):
         filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'}
 
 
-def serialize(obj):
+def serialize_pydantic_response_error(obj):
     if obj is None:
         return {}
     if hasattr(obj, '__dict__'):

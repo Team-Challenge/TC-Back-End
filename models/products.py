@@ -10,9 +10,10 @@ from werkzeug.datastructures import FileStorage
 from config import Config
 from dependencies import db
 from models.accounts import User
-from models.errors import NotFoundError, UserError, ProductPhotoLimitError, BadFileTypeError
+from models.errors import (BadFileTypeError, NotFoundError,
+                           ProductPhotoLimitError, UserError)
 from models.shops import Shop
-from utils.utils import product_info_serialize, serialize, product_info_serialize_by_id
+from utils.utils import product_info_serialize, product_info_serialize_by_id
 from validation.products import get_subcategory_name
 
 PRODUCT_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'products')

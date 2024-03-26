@@ -971,6 +971,41 @@
         }
       }
     },
+    "/accounts/authorize": {
+      "post": {
+        "summary": "Authorization using Google Auth code",
+        "tags": [
+          "Accounts"
+        ],
+        "requestBody": {
+          "description": "Google Auth Authorization",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleAuthSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "access_token": "your_access_token",
+                  "refresh_token": "your_refresh_token"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Wrong id_token. Make sure that token is not expired"
+          }
+        }
+      }
+    },
     "/products/shop_products": {
       "get": {
         "summary": "Get Shop Products Information",
@@ -1765,6 +1800,17 @@
           }
         }
       },
+      "GoogleAuthSchema":  {
+        "type": "object",
+        "properties": {
+          "id_token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id_token"
+        ]
+        },
       "ProductCreateSchema": {
         "type": "object",
         "properties": {

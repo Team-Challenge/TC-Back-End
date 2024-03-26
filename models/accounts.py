@@ -9,7 +9,8 @@ import os
 from datetime import datetime
 
 from flask import url_for
-from flask_jwt_extended import (create_access_token, create_refresh_token, get_jwt_identity)
+from flask_jwt_extended import (create_access_token, create_refresh_token,
+                                get_jwt_identity)
 from itsdangerous import BadSignature, SignatureExpired
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, relationship
@@ -19,7 +20,7 @@ from config import Config
 from dependencies import db
 from models.errors import NotFoundError, UserError
 from models.shops import Shop
-from utils.utils import serialize, load_and_save_image
+from utils.utils import load_and_save_image, serialize_pydantic_response_error
 
 PROFILE_PHOTOS_PATH = os.path.join(Config.MEDIA_PATH, 'profile')
 
@@ -110,8 +111,8 @@ class User(db.Model):
         user = cls.get_user_by_id(user_id)
         if user is not None:
             delivery_info = DeliveryUserInfo.get_delivery_info_by_owner_id(user.id)
-            user_full_data = serialize(user)
-            delivery_info_data = serialize(delivery_info)
+            user_full_data = serialize_pydantic_response_error(user)
+            delivery_info_data = serialize_pydantic_response_error(delivery_info)
             if user_full_data["profile_picture"] is not None:
                 profile_picture_path = url_for('static',
                                                filename=f'media/profile/'
