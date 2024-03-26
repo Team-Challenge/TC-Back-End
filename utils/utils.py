@@ -3,7 +3,6 @@ import os
 import uuid
 from os import SEEK_END
 
-from flask import url_for
 from werkzeug.datastructures import FileStorage
 
 from config import Config
@@ -21,7 +20,7 @@ def serialize_pydantic_response_error(obj):
         return {}
     if hasattr(obj, '__dict__'):
         serialized_data = {key: value for key, value in obj.__dict__.items() if not
-                           key.startswith('_')}
+        key.startswith('_')}
         missing_attrs = set(obj.__dict__.keys()) - set(serialized_data.keys())
         for attr in missing_attrs:
             serialized_data[attr] = None
@@ -105,10 +104,7 @@ def product_info_serialize(products):
                 "is_unique": product_detail.is_unique,
                 "photos": [{
                     "id": photo.get('id'),
-                    "product_photo": url_for(
-                        'static',
-                        filename=f'media/products/{photo.get("product_photo")}',
-                        _external=True),
+                    "product_photo": photo.get("product_photo"),
                     "timestamp": photo.get('timestamp'),
                     "main": photo.get('main')
                 } for photo in photos]
@@ -167,10 +163,7 @@ def product_info_serialize_by_id(product, product_detail, _product_photo):
         "is_unique": product_detail.is_unique,
         "photos": [{
             "id": photo.get('id'),
-            "product_photo": url_for(
-                'static',
-                filename=f'media/products/{photo.get("product_photo")}',
-                _external=True),
+            "product_photo": photo.get("product_photo"),
             "timestamp": photo.get('timestamp'),
             "main": photo.get('main')
         } for photo in photos]
