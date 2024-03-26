@@ -3,6 +3,7 @@ import os
 import sys
 
 from dotenv import load_dotenv
+
 from google_auth_oauthlib.flow import Flow
 
 load_dotenv()
@@ -44,12 +45,13 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY')
     SQLALCHEMY_DATABASE_URI = _get_db_connection_str()
     SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get('SQLALCHEMY_TRACK_MODIFICATIONS',
-                                                    'False') == "True" 
+                                                    'False') == "True"
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'Secret')
     MEDIA_PATH = os.path.join(_basedir, 'static', 'media')
     JWT_ACCESS_TOKEN_EXPIRES =  datetime.timedelta(seconds=int(
         os.environ.get('JWT_ACCESS_TOKEN_EXPIRES', '3600')))
     GOOGLE_FLOW = _init_google_flow()
+
 
 class TestConfig:
     TESTING = True

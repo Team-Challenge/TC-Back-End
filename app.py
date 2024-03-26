@@ -1,4 +1,3 @@
-
 import psutil
 from flask import Flask
 from flask_swagger_ui import get_swaggerui_blueprint
@@ -8,17 +7,15 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from config import Config
 from config.config import TestConfig
 from dependencies import cache, db, jwt, ma, migrate, registry
-from routes.accounts_route import accounts_route
-from routes.categories_route import categories_route
-from routes.error_handlers import error_handlers
-from routes.orders_route import orders_route
-from routes.products_route import products_route
-from routes.shops_route import shops_route
-from routes.users import users_route
+from routes.accounts import accounts
+from routes.categories import categories
+from routes.orders import orders
+from routes.products import products
+from routes.shops import shops
 
 
 def create_app(config_class=Config) -> Flask:
-    app = Flask(__name__,static_folder='static',static_url_path='/static')
+    app = Flask(__name__, static_folder='static', static_url_path='/static')
 
     ram_metric = Gauge("memory_usage_percent", "Memory usage in percent.",
                        registry=registry)
@@ -30,7 +27,7 @@ def create_app(config_class=Config) -> Flask:
 
     app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
         '/healthcheck': make_wsgi_app(registry=registry)
-        })
+    })
 
     app.config.from_object(config_class)
 
@@ -46,22 +43,21 @@ def create_app(config_class=Config) -> Flask:
         SWAGGER_URL, API_URL, config={"app_name": "Authentication API"}
     )
 
-    app.register_blueprint(accounts_route)
-    app.register_blueprint(orders_route)
+    app.register_blueprint(accounts)
+    app.register_blueprint(orders)
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
-    app.register_blueprint(error_handlers)
-    app.register_blueprint(users_route)
-    app.register_blueprint(shops_route)
-    app.register_blueprint(categories_route)
-    app.register_blueprint(products_route)
+    app.register_blueprint(shops)
+    app.register_blueprint(categories)
+    app.register_blueprint(products)
 
     return app
 
-def create_testing_app(config_class=TestConfig()) -> Flask:
+
+def create_testing_app(config_class=TestConfig) -> Flask:
     app = Flask(__name__, static_folder='static', static_url_path='/static')
     app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
         '/healthcheck': make_wsgi_app(registry=registry)
-        })
+    })
 
     app.config.from_object(config_class)
 
@@ -78,12 +74,11 @@ def create_testing_app(config_class=TestConfig()) -> Flask:
         SWAGGER_URL, API_URL, config={"app_name": "Authentication API"}
     )
 
-    app.register_blueprint(accounts_route)
-    app.register_blueprint(orders_route)
+    app.register_blueprint(accounts)
+    app.register_blueprint(orders)
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
-    app.register_blueprint(error_handlers)
-    app.register_blueprint(users_route)
-    app.register_blueprint(shops_route)
-    app.register_blueprint(categories_route)
+    app.register_blueprint(shops)
+    app.register_blueprint(categories)
+    app.register_blueprint(products)
 
     return app

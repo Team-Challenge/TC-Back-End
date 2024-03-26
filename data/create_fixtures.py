@@ -1,18 +1,22 @@
 # pylint: skip-file
 
 import json
-import sys
 import logging
+import os.path
+import sys
+from pathlib import Path
 
 sys.path.append('.')
 
 from werkzeug.security import generate_password_hash
+
 from app import create_app, db
-from models.models import User, Security, Categories, Product, Shop
-from models.patterns import SubCategoryEnumDict, get_subcategory
+from models.accounts import Security, User
+from models.products import Categories, Product
+from models.shops import Shop
+from validation.products import SubCategoryEnum
 
-
-
+cur_dir = Path(__file__).resolve().parent
 
 def create_fixtures():
     with open("data/users_fixture.json") as f:
@@ -33,11 +37,11 @@ def create_fixtures():
 
 def create_fixture_t(db=db):
     # Load users data from JSON file
-    with open("data/users_fixture.json") as users_f:
+    with open(os.path.join(cur_dir, "users_fixture.json")) as users_f:
         users = json.loads(users_f.read())
 
     # Load categories data from JSON file
-    with open("static/categories/categories.json", encoding="utf-8") as categories_f:
+    with open(os.path.join(cur_dir.parent, "static/categories/categories.json"), encoding="utf-8") as categories_f:
         categories = json.loads(categories_f.read())
 
     user_records = []

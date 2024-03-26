@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Auth API Documentation",
-    "description": "API for marketplase.",
+    "description": "API for marketplace.",
     "version": "1.0.3"
   },
   "paths": {
@@ -39,7 +39,7 @@
             }
           },
           "400": {
-            "description": "Bad Request"
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "description": "User with such email already exists"
@@ -130,7 +130,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }
@@ -220,10 +220,10 @@
             }
           },
           "404": {
-            "description": "User not found"
+            "$ref": "#/components/responses/UserNotFound"
           },
           "400": {
-            "description": "Invalid request data"
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       }
@@ -262,10 +262,10 @@
             }
           },
           "404": {
-            "description": "User not found"
+            "$ref": "#/components/responses/UserNotFound"
           },
           "400": {
-            "description": "Invalid request data"
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       }
@@ -304,13 +304,16 @@
             }
           },
           "404": {
-            "description": "User not found"
+            "$ref": "#/components/responses/UserNotFound"
           },
           "400": {
-            "description": "Invalid request data"
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
           },
           "401": {
-            "description": "Incomplete or empty name. Provide name for the shop."
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }
@@ -349,10 +352,10 @@
             }
           },
           "404": {
-            "description": "User not found"
+            "$ref": "#/components/responses/UserNotFound"
           },
           "400": {
-            "description": "Invalid request data"
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       },
@@ -378,7 +381,7 @@
             }
           },
           "404": {
-            "description": "User not found"
+            "$ref": "#/components/responses/UserNotFound"
           },
           "400": {
             "description": "User not have delivery address"
@@ -387,36 +390,6 @@
       }
     },
     "/accounts/profile_photo": {
-      "get": {
-        "summary": "Get Profile Photo",
-        "tags": [
-          "Accounts"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Profile photo retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "message": "Profile photo retrieved successfully",
-                  "profile_picture": "URL to profile_picture.jpg"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "User not found"
-          },
-          "401": {
-            "description": "Unauthorized - JWT token is missing or invalid"
-          }
-        }
-      },
       "post": {
         "summary": "Upload Profile Photo",
         "tags": [
@@ -444,16 +417,19 @@
             "content": {
               "application/json": {
                 "example": {
-                  "profile_picture": "http://127.0.0.1:5000/static/media/profile/53db1121852641378ef533b9d4603db7.jpg"
+                  "profile_picture": "http://127.0.0.1:5000/static/media/profile/file_name.jpg"
                 }
               }
             }
           },
           "404": {
-            "description": "User not found"
+            "$ref": "#/components/responses/UserNotFound"
           },
           "400": {
-            "description": "Invalid request data"
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/EntityTooLarge3"
           }
         }
       },
@@ -479,42 +455,12 @@
             }
           },
           "404": {
-            "description": "User not found"
+            "$ref": "#/components/responses/UserNotFound"
           }
         }
       }
     },
     "/shops/shop_photo": {
-      "get": {
-        "summary": "Get Shop Photo",
-        "tags": [
-          "Shop"
-        ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Shop photo retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "message": "Shop photo retrieved successfully",
-                  "profile_picture": "shop_photo.jpg"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Photo shop not found"
-          },
-          "401": {
-            "description": "Unauthorized - JWT token is missing or invalid"
-          }
-        }
-      },
       "post": {
         "summary": "Upload Shop Photo",
         "tags": [
@@ -542,21 +488,24 @@
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Shop photo uploaded successfully"
+                  "photo_shop": "https://api.dorechi.store/static/media/shops/filename.png"
                 }
               }
             }
           },
           "404": {
-            "description": "Shop not found"
+            "$ref": "#/components/responses/ShopNotFound"
           },
           "400": {
-            "description": "Invalid request data"
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/EntityTooLarge3"
           }
         }
       },
       "delete": {
-        "summary": "Delete shop Photo",
+        "summary": "Delete Shop Photo",
         "tags": [
           "Shop"
         ],
@@ -577,14 +526,12 @@
             }
           },
           "404": {
-            "description": "Shop not found"
+            "$ref": "#/components/responses/ShopNotFound"
           }
         }
-      }
-    },
-    "/shops/shop_banner": {
+      },
       "get": {
-        "summary": "Get Profile Photo",
+        "summary": "Get Shop Photo",
         "tags": [
           "Shop"
         ],
@@ -595,24 +542,22 @@
         ],
         "responses": {
           "200": {
-            "description": "Banner shop retrieved successfully",
+            "description": "Receive  url for shop photo",
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Banner shop retrieved successfully",
-                  "profile_picture": "profile_picture.jpg"
+                  "photo_shop": "https://api.dorechi.store/static/media/shops/filename.png"
                 }
               }
             }
           },
           "404": {
-            "description": "Banner shop not found"
-          },
-          "401": {
-            "description": "Unauthorized - JWT token is missing or invalid"
+            "$ref": "#/components/responses/ShopNotFound"
           }
         }
-      },
+      }
+    },
+    "/shops/shop_banner": {
       "post": {
         "summary": "Upload Shop Banner",
         "tags": [
@@ -640,16 +585,19 @@
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Shop banner uploaded successfully"
+                  "banner_shop": "https://api.dorechi.store/static/media/banner_shops/filename.png"
                 }
               }
             }
           },
           "404": {
-            "description": "Shop not found"
+            "$ref": "#/components/responses/ShopNotFound"
           },
           "400": {
-            "description": "Invalid request data"
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/EntityTooLarge5"
           }
         }
       },
@@ -675,7 +623,33 @@
             }
           },
           "404": {
-            "description": "Shop not found"
+            "$ref": "#/components/responses/ShopNotFound"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get Shop Banner",
+        "tags": [
+          "Shop"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Receive absolute url for shop banner",
+            "content": {
+              "application/json": {
+                "example": {
+                  "banner_shop": "https://api.dorechi.store/static/media/banner_shops/filename.png"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ShopNotFound"
           }
         }
       }
@@ -728,7 +702,7 @@
             "description": "Product not found"
           },
           "400": {
-            "description": "Invalid request data"
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       }
@@ -927,152 +901,6 @@
         }
       }
     },
-    "/categories/categories_detail": {
-      "get": {
-        "summary": "Get categories and subcategories JSON from active products in DB",
-        "tags": [
-          "Categories"
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful",
-            "content": {
-              "application/json": {
-                "example": [
-                  {
-                    "id": 1,
-                    "label": "На голову",
-                    "subcategories": [
-                      [
-                        11,
-                        "Заколки"
-                      ],
-                      [
-                        12,
-                        "Обручі"
-                      ],
-                      [
-                        13,
-                        "Резинки"
-                      ],
-                      [
-                        14,
-                        "Хустинки"
-                      ]
-                    ]
-                  },
-                  {
-                    "id": 2,
-                    "label": "На вуха",
-                    "subcategories": [
-                      [
-                        21,
-                        "Сережки"
-                      ],
-                      [
-                        22,
-                        "Моносережки"
-                      ]
-                    ]
-                  },
-                  {
-                    "id": 3,
-                    "label": "На шию",
-                    "subcategories": [
-                      [
-                        31,
-                        "Зґарди"
-                      ],
-                      [
-                        32,
-                        "Шелести"
-                      ],
-                      [
-                        33,
-                        "Ґердани"
-                      ],
-                      [
-                        34,
-                        "Силянки"
-                      ],
-                      [
-                        35,
-                        "Кризи"
-                      ],
-                      [
-                        36,
-                        "Чокери"
-                      ],
-                      [
-                        37,
-                        "Намиста"
-                      ],
-                      [
-                        38,
-                        "Дукачі"
-                      ],
-                      [
-                        39,
-                        "Кулони та підвіски"
-                      ]
-                    ]
-                  },
-                  {
-                    "id": 4,
-                    "label": "На руки",
-                    "subcategories": [
-                      [
-                        41,
-                        "Браслети"
-                      ],
-                      [
-                        42,
-                        "Каблучки"
-                      ]
-                    ]
-                  },
-                  {
-                    "id": 5,
-                    "label": "Аксесуари",
-                    "subcategories": [
-                      [
-                        51,
-                        "Котильйони"
-                      ],
-                      [
-                        52,
-                        "Брошки"
-                      ],
-                      [
-                        53,
-                        "Сумки"
-                      ]
-                    ]
-                  },
-                  {
-                    "id": 6,
-                    "label": "Набори",
-                    "subcategories": [
-                      [
-                        61,
-                        "Набір"
-                      ]
-                    ]
-                  }
-                ],
-                "schema": {
-                  "type": "object",
-                  "description": "JSON data for categories and subcategories"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "File not found in the specified location"
-          }
-        }
-      }
-    },
     "/accounts/change_password": {
       "post": {
         "summary": "Change Password",
@@ -1107,10 +935,10 @@
             }
           },
           "404": {
-            "description": "User not found"
+            "$ref": "#/components/responses/UserNotFound"
           },
           "400": {
-            "description": "Invalid request data"
+            "$ref": "#/components/responses/BadRequest"
           }
         }
       }
@@ -1138,7 +966,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }
@@ -1201,10 +1029,10 @@
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "$ref": "#/components/responses/UnauthorizedError"
           },
           "404": {
-            "description": "There is no store by user"
+            "$ref": "#/components/responses/ShopNotFound"
           }
         }
       }
@@ -1232,10 +1060,10 @@
             }
           },
           "401": {
-            "description": "Unauthorized"
+            "$ref": "#/components/responses/UnauthorizedError"
           },
           "404": {
-            "description": "There is no store by user"
+            "$ref": "#/components/responses/ShopNotFound"
           }
         }
       }
@@ -1285,13 +1113,58 @@
             }
           },
           "404": {
-            "description": "User not found"
+            "$ref": "#/components/responses/UserNotFound"
           },
           "400": {
-            "description": "Invalid request data"
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "description": "Mandatory fields are unfilled or empty"
+          }
+        }
+      }
+    },
+    "/products/product_info/{product_id}": {
+      "get": {
+        "summary": "Get product info by id",
+        "tags": [
+          "Product"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "description": "ID of the product info",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductInfoResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }
@@ -1330,13 +1203,20 @@
             }
           },
           "404": {
-            "description": "Not found"
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product not found or permission not granted"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid request"
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
-            "description": "Error"
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }
@@ -1369,25 +1249,164 @@
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Product created successfully"
+                  "message": "The product was created successfully"
                 }
               }
             }
           },
           "404": {
-            "description": "User not found"
+            "$ref": "#/components/responses/UserNotFound"
           },
           "400": {
-            "description": "Invalid request data"
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
-            "description": "Mandatory fields are unfilled or empty"
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }
     }
   },
   "components": {
+    "responses": {
+      "EntityTooLarge3": {
+        "description": "Request entity too large",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "File size too large. Maximum file size is 3MB."
+                }
+              }
+            }
+          }
+        }
+      },
+      "EntityTooLarge5": {
+        "description": "Request entity too large",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "File size too large. Maximum file size is 5MB."
+                }
+              }
+            }
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "description": "Unauthorized error response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "Missing Authorization Header"
+                }
+              }
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Bad Request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Invalid request data"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ShopNotFound": {
+        "description": "Shop not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Shop not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserNotFound": {
+        "description": "User not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "User not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Validation Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "loc": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "msg": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "example": [
+                    {
+                      "loc": [
+                        "phone_number"
+                      ],
+                      "msg": "Value error, Invalid phone number format. Must start with +380 and have 9 digits.",
+                      "type": "value_error"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "schemas": {
       "SignupUserSchema": {
         "type": "object",
@@ -1425,16 +1444,15 @@
             "maxLength": 500
           },
           "phone_number": {
-            "type": "string"
+            "type": "string",
+            "example": "+380000000000"
           },
           "link": {
             "type": "string"
           }
         },
         "required": [
-          "owner_id",
           "name",
-          "description",
           "phone_number"
         ]
       },
@@ -1599,7 +1617,7 @@
           "id": {
             "type": "integer"
           },
-          "owner": {
+          "owner_id": {
             "type": "integer"
           },
           "name": {
@@ -1731,8 +1749,8 @@
           "shop_id": {
             "type": "integer"
           },
-          "sub_category_name": {
-            "type": "string"
+          "sub_category_id": {
+            "type": "integer"
           },
           "time_added": {
             "type": "string",
@@ -1773,6 +1791,12 @@
           },
           "address": {
             "type": "string"
+          },
+          "shop_id": {
+            "type": "integer"
+          },
+          "have_a_shop": {
+            "type": "boolean"
           }
         }
       },
@@ -1791,10 +1815,12 @@
         "type": "object",
         "properties": {
           "category_id": {
-            "type": "integer"
+            "type": "integer",
+            "example": 1
           },
-          "sub_category_name": {
-            "type": "string"
+          "sub_category_id": {
+            "type": "integer",
+            "example": 11
           },
           "product_name": {
             "type": "string"
@@ -1809,7 +1835,8 @@
             "type": "number"
           },
           "product_status": {
-            "type": "string"
+            "type": "string",
+            "example": "В наявності"
           },
           "product_characteristic": {
             "type": "object",
@@ -1856,10 +1883,9 @@
         },
         "required": [
           "category_id",
-          "sub_category_name",
+          "sub_category_id",
           "product_name",
-          "details",
-          "photos"
+          "details"
         ]
       },
       "ProductUpdateSchema": {
@@ -1923,14 +1949,7 @@
             "type": "boolean"
           }
         }
-      },
-      "required": [
-        "category_id",
-        "sub_category_name",
-        "product_name",
-        "details",
-        "photos"
-      ]
+      }
     },
     "securitySchemes": {
       "BearerAuth": {

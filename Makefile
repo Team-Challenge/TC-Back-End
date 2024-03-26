@@ -25,7 +25,10 @@ recreate-db-local:
 prospector:
 	prospector --profile=config/prospector.yaml
 
-## Docker commmands
+test:
+	pytest . --disable-warnings
+
+## Docker commands
 up:
 ifeq ($(UNAME_M),x86_64)
 	docker-compose -f docker/docker-compose.yaml up --build
@@ -44,7 +47,7 @@ else
 	echo "$(UNAME_M) is not supported"
 endif
 
-## Docker commans on deployment server
+## Docker commands on deployment server
 deploy-up:
 	docker-compose -f docker/docker-compose-deploy.yaml up -d
 

@@ -1,4 +1,5 @@
-from models.models import User, Shop
+from models.accounts import User
+from models.shops import Shop
 
 
 def create_test_user(session):
@@ -19,7 +20,6 @@ def test_create_user(session):
     assert user.id is not None
     assert user.full_name == 'John Doe'
     assert user.email == 'john@example.com'
-
 
 
 def test_create_shop(session):
