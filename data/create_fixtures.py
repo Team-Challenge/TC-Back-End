@@ -3,20 +3,25 @@
 import json
 import logging
 import os.path
+import random
 import sys
+from io import BytesIO
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.append('.')
 
 from werkzeug.security import generate_password_hash
+from werkzeug.datastructures import FileStorage
 
 from app import create_app, db
 from models.accounts import Security, User
-from models.products import Categories, Product
+from models.products import Categories, Product, ProductDetail, ProductPhoto
 from models.shops import Shop
-from validation.products import SubCategoryEnum
+from validation.products import get_subcategory_name
 
 cur_dir = Path(__file__).resolve().parent
+
 
 def create_fixtures():
     with open("data/users_fixture.json") as f:
@@ -35,43 +40,49 @@ def create_fixtures():
     logging.info("Users fixtures have been created.")
 
 
-def create_fixture_t(db=db):
+def create_fixture_t():
+    cat_labels = ["На голову", "На вуха", "На шию", "На руки", "Аксесуари", "Набори"]
+    sub_categories = [
+        [11, 12, 13, 14],
+        [21, 22],
+        [31, 32, 33, 34, 35, 36, 37, 38, 39],
+        [41, 42],
+        [51, 52, 53],
+        [61],
+    ]
+
     # Load users data from JSON file
     with open(os.path.join(cur_dir, "users_fixture.json")) as users_f:
         users = json.loads(users_f.read())
 
-    # Load categories data from JSON file
-    with open(os.path.join(cur_dir.parent, "static/categories/categories.json"), encoding="utf-8") as categories_f:
-        categories = json.loads(categories_f.read())
-
-    user_records = []
-    security_records = []
-
     # Get the ID of the last user record, or set it to 0 if no records exist
     try:
-        last_record = int(db.session.query(User).order_by(User.id.desc()).first().id)
+        last_record = int(db.session.query(User).order_by(User.id.desc()).first().id) + 1
     except AttributeError:
         last_record = 0
 
+    user_records = []
+    security_records = []
     # Process each user from users_fixture.json
-    for user in users:
-        user_record = User(user.get("email"), user.get("full_name"))
-        security_record = Security(generate_password_hash(user.get("password")))
+    if not last_record:
+        for user in users:
+            user_record = User(f"{last_record}_{user.get('email')}", user.get("full_name"))
+            security_record = Security(user_id=user_record.id,
+                                       password=generate_password_hash(user.get("password")))
 
-        user_records.append(user_record)
-        last_record += 1
-        security_record.user_id = last_record
-        security_records.append(security_record)
+            user_records.append(user_record)
+            last_record += 1
+            security_record.user_id = last_record
+            security_records.append(security_record)
 
-    # Bulk insert user and security records
-    db.session.bulk_save_objects(user_records)
-    db.session.bulk_save_objects(security_records)
-
-    category_records = []
-    cat_labels = [cat_label.get("label") for cat_label in categories]
+        # Bulk insert user and security records
+        db.session.bulk_save_objects(user_records)
+        db.session.bulk_save_objects(security_records)
 
     # Check if all categories exist in the database
     query = db.session.query(Categories).filter(Categories.category_name.in_(cat_labels))
+    first_user = User.query.first()
+    category_records = []
     if query.count() < len(cat_labels):
         # Insert missing categories
         for label in cat_labels:
@@ -79,12 +90,14 @@ def create_fixture_t(db=db):
             category_records.append(category_record)
         db.session.bulk_save_objects(category_records)
 
-    products_records = []
-
     # Create shop record
-    shop = Shop(owner_id=1, name="Test Name", description="Test Description", phone_number="+380996993333")
-    db.session.add(shop)
-    db.session.commit()
+    shop = Shop.query.get(1)
+    if not shop:
+        shop = Shop(owner_id=first_user.id, name="Beatles_fixture",
+                    description="Beatles_description_fixture",
+                    phone_number="+380996993333")
+        db.session.add(shop)
+        db.session.commit()
 
     # Get the ID of the last product record, or set it to 0 if no records exist
     try:
@@ -94,20 +107,33 @@ def create_fixture_t(db=db):
 
     # Process categories and subcategories to create products
     # # This loop creates product for each subcategory, in total - 21
-    # # # Product will be created with CategoryName_SubCatName_SubCatId_LastProductID as product_name
-    for i in range(0, len(categories)):
-        cat_id = categories[i].get("id")
-        filtered_dict = {key: value for key, value in SubCategoryEnumDict.items() if str(key).startswith(str(cat_id))}
-        for subcat in filtered_dict:
+    # # # Product will be created with CategoryName_SubCatName_SubCatId_LastProductID
+    # # #as product_name
+    for i in range(0, len(cat_labels)):
+        cat_id = i + 1
+        for sub_cat_id in sub_categories[i]:
             last_product += 1
-            subcat_name = get_subcategory(subcat)
-            product_record = Product(product_name=f"{categories[i].get('label')}_{subcat_name}_{subcat}_{last_product}",
-                                     product_decsription="Test Description_" + str(last_product),
-                                     category_id=cat_id, sub_category_name=subcat_name, shop_id=shop.id)
-            products_records.append(product_record)
+            subcat_name = get_subcategory_name(cat_id, sub_cat_id)
+
+            Product.add_product(
+                price=1,
+                user_id=shop.owner_id,
+                product_name=f"{cat_labels[i]}_{sub_cat_id}_{subcat_name}_{last_product}",
+                product_decsription="Test Description_" + str(
+                    last_product),
+                category_id=cat_id, sub_category_id=sub_cat_id,
+            )
+            photo = FileStorage(
+                stream=BytesIO(b'file_mock'),
+                filename='example.jpg',
+                content_type='image/jpeg'
+            )
+            with patch("werkzeug.datastructures.file_storage.FileStorage.save"):
+                ProductPhoto.add_product_photo(user_id=shop.owner_id,
+                                               product_id=last_product,
+                                               photo=photo, main=True)
 
     # Bulk insert product records
-    db.session.bulk_save_objects(products_records)
     db.session.commit()
 
 
