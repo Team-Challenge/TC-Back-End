@@ -1193,11 +1193,6 @@
         "tags": [
           "Product"
         ],
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
         "parameters": [
           {
             "name": "product_id",

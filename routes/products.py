@@ -141,6 +141,8 @@ def get_product_info(product_id):
         return Response(response, mimetype="application/json", status=200)
     except NotFoundError as e:
         return jsonify({'error': str(e)}), 404
+    except ValidationError as e:
+        return jsonify(serialize_validation_error(e)), 500
     except Exception as e:
         logging.error(e)
         response = ServerResponse.INTERNAL_SERVER_ERROR
