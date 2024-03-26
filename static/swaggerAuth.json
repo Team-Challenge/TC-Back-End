@@ -29,6 +29,7 @@
             "content": {
               "application/json": {
                 "example": {
+                  "link": "http://api.example.com/accounts/verify/...",
                   "user": {
                     "id": 1,
                     "email": "user@example.com",
@@ -417,7 +418,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "profile_picture": "http://127.0.0.1:5000/static/media/profile/file_name.jpg"
+                  "profile_picture": "https://api.dorechi.store/static/media/profile/file_name.jpg"
                 }
               }
             }
@@ -705,6 +706,66 @@
             "$ref": "#/components/responses/BadRequest"
           }
         }
+      },
+      "patch": {
+        "summary": "Remove product photo",
+        "tags": [
+          "Product"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "description": "ID of the product to update",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Remove product photo",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "example": {
+                  "product_photo_id": 0
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Photo successfully removed",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Photo successfully removed"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product photo not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Product photo not found"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
       }
     },
     "/orders/nova_post": {
@@ -929,7 +990,7 @@
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Password changed successfully"
+                  "message": "OK"
                 }
               }
             }
@@ -971,41 +1032,6 @@
         }
       }
     },
-    "/accounts/authorize": {
-      "post": {
-        "summary": "Authorization using Google Auth code",
-        "tags": [
-          "Accounts"
-        ],
-        "requestBody": {
-          "description": "Google Auth Authorization",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GoogleAuthSchema"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Password changed successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "access_token": "your_access_token",
-                  "refresh_token": "your_refresh_token"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Wrong id_token. Make sure that token is not expired"
-          }
-        }
-      }
-    },
     "/products/shop_products": {
       "get": {
         "summary": "Get Shop Products Information",
@@ -1024,6 +1050,43 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProductInfoResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ShopNotFound"
+          }
+        }
+      }
+    },
+    "/shops/shop_info/{shop_id}": {
+      "get": {
+        "summary": "Get Shop Products Information By Shop ID",
+        "tags": [
+          "Shop"
+        ],
+        "parameters": [
+          {
+            "name": "shop_id",
+            "in": "path",
+            "description": "ID of the shop to get",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop products information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopInfoResponse"
                 }
               }
             }
@@ -1629,12 +1692,14 @@
           "photo_shop": {
             "type": "string",
             "format": "uri",
-            "description": "URL to the shop"
+            "description": "URL to the shop",
+            "example": "https://api.example.com/...png"
           },
           "banner_shop": {
             "type": "string",
             "format": "uri",
-            "description": "URL to the shop"
+            "description": "URL to the shop",
+            "example": "https://api.example.com/...png"
           },
           "phone_number": {
             "type": "string"
@@ -1655,130 +1720,208 @@
           }
         }
       },
+      "ShopInfoResponse": {
+        "type": "object",
+        "properties": {
+          "shop": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 1
+              },
+              "owner_id": {
+                "type": "integer",
+                "example": 1
+              },
+              "name": {
+                "type": "string",
+                "example": "string"
+              },
+              "description": {
+                "type": "string",
+                "example": "string"
+              },
+              "photo_shop": {
+                "type": "string",
+                "format": "uri",
+                "example": "https://api.dorechi.store/static/media/shops/filename.png"
+              },
+              "banner_shop": {
+                "type": "string",
+                "format": "uri",
+                "example": "https://api.dorechi.store/static/media/banner_shops/filename.png"
+              },
+              "phone_number": {
+                "type": "string",
+                "example": "+380002090000"
+              },
+              "link": {
+                "type": "string",
+                "example": "string"
+              }
+            }
+          },
+          "products": {
+            "type": "object",
+            "properties": {
+              "has_previous": {
+                "type": "boolean",
+                "example": false
+              },
+              "has_next": {
+                "type": "boolean",
+                "example": false
+              },
+              "total_pages": {
+                "type": "integer",
+                "example": 0
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "product_name": {
+                      "type": "string",
+                      "example": "string"
+                    },
+                    "price": {
+                      "type": "number",
+                      "format": "double",
+                      "example": 0.0
+                    },
+                    "product_status": {
+                      "type": "string",
+                      "example": "В наявності"
+                    },
+                    "is_unique": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "photo": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "product_photo": {
+                          "type": "string",
+                          "format": "uri",
+                          "example": "https://api.dorechi.store/static/media/products/filename.png"
+                        },
+                        "timestamp": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2024-03-25T23:41:45.947225"
+                        },
+                        "main": {
+                          "type": "boolean",
+                          "example": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "ProductInfoResponse": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer"
+          "has_previous": {
+            "type": "boolean",
+            "example": false
           },
-          "category_id": {
-            "type": "integer"
+          "has_next": {
+            "type": "boolean",
+            "example": false
           },
-          "delivery_post": {
-            "type": "object",
-            "properties": {
-              "nova_post": {
-                "type": "boolean"
-              },
-              "ukr_post": {
-                "type": "boolean"
-              }
-            }
+          "total_pages": {
+            "type": "integer",
+            "example": 0
           },
-          "is_active": {
-            "type": "boolean"
-          },
-          "is_return": {
-            "type": "boolean"
-          },
-          "is_unique": {
-            "type": "boolean"
-          },
-          "method_of_payment": {
-            "type": "object",
-            "properties": {
-              "cardPayment": {
-                "type": "boolean"
-              },
-              "cashPayment": {
-                "type": "boolean"
-              },
-              "securePayment": {
-                "type": "boolean"
-              }
-            }
-          },
-          "photos": {
+          "data": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "integer"
+                  "type": "integer",
+                  "example": 1
                 },
-                "main": {
-                  "type": "boolean"
-                },
-                "product_photo": {
+                "product_name": {
                   "type": "string",
-                  "format": "uri"
+                  "example": "string"
                 },
-                "timestamp": {
+                "price": {
+                  "type": "number",
+                  "format": "double",
+                  "example": 0.0
+                },
+                "product_status": {
                   "type": "string",
-                  "format": "date-time"
+                  "example": "В наявності"
+                },
+                "is_unique": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "photo": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "product_photo": {
+                      "type": "string",
+                      "format": "uri",
+                      "example": "https://api.dorechi.store/static/media/products/filename.png"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-03-25T23:41:45.947225"
+                    },
+                    "main": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
                 }
               }
             }
-          },
-          "price": {
-            "type": "number"
-          },
-          "product_characteristic": {
-            "type": "object",
-            "properties": {
-              "виготовлений": {
-                "type": "string"
-              },
-              "матеріал": {
-                "type": "string"
-              },
-              "розмір": {
-                "type": "string"
-              }
-            }
-          },
-          "product_description": {
-            "type": "string"
-          },
-          "product_name": {
-            "type": "string"
-          },
-          "product_status": {
-            "type": "string"
-          },
-          "shop_id": {
-            "type": "integer"
-          },
-          "sub_category_id": {
-            "type": "integer"
-          },
-          "time_added": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "time_modifeid": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
       "UserInfoResponse": {
         "type": "object",
         "properties": {
-          "phone_number": {
-            "type": "string"
-          },
           "full_name": {
-            "type": "string"
+            "type": "string",
+            "example": "John Doe"
           },
           "email": {
             "type": "string",
             "format": "email"
           },
-          "profile_photo": {
+          "profile_picture": {
             "type": "string",
             "format": "uri",
-            "description": "URL to the user's profile photo"
+            "description": "URL to the user's profile photo",
+            "example": "https://api.example.com/...png"
+          },
+          "phone_number": {
+            "type": "string",
+            "example": "+380000000000"
           },
           "post": {
             "type": "string"
@@ -1800,17 +1943,6 @@
           }
         }
       },
-      "GoogleAuthSchema":  {
-        "type": "object",
-        "properties": {
-          "id_token": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id_token"
-        ]
-        },
       "ProductCreateSchema": {
         "type": "object",
         "properties": {

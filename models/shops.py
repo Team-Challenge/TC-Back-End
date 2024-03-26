@@ -1,6 +1,5 @@
 import os
 
-from flask import url_for
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import mapped_column, relationship
 
@@ -40,6 +39,10 @@ class Shop(db.Model):
     @classmethod
     def get_shop_by_owner_id(cls, owner_id):
         return cls.query.filter_by(owner_id=owner_id).first()
+
+    @classmethod
+    def get_shop_by_id(cls, shop_id: int):
+        return cls.query.get(shop_id)
 
     @classmethod
     def create_shop(cls, **data):
@@ -90,17 +93,5 @@ class Shop(db.Model):
         shop = cls.get_shop_by_owner_id(owner_id=user_id)
         if shop is not None:
             shop_info = serialize_pydantic_response_error(shop)
-            if shop_info.get("banner_shop") is not None:
-                banner_shop_path = url_for('static',
-                                           filename=f'media/'
-                                                    f'banner_shop/{shop_info["banner_shop"]}',
-                                           _external=True)
-                shop_info['banner_shop'] = banner_shop_path
-            if shop_info.get("photo_shop") is not None:
-                photo_shop_path = url_for('static',
-                                          filename=f'media/'
-                                                   f'shops/{shop_info["photo_shop"]}',
-                                          _external=True)
-                shop_info['photo_shop'] = photo_shop_path
             return shop_info
         raise NotFoundError('Shop not found')

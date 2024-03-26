@@ -2,7 +2,7 @@ import re
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from models.accounts import User
 
@@ -16,15 +16,17 @@ class SigninValid(BaseModel):
     email: str
     password: str
 
-    @validator('password')
+    @field_validator('password')
     @staticmethod
     def password_validator(value: str) -> str:
         regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
         if not re.match(regex, value):
-            raise ValueError('The password must contain at least one capital letter 8 characters')
+            raise ValueError(
+                'The password must contain at least one capital letter, '
+                'any one number and total 8 characters')
         return value
 
-    @validator('email')
+    @field_validator('email')
     @staticmethod
     def email_validator(value: str) -> str:
         regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
@@ -38,7 +40,7 @@ class SignupValid(SigninValid):
     email: str
     password: str
 
-    @validator('full_name')
+    @field_validator('full_name')
     @staticmethod
     def full_name_validator(value: str) -> str:
         regex = (
@@ -49,15 +51,17 @@ class SignupValid(SigninValid):
             raise ValueError('Invalid characters in the field full_name')
         return value
 
-    @validator('password')
+    @field_validator('password')
     @staticmethod
     def password_validator(value: str) -> str:
         regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
         if not re.match(regex, value):
-            raise ValueError('The password must contain at least one capital letter 8 characters')
+            raise ValueError(
+                'The password must contain at least one capital letter, '
+                'any one number and total 8 characters')
         return value
 
-    @validator('email')
+    @field_validator('email')
     @staticmethod
     def email_validator(value: str) -> str:
         regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
@@ -72,19 +76,20 @@ class SignupValid(SigninValid):
 class PhoneNumberValid(BaseModel):
     phone_number: str
 
-    @validator('phone_number')
+    @field_validator('phone_number')
     @staticmethod
     def phone_number_validation(value: str) -> str:
         regex = r'^\+380\d{9}$'
         if not re.match(regex, value):
-            raise ValueError('Invalid phone number format. Must start with +380 and have 9 digits.')
+            raise ValueError(
+                'Invalid phone number format. Must start with +380 and have 9 digits.')
         return value
 
 
 class FullNameValid(BaseModel):
     full_name: str
 
-    @validator('full_name')
+    @field_validator('full_name')
     @staticmethod
     def full_name_validator(value: str) -> str:
         regex = (
@@ -114,20 +119,26 @@ class UserSchema(BaseModel):
     profile_picture: Optional[str] = None
     phone_number: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserSignupReturnSchema(BaseModel):
+    link: Optional[str]
+    user: UserSchema
 
 
 class ChangePasswordSchema(BaseModel):
     current_password: str
     new_password: str
 
-    @validator('new_password')
+    @field_validator('new_password')
     @staticmethod
     def password_validator(value: str) -> str:
         regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$"
         if not re.match(regex, value):
-            raise ValueError('The password must contain at least one capital letter 8 characters')
+            raise ValueError(
+                'The password must contain at least one capital letter, '
+                'any one number and total 8 characters')
         return value
 
 
@@ -143,5 +154,4 @@ class UserInfoSchema(BaseModel):
     shop_id: Optional[int] = None
     have_a_shop: Optional[bool] = False
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

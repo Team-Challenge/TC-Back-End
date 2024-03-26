@@ -21,7 +21,7 @@ def serialize_pydantic_response_error(obj):
         return {}
     if hasattr(obj, '__dict__'):
         serialized_data = {key: value for key, value in obj.__dict__.items() if not
-        key.startswith('_')}
+                           key.startswith('_')}
         missing_attrs = set(obj.__dict__.keys()) - set(serialized_data.keys())
         for attr in missing_attrs:
             serialized_data[attr] = None
@@ -42,10 +42,12 @@ def serialize_product(**data):
                                                     ensure_ascii=False)
 
     if data.get('delivery_post') is not None:
-        data['delivery_post'] = json.dumps(data['delivery_post'], ensure_ascii=False)
+        data['delivery_post'] = json.dumps(
+            data['delivery_post'], ensure_ascii=False)
 
     if data.get('method_of_payment') is not None:
-        data['method_of_payment'] = json.dumps(data['method_of_payment'], ensure_ascii=False)
+        data['method_of_payment'] = json.dumps(
+            data['method_of_payment'], ensure_ascii=False)
     return data
 
 
@@ -56,7 +58,8 @@ def product_info_serialize(products):
 
     for product, product_detail, _product_photo in products:
         if product.id not in unique_product_ids:
-            photos = [photo.serialize() for photo in product_detail.product_to_photo]
+            photos = [photo.serialize()
+                      for photo in product_detail.product_to_photo]
 
             try:
                 product_characteristics = json.loads(
@@ -209,7 +212,8 @@ def load_and_save_image(image_field, photo: FileStorage, photo_path):
 
     file_type, file_extension = photo.content_type.split("/")
     if file_type != "image" or file_extension not in ('png', 'jpg', 'jpeg', 'webp'):
-        raise BadFileTypeError("Bad request. Does file have proper file format?")
+        raise BadFileTypeError(
+            "Bad request. Does file have proper file format?")
 
     file_name = uuid.uuid4().hex
     file_path = os.path.join(

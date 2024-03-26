@@ -1,7 +1,7 @@
 import logging
 
 from flask import (Blueprint, jsonify, make_response, request,
-                   url_for)
+                   url_for, Response)
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from models.accounts import User
 from models.errors import (serialize_validation_error, NotFoundError, FileTooLargeError,
                            BadFileTypeError)
+from models.products import get_all_shop_products_by_shop_id
 from models.shops import Shop
 from routes.responses import ServerResponse
 from validation.shops import ShopCreateValid, ShopSchema, ShopUpdateValid
@@ -131,10 +132,24 @@ def get_shop_info():
         return ServerResponse.USER_NOT_FOUND
     try:
         shop_info = Shop.get_shop_user_info(user.id)
-        response = ShopSchema(**shop_info)
-        return jsonify(response.model_dump()), 200
+        response = ShopSchema(**shop_info).model_dump_json(indent=4)
+        return Response(response, mimetype="application/json", status=200)
+
     except NotFoundError as e:
         return jsonify({"error": str(e)}), 404
+
+    except Exception as e:
+        logging.error(e)
+        return ServerResponse.INTERNAL_SERVER_ERROR
+
+
+@shops.route("/shop_info/<int:shop_id>", methods=["GET"])
+def get_specific_shop_products(shop_id):
+    try:
+        products = get_all_shop_products_by_shop_id(shop_id)
+        return Response(products.model_dump_json(indent=4), mimetype="application/json", status=200)
+    except NotFoundError:
+        return ServerResponse.SHOP_NOT_FOUND
     except Exception as e:
         logging.error(e)
         return ServerResponse.INTERNAL_SERVER_ERROR
