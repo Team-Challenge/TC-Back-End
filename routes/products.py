@@ -143,4 +143,6 @@ def get_product_info(product_id):
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         logging.error(e)
-        return ServerResponse.INTERNAL_SERVER_ERROR
+        response = ServerResponse.INTERNAL_SERVER_ERROR
+        response[0]["detail"] = str(e)
+        return response
