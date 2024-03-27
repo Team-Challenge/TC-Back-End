@@ -1,19 +1,20 @@
 import logging
 
-from flask import Blueprint, jsonify, request, Response
+from flask import Blueprint, Response, jsonify, request
 from flask_cors import CORS
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from pydantic import ValidationError
 
-from models.errors import (NotFoundError, UserError, serialize_validation_error, BadFileTypeError,
-                           ProductPhotoLimitError, FileTooLargeError)
-
-from models.products import Product, ProductPhoto, get_all_shop_products, get_product_info_by_id
+from models.errors import (BadFileTypeError, FileTooLargeError, NotFoundError,
+                           ProductPhotoLimitError, UserError,
+                           serialize_validation_error)
+from models.products import (Product, ProductPhoto, get_all_shop_products,
+                             get_product_info_by_id)
 from routes.responses import ServerResponse
-
 from utils.utils import serialize_product
-from validation.products import (CreateProductValid, UpdateProductValid, DetailProductInfoSchema,
-                                 PaginatedDetailProductSchema)
+from validation.products import (CreateProductValid, DetailProductInfoSchema,
+                                 PaginatedDetailProductSchema,
+                                 UpdateProductValid)
 
 products = Blueprint("products_route", __name__, url_prefix="/products")
 
@@ -104,7 +105,7 @@ def update_product(product_id):
         return ServerResponse.BAD_REQUEST
     data['product_id'] = product_id
     try:
-        validated_data = UpdateProductValid(**data).model_dump()
+        validated_data = UpdateProductValid(**data).model_dump(exclude_none=True)
         serialize_data = serialize_product(**validated_data)
     except ValidationError as e:
         return jsonify(serialize_validation_error(e)), 400
