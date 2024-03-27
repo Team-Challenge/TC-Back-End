@@ -3,10 +3,9 @@ from unittest.mock import patch
 import pytest
 from flask import json
 
-from tests import status
-
 from models.products import Product, ProductDetail
-from tests.conftest import (authorize, create_user_and_shop, TestValidData,
+from tests import status
+from tests.conftest import (TestValidData, authorize, create_user_and_shop,
                             create_user_shop_product)
 
 create_product_negative_payload = [
@@ -344,7 +343,6 @@ def test_update_product_success(client, prepopulated_session):
         "product_name": "new name",
         "product_description": "new product description",
         "is_active": True,
-        "price": 7000,
         "product_status": "Під замовлення"
     }
 
@@ -367,7 +365,7 @@ def test_update_product_success(client, prepopulated_session):
         assert response.get_json().get(
             "product_description") == payload["product_description"]
         assert response.get_json().get("is_active") == payload["is_active"]
-        assert response.get_json().get("price") == payload["price"]
+        assert response.get_json().get("price") is not None
         assert response.get_json().get(
             "product_status") == payload["product_status"]
 

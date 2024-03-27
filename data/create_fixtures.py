@@ -64,20 +64,19 @@ def create_fixture_t():
     user_records = []
     security_records = []
     # Process each user from users_fixture.json
-    if not last_record:
-        for user in users:
-            user_record = User(f"{last_record}_{user.get('email')}", user.get("full_name"))
-            security_record = Security(user_id=user_record.id,
-                                       password=generate_password_hash(user.get("password")))
+    for user in users:
+        user_record = User(f"{user.get('email')}", user.get("full_name"))
+        security_record = Security(user_id=user_record.id,
+                                   password=generate_password_hash(user.get("password")))
 
-            user_records.append(user_record)
-            last_record += 1
-            security_record.user_id = last_record
-            security_records.append(security_record)
+        user_records.append(user_record)
+        last_record += 1
+        security_record.user_id = last_record
+        security_records.append(security_record)
 
-        # Bulk insert user and security records
-        db.session.bulk_save_objects(user_records)
-        db.session.bulk_save_objects(security_records)
+    # Bulk insert user and security records
+    db.session.bulk_save_objects(user_records)
+    db.session.bulk_save_objects(security_records)
 
     # Check if all categories exist in the database
     query = db.session.query(Categories).filter(Categories.category_name.in_(cat_labels))
