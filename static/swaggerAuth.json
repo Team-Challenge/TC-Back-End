@@ -41,9 +41,6 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "description": "User with such email already exists"
           }
         }
       }
