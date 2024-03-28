@@ -24,7 +24,7 @@ def test_add_delivery_info_1(prepopulated_session):
 
     # Then
     assert result
-    assert result.get("message") == "Delivery address created successfully"
+    assert result[0].get("message") == "Delivery address created successfully"
 
     delivery_info: DeliveryUserInfo = DeliveryUserInfo.query.filter_by(owner_id=u.id).first()
     assert delivery_info.owner == u
@@ -60,7 +60,7 @@ def test_add_delivery_info_2(prepopulated_session):
                                                 address=new_address)
     # Then
     assert result
-    assert result.get("message") == "Delivery address updated successfully"
+    assert result[0].get("message") == "Delivery address updated successfully"
 
     delivery_info: DeliveryUserInfo = DeliveryUserInfo.query.filter_by(owner_id=u.id).first()
     assert delivery_info.post == new_post

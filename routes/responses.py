@@ -14,6 +14,8 @@ class ServerResponse:
     NO_FILE_PROVIDED = {'error': 'No file provided'}, 400
     # User responses:
     USER_NOT_FOUND = {"error": 'User not found'}, 404
+    PHONE_UPDATED = {"message": "Phone number updated successfully"}, 200
+    FULL_NAME_UPDATED = {"message": "Full name updated successfully"}, 200
 
     # Shop responses:
     SHOP_CREATED = {'message': 'Shop created successfully'}, 201

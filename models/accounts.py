@@ -262,10 +262,10 @@ class DeliveryUserInfo(db.Model):
                 new_delivery_address = cls(owner_id=user.id, **kwargs)
                 db.session.add(new_delivery_address)
                 db.session.commit()
-                return {'message': 'Delivery address created successfully'}
+                return {'message': 'Address created successfully'}, 201
 
             existing_delivery.update_delivery_info(**kwargs)
-            return {'message': 'Delivery address updated successfully'}
+            return {'message': 'Address updated successfully'}, 200
         raise NotFoundError('User not found')
 
     def update_delivery_info(self, **data):
