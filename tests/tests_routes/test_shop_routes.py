@@ -5,8 +5,8 @@ import pytest
 
 from models.shops import Shop
 from tests import status
-from tests.conftest import (authorize, TestValidData, create_user_shop_product,
-                            create_user_and_shop, create_test_user)
+from tests.conftest import (TestValidData, authorize, create_test_user,
+                            create_user_and_shop, create_user_shop_product)
 
 shop_routes = (
     {"route": "/shops/shop", "method": "POST"},
@@ -19,14 +19,24 @@ shop_routes = (
 )
 post_routes = (route for route in shop_routes if route["method"] == "POST")
 bad_shop_payloads = (
-    {"name": "",
-     "description": "",
-     "phone_number": "",
-     "link": ""},
-    {"name": "ы",
-     "description": "ы",
-     "phone_number": "ы",
-     "link": ""}
+    {
+        "name": "",
+        "description": "",
+        "phone_number": "",
+        "link": ""
+    },
+    {
+        "name": "ы",
+        "description": "ы",
+        "phone_number": "ы",
+        "link": ""
+    },
+    {
+        "name": "Красаyuitor678ghfdscvbnjkgfdtyuitrfddghkjh",
+        "description": "",
+        "phone_number": "",
+        "link": "link"
+    }
 )
 
 
@@ -66,7 +76,7 @@ def test_create_update_shop_negative(client, session, payload, method):
                            headers=headers, content_type='application/json')
 
     # Then
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     json_data = response.get_json()["error"]
     keys = []  # noqa
     for key in json_data:
@@ -201,7 +211,7 @@ def test_delete_shop_banner_success(client, session):
 
     # Then
     assert response.status_code == status.HTTP_200_OK
-    assert response.get_json()["message"] == "OK"
+    assert response.get_json()["message"] == "Banner shop deleted successfully"
     found = Shop.query.filter_by(id=data.shop.id).first()
     assert found.banner_shop is None
 

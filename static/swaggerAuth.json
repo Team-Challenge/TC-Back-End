@@ -292,11 +292,21 @@
         },
         "responses": {
           "201": {
-            "description": "Shop created/updated successfully",
+            "description": "Shop created successfully",
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Shop created/updated successfully"
+                  "message": "Shop created successfully"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Shop updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Shop updated successfully"
                 }
               }
             }
@@ -482,7 +492,7 @@
         },
         "responses": {
           "200": {
-            "description": "Shop photo uploaded successfully",
+            "description": "OK",
             "content": {
               "application/json": {
                 "example": {
@@ -492,13 +502,16 @@
             }
           },
           "404": {
-            "$ref": "#/components/responses/ShopNotFound"
+            "$ref": "#/components/responses/PhotoShopNotFound"
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
           },
           "413": {
             "$ref": "#/components/responses/EntityTooLarge3"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidFormat"
           }
         }
       },
@@ -514,17 +527,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Shop photo deleted successfully",
+            "description": "Photo shop deleted successfully",
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Shop photo deleted successfully"
+                  "message": "Photo shop deleted successfully"
                 }
               }
             }
           },
           "404": {
-            "$ref": "#/components/responses/ShopNotFound"
+            "$ref": "#/components/responses/PhotoShopNotFound"
           }
         }
       },
@@ -540,7 +553,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Receive  url for shop photo",
+            "description": "OK",
             "content": {
               "application/json": {
                 "example": {
@@ -550,7 +563,7 @@
             }
           },
           "404": {
-            "$ref": "#/components/responses/ShopNotFound"
+            "$ref": "#/components/responses/PhotoShopNotFound"
           }
         }
       }
@@ -589,13 +602,16 @@
             }
           },
           "404": {
-            "$ref": "#/components/responses/ShopNotFound"
+            "$ref": "#/components/responses/BannerShopNotFound"
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
           },
           "413": {
             "$ref": "#/components/responses/EntityTooLarge5"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidFormat"
           }
         }
       },
@@ -611,17 +627,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Shop banner deleted successfully",
+            "description": "Banner shop deleted successfully",
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Shop banner deleted successfully"
+                  "message": "Banner shop deleted successfully"
                 }
               }
             }
           },
           "404": {
-            "$ref": "#/components/responses/ShopNotFound"
+            "$ref": "#/components/responses/BannerShopNotFound"
           }
         }
       },
@@ -637,7 +653,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Receive absolute url for shop banner",
+            "description": "OK",
             "content": {
               "application/json": {
                 "example": {
@@ -647,7 +663,7 @@
             }
           },
           "404": {
-            "$ref": "#/components/responses/ShopNotFound"
+            "$ref": "#/components/responses/BannerShopNotFound"
           }
         }
       }
@@ -1319,6 +1335,22 @@
           }
         }
       },
+      "InvalidFormat": {
+        "description": "Invalid file format",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bad request. Does file have proper file format?"
+                }
+              }
+            }
+          }
+        }
+      },
       "ShopNotFound": {
         "description": "Shop not found",
         "content": {
@@ -1345,6 +1377,38 @@
                 "error": {
                   "type": "string",
                   "example": "User not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PhotoShopNotFound": {
+        "description": "Photo shop not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Photo shop not found"
+                }
+              }
+            }
+          }
+        }
+      },
+      "BannerShopNotFound": {
+        "description": "Banner shop not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Banner shop not found"
                 }
               }
             }

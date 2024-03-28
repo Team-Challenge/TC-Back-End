@@ -18,6 +18,8 @@ class ServerResponse:
     # Shop responses:
     SHOP_CREATED = {'message': 'Shop created successfully'}, 201
     SHOP_UPDATED = {'message': 'Shop updated successfully'}, 200
+    PHOTO_SHOP_DELETED = {'message': 'Photo shop deleted successfully'}, 200
+    BANNER_SHOP_DELETED = {'message': 'Banner shop deleted successfully'}, 200
     PRODUCT_DEACTIVATED = {"message": "Product deactivated"}, 200
     BANNER_NOT_FOUND = {"error": "Banner shop not found"}, 404
     SHOP_NOT_FOUND = {'error': 'Shop not found'}, 404
