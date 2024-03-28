@@ -339,6 +339,16 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Address updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Address updated successfully"
+                }
+              }
+            }
+          },
           "201": {
             "description": "Address created successfully",
             "content": {

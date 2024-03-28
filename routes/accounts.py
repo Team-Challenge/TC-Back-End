@@ -177,7 +177,7 @@ def change_phone_number():
     try:
         user_id = get_jwt_identity()
         User.change_number(user_id, user_data.phone_number)
-        return ServerResponse.OK
+        return ServerResponse.PHONE_UPDATED
     except UserError as e:
         return jsonify({"error": str(e)}), 400
     except NotFoundError as e:
@@ -200,7 +200,7 @@ def change_full_name():
     try:
         user_id = get_jwt_identity()
         User.change_full_name(user_id=user_id, full_name=user_data.full_name)
-        return ServerResponse.OK
+        return ServerResponse.FULL_NAME_UPDATED
     except UserError as e:
         return jsonify({"error": str(e)}), 400
     except NotFoundError as e:
@@ -300,9 +300,9 @@ def manage_delivery_info():
                 delivery_data = DeliveryPostValid(**request_data).model_dump()
             except ValidationError as e:
                 return jsonify(serialize_validation_error(e)), 400
-            DeliveryUserInfo.add_delivery_info(
+            response = DeliveryUserInfo.add_delivery_info(
                 user_id=user_id, **delivery_data)
-            return ServerResponse.OK
+            return response
 
         if request.method == "DELETE":
             DeliveryUserInfo.remove_delivery_info(user_id=user_id)

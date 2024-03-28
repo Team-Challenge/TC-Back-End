@@ -330,7 +330,7 @@ def test_change_phone_number_successful(client, session):
 
     # Then
     assert response.status_code == status.HTTP_200_OK
-    assert response.get_json().get('message') == "OK"
+    assert response.get_json().get('message') == "Phone number updated successfully"
 
 
 def test_change_phone_number_fail_1(client, session):
@@ -384,7 +384,7 @@ def test_change_full_name_successful(client, session):
 
     # Then
     assert response.status_code == status.HTTP_200_OK
-    assert response.get_json().get('message') == "OK"
+    assert response.get_json().get('message') == "Full name updated successfully"
 
 
 def test_change_full_name_fail_1(client, session):
@@ -515,7 +515,7 @@ def test_manage_delivery_info_success(client, session):
                            content_type='application/json', headers=headers)
 
     # Before then
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_201_CREATED
     user = client.get("/accounts/info", headers=headers)
     data: dict = user.get_json()
     assert data.get("address") == delivery_request['address']
