@@ -76,7 +76,7 @@ def test_create_update_shop_negative(client, session, payload, method):
                            headers=headers, content_type='application/json')
 
     # Then
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     json_data = response.get_json()["error"]
     keys = []  # noqa
     for key in json_data:
@@ -211,7 +211,7 @@ def test_delete_shop_banner_success(client, session):
 
     # Then
     assert response.status_code == status.HTTP_200_OK
-    assert response.get_json()["message"] == "OK"
+    assert response.get_json()["message"] == "Banner shop deleted successfully"
     found = Shop.query.filter_by(id=data.shop.id).first()
     assert found.banner_shop is None
 
