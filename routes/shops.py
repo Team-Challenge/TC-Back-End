@@ -1,14 +1,13 @@
 import logging
 
-from flask import (Blueprint, jsonify, make_response, request,
-                   url_for, Response)
+from flask import Blueprint, Response, jsonify, make_response, request, url_for
 from flask_cors import CORS
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from pydantic import ValidationError
 
 from models.accounts import User
-from models.errors import (serialize_validation_error, NotFoundError, FileTooLargeError,
-                           BadFileTypeError)
+from models.errors import (BadFileTypeError, FileTooLargeError, NotFoundError,
+                           serialize_validation_error)
 from models.products import get_all_shop_products_by_shop_id
 from models.shops import Shop
 from routes.responses import ServerResponse
@@ -34,14 +33,14 @@ def create_shops():
         try:
             update_shop_data = ShopUpdateValid(**data).model_dump()
         except ValidationError as e:
-            return jsonify(serialize_validation_error(e)), 400
+            return jsonify(serialize_validation_error(e)), 422
         existing_shop.update_shop_details(**update_shop_data)
         return ServerResponse.SHOP_UPDATED
     if not existing_shop or existing_shop is None:
         try:
             create_shop_data = ShopCreateValid(**data).model_dump()
         except ValidationError as e:
-            return jsonify(serialize_validation_error(e)), 400
+            return jsonify(serialize_validation_error(e)), 422
         Shop.create_shop(**create_shop_data)
         return ServerResponse.SHOP_CREATED
     return ServerResponse.USER_NOT_FOUND
@@ -77,7 +76,7 @@ def shop_photo():
     if request.method == 'DELETE':
         if shop.photo_shop is not None:
             shop.remove_photo()
-            return ServerResponse.OK
+            return ServerResponse.PHOTO_SHOP_DELETED
         return ServerResponse.PHOTO_SHOP_NOT_FOUND
 
     return ServerResponse.INTERNAL_SERVER_ERROR
@@ -118,7 +117,7 @@ def shop_banner():
     if request.method == 'DELETE':
         if shop.banner_shop is not None:
             shop.remove_banner()
-            return ServerResponse.OK
+            return ServerResponse.BANNER_SHOP_DELETED
         return ServerResponse.BANNER_NOT_FOUND
 
     return ServerResponse.INTERNAL_SERVER_ERROR

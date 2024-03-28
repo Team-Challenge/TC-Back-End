@@ -30,6 +30,8 @@ class ShopCreateValid(BaseModel):
     @staticmethod
     def shop_name_validator(value: str) -> str:
         if value is not None:
+            if len(value) > 30:
+                raise ValueError('Invalid shop name format')
             regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії0-9'.,;\- ]+$"
             if not re.match(regex, value) or len(value) > 50:
                 raise ValueError('Invalid shop name format')
@@ -70,6 +72,8 @@ class ShopUpdateValid(BaseModel):
     def shop_name_validator(value: str, values: ValidationInfo) -> str:
         owner_id = values.data.get('owner_id')
         if value is not None:
+            if len(value) > 30:
+                raise ValueError('Invalid shop name format')
             regex = r"^[A-Za-zА-ЩЬЮЯҐЄІЇа-щьюяґєії0-9'.,;\- ]+$"
             if not re.match(regex, value) or len(value) > 50:
                 raise ValueError('Invalid shop name format')
